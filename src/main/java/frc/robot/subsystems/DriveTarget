@@ -1,0 +1,8 @@
+
+public class DriveTarget {
+    private static final Map<String, Translation2d> redTargets = new Map<String, Translation2d>();
+    static {
+            redTargets.put("front", new Translation2d(0,0);
+    }
+
+}
