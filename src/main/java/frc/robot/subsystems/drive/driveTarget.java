@@ -19,24 +19,29 @@ import java.util.HashMap;
 public class DriveTarget {
 
   private static final Translation2d blueReefCenter = new Translation2d(4.489, 4.026);
+  private static final Translation2d blueReefCenter = new Translation2d(13.059, 4.026);
 
   // Pose Keys are driver reletive but pose positions are field reletive
-  private static final HashMap<Integer, HashMap<String, Pose2d>> blueTargets =
+  private static final HashMap<Integer, HashMap<String, Pose2d>> blueReefTargets =
       new HashMap<Integer, HashMap<String, Pose2d>>();
-
   static {
-    blueTargets.put(0, getScoreingLocations(blueReefCenter, 60, true));
-    blueTargets.put(1, getScoreingLocations(blueReefCenter, 0, true));
-    blueTargets.put(2, getScoreingLocations(blueReefCenter, -60, true));
-    blueTargets.put(3, getScoreingLocations(blueReefCenter, -120, false));
-    blueTargets.put(4, getScoreingLocations(blueReefCenter, 180, false));
-    blueTargets.put(5, getScoreingLocations(blueReefCenter, 120, false));
+    blueReefTargets.put(0, getScoreingLocations(blueReefCenter, 60, true));
+    blueReefTargets.put(1, getScoreingLocations(blueReefCenter, 0, true));
+    blueReefTargets.put(2, getScoreingLocations(blueReefCenter, -60, true));
+    blueReefTargets.put(3, getScoreingLocations(blueReefCenter, -120, false));
+    blueReefTargets.put(4, getScoreingLocations(blueReefCenter, 180, false));
+    blueReefTargets.put(5, getScoreingLocations(blueReefCenter, 120, false));
   }
 
-  private static final HashMap<Integer, HashMap<String, Pose2d>> redTargets =
+  private static final HashMap<Integer, HashMap<String, Pose2d>> redReefTargets =
       new HashMap<Integer, HashMap<String, Pose2d>>();
-
   static {
+    redReefTargets.put(0, getScoreingLocations(redReefCenter, -120, true);
+    redReefTargets.put(1, getScoreingLocations(redReefCenter, 180, true);
+    redReefTargets.put(2, getScoreingLocations(redReefCenter, 120, true);
+    redReefTargets.put(3, getScoreingLocations(redReefCenter, 60, false);
+    redReefTargets.put(4, getScoreingLocations(redReefCenter, 0, false);
+    redReefTargets.put(5, getScoreingLocations(redReefCenter, -60, false);
   }
 
   public static AprilTagFieldLayout aprilTagLayout =
@@ -60,9 +65,18 @@ public class DriveTarget {
 
   public static Pose2d[] getBluePoseArray(Integer index) {
     Pose2d[] array = {
-      blueTargets.get(index).get("middle"),
-      blueTargets.get(index).get("left"),
-      blueTargets.get(index).get("right")
+      blueReefTargets.get(index).get("middle"),
+      blueReefTargets.get(index).get("left"),
+      blueReefTargets.get(index).get("right")
+    };
+    return array;
+  }
+
+  public static Pose2d[] getRedPoseArray(Integer index) {
+    Pose2d[] array = {
+      redReefTargets.get(index).get("middle"),
+      redReefTargets.get(index).get("left"),
+      redReefTargets.get(index).get("right")
     };
     return array;
   }
@@ -92,7 +106,7 @@ public class DriveTarget {
       }
     }
     if (isBlue) {
-      return blueTargets.get(closestIndex);
+      return blueReefTargets.get(closestIndex);
     } else {
       return redTargets.get(closestIndex);
     }
