@@ -226,7 +226,7 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
   }
 
-  public Supplier<Command> getLeftCoralScoringCommand() {
+  public Supplier<Command> getLeftCoralDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
             AutoBuilder.pathfindToPose(
@@ -237,7 +237,7 @@ public class Drive extends SubsystemBase {
     return pathfindingCommand;
   }
 
-  public Supplier<Command> getRightCoralScoringCommand() {
+  public Supplier<Command> getRightCoralDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
             AutoBuilder.pathfindToPose(
@@ -248,7 +248,7 @@ public class Drive extends SubsystemBase {
     return pathfindingCommand;
   }
 
-  public Supplier<Command> getMiddleCoralScoringCommand() {
+  public Supplier<Command> getMiddleCoralDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
             AutoBuilder.pathfindToPose(
@@ -256,6 +256,16 @@ public class Drive extends SubsystemBase {
                 teleopPathConstraints,
                 0.0 // Goal end velocity in meters/sec
                 );
+    return pathfindingCommand;
+  }
+
+  public Supplier<Command> getProccesorScoreCommand() {
+    Supplier<Command> pathfindingCommand = () ->
+      Autobuilder.pathfindToPose(
+        DriveTarget.getTargetReefPose(getPose(), "middle"),
+        teleopPathConstraints,
+        0.0
+        );
     return pathfindingCommand;
   }
 
