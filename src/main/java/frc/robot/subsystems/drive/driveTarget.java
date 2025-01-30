@@ -165,7 +165,7 @@ public class DriveTarget {
       return redProcessorPose;
     }
 
-	public static Pose2d getSourcePose(Pose2d currentPose) {
+public static Pose2d getSourcePose(Pose2d currentPose) {
 		if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
 			if (squaredDistance(currentPose, blueSourcePoses[0]) < squaredDistance(currentPose, blueSourcePoses[1])) {
 				return blueSourcePoses[0];
@@ -177,6 +177,7 @@ public class DriveTarget {
 					return redSourcePoses[0];
 				} else {
 					return redSourcePoses[1];
-			}
+				}
+		}
 	}
 }
