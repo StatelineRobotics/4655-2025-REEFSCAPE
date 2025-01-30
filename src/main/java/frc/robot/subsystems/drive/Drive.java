@@ -164,6 +164,7 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
     for (int i = 0; i <= 5; i++) {
       Logger.recordOutput("/blueTargets/" + i, DriveTarget.getBluePoseArray(i));
+      Logget.recordOutput("/redTargets/" + i, DriveTarget.getRedPoseArray(i));
     }
   }
 
