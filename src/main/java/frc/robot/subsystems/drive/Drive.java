@@ -259,7 +259,7 @@ public class Drive extends SubsystemBase {
     return pathfindingCommand;
   }
 
-  public Supplier<Command> getProccesorScoreCommand() {
+  public Supplier<Command> getProccesorDriveCommand() {
     Supplier<Command> pathfindingCommand = () ->
       Autobuilder.pathfindToPose(
         DriveTarget.getTargetReefPose(getPose(), "middle"),
