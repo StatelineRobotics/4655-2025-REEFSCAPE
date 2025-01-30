@@ -166,9 +166,10 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    controller.b().whileTrue(drive.defer(drive.getLeftCoralScoringCommand()));
-    controller.x().whileTrue(drive.defer(drive.getRightCoralScoringCommand()));
-    controller.a().whileTrue(drive.defer(drive.getMiddleCoralScoringCommand()));
+    controller.b().whileTrue(drive.defer(drive.getLeftCoralDriveCommand()));
+    controller.x().whileTrue(drive.defer(drive.getRightCoralDriveCommand()));
+    controller.a().whileTrue(drive.defer(drive.getMiddleCoralDriveCommand()));
+    //Controller.a().whileTrue(drive.defer(drive.getProccesorDrivecommand()));
   }
 
   /**
