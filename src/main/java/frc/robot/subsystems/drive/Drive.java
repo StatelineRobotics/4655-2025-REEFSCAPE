@@ -54,6 +54,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -224,14 +225,36 @@ public class Drive extends SubsystemBase {
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
   }
 
-  public Command driveToCoralScoring(Pose2d currentPose, String offset) {
-    Command pathfindingCommand =
-        AutoBuilder.pathfindToPose(
-            DriveTarget.getTargetReefPose(getPose(), offset),
-            teleopPathConstraints,
-            0.0 // Goal end velocity in meters/sec
-            );
+  public Supplier<Command> getLeftCoralScoringCommand() {
+    Supplier<Command> pathfindingCommand =
+        () ->
+            AutoBuilder.pathfindToPose(
+                DriveTarget.getTargetReefPose(getPose(), "left"),
+                teleopPathConstraints,
+                0.0 // Goal end velocity in meters/sec
+                );
+    return pathfindingCommand;
+  }
 
+  public Supplier<Command> getRightCoralScoringCommand() {
+    Supplier<Command> pathfindingCommand =
+        () ->
+            AutoBuilder.pathfindToPose(
+                DriveTarget.getTargetReefPose(getPose(), "right"),
+                teleopPathConstraints,
+                0.0 // Goal end velocity in meters/sec
+                );
+    return pathfindingCommand;
+  }
+
+  public Supplier<Command> getMiddleCoralScoringCommand() {
+    Supplier<Command> pathfindingCommand =
+        () ->
+            AutoBuilder.pathfindToPose(
+                DriveTarget.getTargetReefPose(getPose(), "middle"),
+                teleopPathConstraints,
+                0.0 // Goal end velocity in meters/sec
+                );
     return pathfindingCommand;
   }
 
