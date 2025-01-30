@@ -32,6 +32,7 @@ public class DriveTarget {
     blueReefTargets.put(4, getScoreingLocations(blueReefCenter, 180, false));
     blueReefTargets.put(5, getScoreingLocations(blueReefCenter, 120, false));
   }
+  private static final Pose2d blueProcessorPose = new Pose2d(5.987, 0.451, Rotation2d.fromDegrees(-90));
 
   private static final HashMap<Integer, HashMap<String, Pose2d>> redReefTargets =
       new HashMap<Integer, HashMap<String, Pose2d>>();
@@ -43,6 +44,7 @@ public class DriveTarget {
     redReefTargets.put(4, getScoreingLocations(redReefCenter, 0, false);
     redReefTargets.put(5, getScoreingLocations(redReefCenter, -60, false);
   }
+  private static final Pose2d redProcessorPose = new Pose2d(11.561, 7.601, Rotation2d.fromDegrees(90)); 
 
   public static AprilTagFieldLayout aprilTagLayout =
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
@@ -147,4 +149,11 @@ public class DriveTarget {
     positions.put("right", new Pose2d(right, Rotation2d.fromDegrees(angle)));
     return positions;
   }
+
+  public static Pose2d getProcesseorPose() {
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      return blueProcessorPose;
+    } else {
+      return redProcessorPose;
+    }
 }
