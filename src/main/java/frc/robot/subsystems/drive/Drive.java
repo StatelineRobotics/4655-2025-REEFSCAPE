@@ -164,7 +164,7 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
     for (int i = 0; i <= 5; i++) {
       Logger.recordOutput("/blueTargets/" + i, DriveTarget.getBluePoseArray(i));
-      Logget.recordOutput("/redTargets/" + i, DriveTarget.getRedPoseArray(i));
+      Logger.recordOutput("/redTargets/" + i, DriveTarget.getRedPoseArray(i));
     }
   }
 
@@ -260,13 +260,18 @@ public class Drive extends SubsystemBase {
   }
 
   public Supplier<Command> getProccesorDriveCommand() {
-    Supplier<Command> pathfindingCommand = () ->
-      Autobuilder.pathfindToPose(
-        DriveTarget.getTargetReefPose(getPose(), "middle"),
-        teleopPathConstraints,
-        0.0
-        );
+    Supplier<Command> pathfindingCommand =
+        () ->
+            AutoBuilder.pathfindToPose(DriveTarget.getProcesseorPose(), teleopPathConstraints, 0.0);
     return pathfindingCommand;
+  }
+
+  public Supplier<Command> getSourceDriveCommand() {
+    Supplier<Command> pathfindingCommmand =
+        () ->
+            AutoBuilder.pathfindToPose(
+                DriveTarget.getSourcePose(getPose()), teleopPathConstraints, 0.0);
+    return pathfindingCommmand;
   }
 
   /**
