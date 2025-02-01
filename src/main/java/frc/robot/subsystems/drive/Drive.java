@@ -164,7 +164,6 @@ public class Drive extends SubsystemBase {
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
     for (int i = 0; i <= 5; i++) {
       Logger.recordOutput("/blueTargets/" + i, DriveTarget.getBluePoseArray(i));
-      Logger.recordOutput("/redTargets/" + i, DriveTarget.getRedPoseArray(i));
     }
   }
 
@@ -229,48 +228,40 @@ public class Drive extends SubsystemBase {
   public Supplier<Command> getLeftCoralDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
-            AutoBuilder.pathfindToPose(
-                DriveTarget.getTargetReefPose(getPose(), "left"),
-                teleopPathConstraints,
-                0.0 // Goal end velocity in meters/sec
-                );
+            AutoBuilder.pathfindThenFollowPath(
+                DriveTarget.getTargetReefPath(getPose(), "left"), teleopPathConstraints);
     return pathfindingCommand;
   }
 
   public Supplier<Command> getRightCoralDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
-            AutoBuilder.pathfindToPose(
-                DriveTarget.getTargetReefPose(getPose(), "right"),
-                teleopPathConstraints,
-                0.0 // Goal end velocity in meters/sec
-                );
+            AutoBuilder.pathfindThenFollowPath(
+                DriveTarget.getTargetReefPath(getPose(), "right"), teleopPathConstraints);
     return pathfindingCommand;
   }
 
   public Supplier<Command> getMiddleCoralDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
-            AutoBuilder.pathfindToPose(
-                DriveTarget.getTargetReefPose(getPose(), "middle"),
-                teleopPathConstraints,
-                0.0 // Goal end velocity in meters/sec
-                );
+            AutoBuilder.pathfindThenFollowPath(
+                DriveTarget.getTargetReefPath(getPose(), "middle"), teleopPathConstraints);
     return pathfindingCommand;
   }
 
   public Supplier<Command> getProccesorDriveCommand() {
     Supplier<Command> pathfindingCommand =
         () ->
-            AutoBuilder.pathfindToPose(DriveTarget.getProcesseorPose(), teleopPathConstraints, 0.0);
+            AutoBuilder.pathfindThenFollowPath(
+                DriveTarget.getProcesseorPose(), teleopPathConstraints);
     return pathfindingCommand;
   }
 
   public Supplier<Command> getSourceDriveCommand() {
     Supplier<Command> pathfindingCommmand =
         () ->
-            AutoBuilder.pathfindToPose(
-                DriveTarget.getSourcePose(getPose()), teleopPathConstraints, 0.0);
+            AutoBuilder.pathfindThenFollowPath(
+                DriveTarget.getSourcePose(getPose()), teleopPathConstraints);
     return pathfindingCommmand;
   }
 
