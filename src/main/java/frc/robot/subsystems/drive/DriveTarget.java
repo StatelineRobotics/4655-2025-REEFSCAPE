@@ -4,10 +4,6 @@
 
 package frc.robot.subsystems.drive;
 
-import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.Waypoint;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -17,16 +13,13 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Class that returns the pose of the closest scoring position given current position and offset.
  */
 public class DriveTarget {
-  private static final PathConstraints constraints =
-      new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI); // The constraints for this path.
   private static final double reefOffset = 1.283;
-  private static final double startOffset = 0.75;
+  private static final double startOffset = 0.25;
 
   private static final Translation2d blueReefCenter = new Translation2d(4.489, 4.026);
 
@@ -66,19 +59,60 @@ public class DriveTarget {
   private static final Pose2d blueProcessorStartPose =
       blueProcessorEndPose.transformBy(new Transform2d(-0.5, 0.0, Rotation2d.kZero));
   private static final Pose2d[] blueSourceEndPoses = {
-    new Pose2d(1.111, 1.013, Rotation2d.fromDegrees(-126)),
-    new Pose2d(1.111, 7.038, Rotation2d.fromDegrees(126))
+    new Pose2d(1.111, 1.013, Rotation2d.fromDegrees(-126 + 180)),
+    new Pose2d(1.111, 7.038, Rotation2d.fromDegrees(126 - 180))
   };
 
   private static final Pose2d[] blueSourceStartPoses = {
-    new Pose2d(1.405, 1.418, Rotation2d.fromDegrees(126)),
-    new Pose2d(1.405, 6.634, Rotation2d.fromDegrees(-126))
+    new Pose2d(1.405, 1.418, Rotation2d.fromDegrees(-126 + 180)),
+    new Pose2d(1.405, 6.634, Rotation2d.fromDegrees(126 - 180))
   };
 
-  private static Pose2d[] redSourceEndPoses = {
+  private static final Translation2d redReefCenter = new Translation2d(13.059, 4.026);
+  private static final HashMap<Integer, HashMap<String, Pose2d>> redReefEndTargets =
+      new HashMap<Integer, HashMap<String, Pose2d>>();
+
+  static {
+    redReefEndTargets.put(0, getScoreingLocations(redReefCenter, reefOffset, -120, true));
+    redReefEndTargets.put(1, getScoreingLocations(redReefCenter, reefOffset, 180, true));
+    redReefEndTargets.put(2, getScoreingLocations(redReefCenter, reefOffset, 120, true));
+    redReefEndTargets.put(3, getScoreingLocations(redReefCenter, reefOffset, 60, false));
+    redReefEndTargets.put(4, getScoreingLocations(redReefCenter, reefOffset, 0, false));
+    redReefEndTargets.put(5, getScoreingLocations(redReefCenter, reefOffset, -60, false));
+  }
+
+  private static final HashMap<Integer, HashMap<String, Pose2d>> redReefStartTargets =
+      new HashMap<Integer, HashMap<String, Pose2d>>();
+
+  static {
+    redReefStartTargets.put(
+        0, getScoreingLocations(redReefCenter, startOffset + reefOffset, -120, true));
+    redReefStartTargets.put(
+        1, getScoreingLocations(redReefCenter, startOffset + reefOffset, 180, true));
+    redReefStartTargets.put(
+        2, getScoreingLocations(redReefCenter, startOffset + reefOffset, 120, true));
+    redReefStartTargets.put(
+        3, getScoreingLocations(redReefCenter, startOffset + reefOffset, 60, false));
+    redReefStartTargets.put(
+        4, getScoreingLocations(redReefCenter, startOffset + reefOffset, 0, false));
+    redReefStartTargets.put(
+        5, getScoreingLocations(redReefCenter, startOffset + reefOffset, -60, false));
+  }
+
+  private static final Pose2d[] redSourceEndPoses = {
     new Pose2d(16.437, 7.038, Rotation2d.fromDegrees(126)),
     new Pose2d(16.437, 1.013, Rotation2d.fromDegrees(-126))
   };
+
+  private static final Pose2d[] redSourceStartPoses = {
+    new Pose2d(16.143, 6.634, Rotation2d.fromDegrees(126)),
+    new Pose2d(16.143, 1.418, Rotation2d.fromDegrees(-126))
+  };
+
+  private static final Pose2d redProcessorEndPose =
+      new Pose2d(11.561, 7.601, Rotation2d.fromDegrees(90));
+  private static final Pose2d redProcessorStartPose =
+      redProcessorEndPose.transformBy(new Transform2d(0.5, 0.0, Rotation2d.kZero));
 
   public static AprilTagFieldLayout aprilTagLayout =
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
@@ -131,42 +165,25 @@ public class DriveTarget {
         closestDistance = distance;
       }
     }
-    Pose2d[] targets = {
-      blueReefStartTargets.get(closestIndex).get(offset),
-      blueReefEndTargets.get(closestIndex).get(offset)
-    };
-    return targets;
+    if (isBlue) {
+      Pose2d[] targets = {
+        blueReefStartTargets.get(closestIndex).get(offset),
+        blueReefEndTargets.get(closestIndex).get(offset)
+      };
+      return targets;
+    } else {
+      Pose2d[] targets = {
+        redReefStartTargets.get(closestIndex).get(offset),
+        redReefEndTargets.get(closestIndex).get(offset)
+      };
+      return targets;
+    }
   }
 
-  /**
-   * @param currentPose
-   * @param offset must be middle, right, or left
-   * @return closest reef scoring node matching the offset
-   */
-  public static PathPlannerPath getTargetReefPath(Pose2d currentPose, String offset) {
+  public static Pose2d[] getTargetReefPose(Pose2d currentPose, String offset) {
     boolean isBlue = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue;
     Pose2d[] poses = getClosestPath(currentPose, isBlue, offset);
-    List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(poses[0], poses[1]);
-    // PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // You can also use
-    // unlimited constraints, only limited by motor torque and nominal battery voltage
-
-    // Create the path using the waypoints created above
-    PathPlannerPath path =
-        new PathPlannerPath(
-            waypoints,
-            constraints,
-            null, // The ideal starting state, this is only relevant for pre-planned paths, so can
-            // be null for on-the-fly paths.
-            new GoalEndState(
-                0.0,
-                poses[1].getRotation()) // Goal end state. You can set a holonomic rotation here. If
-            // using a differential drivetrain, the rotation will have no
-            // effect.
-            );
-
-    // Prevent the path from being flipped if the coordinates are already correct
-    path.preventFlipping = false;
-    return path;
+    return poses;
   }
 
   public static HashMap<String, Pose2d> getScoreingLocations(
@@ -192,72 +209,35 @@ public class DriveTarget {
     return positions;
   }
 
-  public static PathPlannerPath getProcesseorPose() {
-    List<Waypoint> waypoints =
-        PathPlannerPath.waypointsFromPoses(blueProcessorStartPose, blueProcessorEndPose);
-    // PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // You can also use
-    // unlimited constraints, only limited by motor torque and nominal battery voltage
-
-    // Create the path using the waypoints created above
-    PathPlannerPath path =
-        new PathPlannerPath(
-            waypoints,
-            constraints,
-            null, // The ideal starting state, this is only relevant for pre-planned paths, so can
-            // be null for on-the-fly paths.
-            new GoalEndState(
-                0.0,
-                blueProcessorEndPose
-                    .getRotation()) // Goal end state. You can set a holonomic rotation here. If
-            // using a differential drivetrain, the rotation will have no
-            // effect.
-            );
-
-    // Prevent the path from being flipped if the coordinates are already correct
-    path.preventFlipping = false;
-    return path;
+  public static Pose2d[] getProcesseorPose() {
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      Pose2d[] poses = {blueProcessorStartPose, blueProcessorEndPose};
+      return poses;
+    } else {
+      Pose2d[] poses = {redProcessorStartPose, redProcessorEndPose};
+      return poses;
+    }
   }
 
-  public static PathPlannerPath getSourcePose(Pose2d currentPose) {
-    int index = 0;
+  public static Pose2d[] getSourcePose(Pose2d currentPose) {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
       if (getSquaredDistance(currentPose, blueSourceEndPoses[0])
           < getSquaredDistance(currentPose, blueSourceEndPoses[1])) {
-        index = 0;
+        Pose2d[] poses = {blueSourceStartPoses[0], blueSourceEndPoses[0]};
+        return poses;
       } else {
-        index = 1;
+        Pose2d[] poses = {blueSourceStartPoses[1], blueSourceEndPoses[1]};
+        return poses;
       }
     } else {
       if (getSquaredDistance(currentPose, redSourceEndPoses[0])
           < getSquaredDistance(currentPose, redSourceEndPoses[1])) {
-        index = 0;
+        Pose2d[] poses = {redSourceStartPoses[0], redSourceEndPoses[0]};
+        return poses;
       } else {
-        index = 1;
+        Pose2d[] poses = {redSourceStartPoses[1], redSourceEndPoses[1]};
+        return poses;
       }
     }
-
-    List<Waypoint> waypoints =
-        PathPlannerPath.waypointsFromPoses(blueSourceStartPoses[index], blueSourceEndPoses[index]);
-    // PathConstraints constraints = PathConstraints.unlimitedConstraints(12.0); // You can also use
-    // unlimited constraints, only limited by motor torque and nominal battery voltage
-
-    // Create the path using the waypoints created above
-    PathPlannerPath path =
-        new PathPlannerPath(
-            waypoints,
-            constraints,
-            null, // The ideal starting state, this is only relevant for pre-planned paths, so can
-            // be null for on-the-fly paths.
-            new GoalEndState(
-                0.0,
-                blueSourceEndPoses[index]
-                    .getRotation()) // Goal end state. You can set a holonomic rotation here. If
-            // using a differential drivetrain, the rotation will have no
-            // effect.
-            );
-
-    // Prevent the path from being flipped if the coordinates are already correct
-    path.preventFlipping = false;
-    return path;
   }
 }

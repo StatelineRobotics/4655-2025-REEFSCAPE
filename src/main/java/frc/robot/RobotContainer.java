@@ -169,18 +169,20 @@ public class RobotContainer {
     controller
         .rightTrigger()
         .and(controller.leftTrigger())
-        .whileTrue(drive.defer(drive.getMiddleCoralDriveCommand()));
+        .whileTrue(drive.getMiddleCoralDriveCommand());
     controller
         .leftTrigger()
         .and(controller.rightTrigger().negate())
-        .whileTrue(drive.defer(drive.getLeftCoralDriveCommand()));
+        .whileTrue(drive.getLeftCoralDriveCommand());
     controller
         .rightTrigger()
         .and(controller.leftTrigger().negate())
-        .whileTrue(drive.defer(drive.getRightCoralDriveCommand()));
-    controller.leftBumper().whileTrue(drive.defer(drive.getProccesorDriveCommand()));
-    controller.rightBumper().whileTrue(drive.defer(drive.getSourceDriveCommand()));
-    // Controller.a().whileTrue(drive.defer(drive.getProccesorDrivecommand()));
+        .whileTrue(drive.getRightCoralDriveCommand());
+    controller.leftBumper().whileTrue(drive.getProccesorDriveCommand());
+    controller.rightBumper().whileTrue(drive.getSourceDriveCommand());
+
+    controller.a().whileTrue(drive.getProccesorDriveCommand());
+    controller.x().whileTrue(drive.getSourceDriveCommand());
   }
 
   /**
