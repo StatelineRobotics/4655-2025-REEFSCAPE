@@ -21,6 +21,7 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -39,6 +40,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -48,10 +50,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -106,6 +111,9 @@ public class Drive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
+  private static final PathConstraints teleopPathConstraints =
+      new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
+
   public Drive(
       GyroIO gyroIO,
       ModuleIO flModuleIO,
@@ -156,6 +164,9 @@ public class Drive extends SubsystemBase {
                 (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
             new SysIdRoutine.Mechanism(
                 (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+    for (int i = 0; i <= 5; i++) {
+      Logger.recordOutput("/blueTargets/" + i, DriveTarget.getBluePoseArray(i));
+    }
   }
 
   @Override
@@ -208,13 +219,78 @@ public class Drive extends SubsystemBase {
         Twist2d twist = kinematics.toTwist2d(moduleDeltas);
         rawGyroRotation = rawGyroRotation.plus(new Rotation2d(twist.dtheta));
       }
-
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
     }
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+  }
+
+  public BooleanSupplier nearFinalTarget(Pose2d target, double threshold) {
+    return () -> {
+      double distance = target.getTranslation().getDistance(getPose().getTranslation());
+      if (distance < threshold) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+  }
+
+  public Command getLeftCoralDriveCommand() {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "left");
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
+    return defer(pathfindingCommand)
+        .until(nearFinalTarget(getPose(), .25))
+        .andThen(
+            defer(
+                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+  }
+
+  public Command getRightCoralDriveCommand() {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "right");
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
+    return defer(pathfindingCommand)
+        .until(nearFinalTarget(getPose(), .25))
+        .andThen(
+            defer(
+                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+  }
+
+  public Command getMiddleCoralDriveCommand() {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "middle");
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
+    return defer(pathfindingCommand)
+        .until(nearFinalTarget(getPose(), .25))
+        .andThen(
+            defer(
+                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+  }
+
+  public Command getProccesorDriveCommand() {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getProcesseorPose();
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
+    return defer(pathfindingCommand)
+        .until(nearFinalTarget(getPose(), .25))
+        .andThen(
+            defer(
+                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+  }
+
+  public Command getSourceDriveCommand() {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getSourcePose(getPose());
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
+    return defer(pathfindingCommand)
+        .until(nearFinalTarget(getPose(), .25))
+        .andThen(
+            defer(
+                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
   }
 
   /**
