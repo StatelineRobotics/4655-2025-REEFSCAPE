@@ -24,10 +24,17 @@ public class ClimberIOSparkMax implements ClimberIO{
     public ClimberIOSparkMax(){
         climberConfig.idleMode(IdleMode.kBrake);
         climberConfig.smartCurrentLimit(0);
+        funnelConfig = climberConfig;
+
         m_climber = new SparkMax(MechanismConstants.climberId, MotorType.kBrushless);
         m_climber.configure(climberConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+        m_funnel = new SparkMax(MechanismConstants.climberId, MotorType.kBrushless);
+        m_funnel.configure(climberConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
         climbEncoder = m_climber.getEncoder();
+
         climbController = m_climber.getClosedLoopController();
+        funnelController = m_funnel.getClosedLoopController();
     }
 
     @Override

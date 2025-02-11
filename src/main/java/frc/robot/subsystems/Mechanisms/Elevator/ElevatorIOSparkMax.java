@@ -16,12 +16,12 @@ import frc.robot.subsystems.Mechanisms.MechanismConstants;
 public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMax m_leftElevator;
   private SparkMax m_rightElevator;
-  private SparkClosedLoopController leftElevatorController;
-  private SparkClosedLoopController rightElevatorController;
+  private static SparkClosedLoopController leftElevatorController;
+  private static SparkClosedLoopController rightElevatorController;
   private RelativeEncoder rightEncoder;
   private RelativeEncoder leftEncoder;
   private SparkLimitSwitch limitSwitch;
-  private boolean zeroed;
+  private static boolean zeroed;
   private SparkBaseConfig mLeftConfig;
   private SparkBaseConfig mRightConfig;
 
@@ -60,7 +60,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     }
   }
 
-  public void setElevatorPosition(Double climberPosition) {
+  public static void setElevatorPosition(Double climberPosition) {
     if(zeroed){
     leftElevatorController.setReference(
         climberPosition, SparkBase.ControlType.kMAXMotionPositionControl);
