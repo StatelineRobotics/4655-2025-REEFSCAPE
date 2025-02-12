@@ -32,9 +32,9 @@ import frc.robot.subsystems.mechanisms.MechanismConstants;
 public class ElevatorIOSim implements ElevatorIO{
     ElevatorSim elevatorSim = new ElevatorSim(
         DCMotor.getNEO(2), 
-        25.0, 
+        ElevatorConstants.elevatorGearing, 
         6.80389,
-        (0.044704/2.0),
+        ElevatorConstatns.elevatorDrumRad,
         0.0,
         10.0, 
         true,
@@ -75,18 +75,13 @@ public class ElevatorIOSim implements ElevatorIO{
         mLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
-    private double velocityConversion(double ms) {
-        double rps = ms / (Math.PI * 0.044704) * 25;
-        return rps * 60;
-    }
-
     @Override
     public void updateInputs(ElevatorIOInputs inputs) {
         elevatorSim.setInputVoltage(m_leftElevator.getBusVoltage() * m_leftElevator.getAppliedOutput());
         elevatorSim.update(.02);
         
         motorSim.iterate(
-            velocityConversion(elevatorSim.getVelocityMetersPerSecond()), 
+            elevatorSim.getVelocityMetersPerSecond() * ElevatorConstants.conversion_MS_RPM, 
             12, 
             0.02);
         
