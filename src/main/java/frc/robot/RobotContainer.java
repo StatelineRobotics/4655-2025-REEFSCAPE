@@ -22,12 +22,18 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -38,6 +44,10 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 // import frc.robot.subsystems.Vision.VisionIO;
 // import frc.robot.subsystems.Vision.VisionIOPhotonVision;
 // import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.mechanisms.elevator.Elevator;
+import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
+import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
+import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSparkMax;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -50,8 +60,9 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Elevator elevator;
 
-//   private final Vision vision;
+  private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -71,11 +82,15 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOPhotonVision(camera0Name, robotToCamera0),
-        //         new VisionIOPhotonVision(camera1Name, robotToCamera1));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
+                new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+        elevator = 
+            new Elevator(
+                new ElevatorIOSparkMax()
+            );
         break;
 
       case SIM:
@@ -87,11 +102,15 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-        //         new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+        elevator = 
+            new Elevator(
+                new ElevatorIOSim()
+            );
         break;
 
       default:
@@ -103,7 +122,11 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        // vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        elevator = 
+            new Elevator(
+                new ElevatorIO() {}
+        );
         break;
     }
 
@@ -138,54 +161,63 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+//     drive.setDefaultCommand(
+//         DriveCommands.joystickDrive(
+//             drive,
+//             () -> -controller.getLeftY(),
+//             () -> -controller.getLeftX(),
+//             () -> -controller.getRightX()));
 
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+//     // Lock to 0° when A button is held
+//     controller
+//         .a()
+//         .whileTrue(
+//             DriveCommands.joystickDriveAtAngle(
+//                 drive,
+//                 () -> -controller.getLeftY(),
+//                 () -> -controller.getLeftX(),
+//                 () -> new Rotation2d()));
 
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+//     // Switch to X pattern when X button is pressed
+//     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
-    controller
-        .y()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
+//     // Reset gyro to 0° when B button is pressed
+//     controller
+//         .y()
+//         .onTrue(
+//             Commands.runOnce(
+//                     () ->
+//                         drive.setPose(
+//                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+//                     drive)
+//                 .ignoringDisable(true));
 
-    // Auto aim command example
-    @SuppressWarnings("resource")
-    PIDController aimController = new PIDController(0.2, 0.0, 0.0);
-    aimController.enableContinuousInput(-Math.PI, Math.PI);
-    controller
-        .b()
-        .whileTrue(
-            Commands.startRun(
-                () -> {
-                  aimController.reset();
-                },
-                () -> {
-                  // **drive.run(0.0, aimController.calculate
-                //   vision.getTargetX(0).getRadians();
-                },
-                drive));
+//     // Auto aim command example
+//     @SuppressWarnings("resource")
+//     PIDController aimController = new PIDController(0.2, 0.0, 0.0);
+//     aimController.enableContinuousInput(-Math.PI, Math.PI);
+//     controller
+//         .b()
+//         .whileTrue(
+//             Commands.startRun(
+//                 () -> {
+//                   aimController.reset();
+//                 },
+//                 () -> {
+//                   // **drive.run(0.0, aimController.calculate
+//                 //   vision.getTargetX(0).getRadians();
+//                 },
+//                 drive));
 
+    controller.a().whileTrue(elevator.manualRunCommand(() -> controller.getLeftX()))
+                    .onFalse(elevator.stopCommand());
+
+   }
+
+
+  public void logSubsystems() {
+    SmartDashboard.putData("drive", drive);
+    SmartDashboard.putData("elevator", elevator);
   }
 
   /**
