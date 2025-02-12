@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
+import com.revrobotics.spark.SparkBase;
+
 public class Wrist extends SubsystemBase {
   private WristIO io;
   private WristIOInputsAutoLogged inputs;
@@ -28,14 +30,15 @@ public class Wrist extends SubsystemBase {
   }
 
   private void stop() {
-    leftIntakeRPM = 0;
-    rightIntakeRPM = 0;
     io.stop();
   }
 
-  public void requestWristPOS(double POS, double RPM) {
+  public void requestWristPOS(double POS) {
+    wirstPos = POS;
+  }
+
+    public void requestIntake(double RPM){
     leftIntakeRPM = RPM;
     rightIntakeRPM = RPM;
-    wirstPos = POS;
   }
 }

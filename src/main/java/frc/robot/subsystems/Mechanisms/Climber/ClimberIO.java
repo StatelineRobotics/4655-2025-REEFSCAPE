@@ -7,10 +7,16 @@ public interface ClimberIO {
   @AutoLog
   class ClimberIOInputs {
 
-    public double ClimberPos = 0.0;
+    public double climberPOS = 0.0;
+    public double funnelPOS = 0.0;
+
   }
 
   default void updateInputs(ClimberIOInputs inputs) {}
+
+  default void setClimberPosition(){}
+  
+  default void setFunnelPosition(){}
 
   default void stop() {}
 }

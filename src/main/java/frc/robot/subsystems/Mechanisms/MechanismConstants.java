@@ -7,7 +7,10 @@ public class MechanismConstants {
   public static final int rightElevatorId = 0;
   public static final int leftIntakeId = 0;
   public static final int rightIntakeId = 0;
+  public static final int wristId = 0;
   public static final int climberId = 0;
+  public static final int funnelId = 0;
+  public static final int beltId = 0;
 
 
   // Elevator Constants

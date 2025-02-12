@@ -13,7 +13,7 @@
 
 package frc.robot;
 
-import static frc.robot.subsystems.Vision.VisionConstants.*;
+// import static frc.robot.subsystems.Vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 
@@ -34,10 +34,10 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.Vision.Vision;
-import frc.robot.subsystems.Vision.VisionIO;
-import frc.robot.subsystems.Vision.VisionIOPhotonVision;
-import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
+// import frc.robot.subsystems.Vision.Vision;
+// import frc.robot.subsystems.Vision.VisionIO;
+// import frc.robot.subsystems.Vision.VisionIOPhotonVision;
+// import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -51,7 +51,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
 
-  private final Vision vision;
+//   private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -71,11 +71,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(camera0Name, robotToCamera0),
-                new VisionIOPhotonVision(camera1Name, robotToCamera1));
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOPhotonVision(camera0Name, robotToCamera0),
+        //         new VisionIOPhotonVision(camera1Name, robotToCamera1));
         break;
 
       case SIM:
@@ -87,11 +87,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
+        //         new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
         break;
 
       default:
@@ -103,7 +103,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        // vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;
     }
 
@@ -182,7 +182,7 @@ public class RobotContainer {
                 },
                 () -> {
                   // **drive.run(0.0, aimController.calculate
-                  vision.getTargetX(0).getRadians();
+                //   vision.getTargetX(0).getRadians();
                 },
                 drive));
 

@@ -16,15 +16,14 @@ public class ClimberIOSparkMax implements ClimberIO{
     private SparkMax m_climber;
     private SparkMax m_funnel;
     private SparkBaseConfig climberConfig;
-    private SparkBaseConfig funnelConfig;
     private RelativeEncoder climbEncoder;
+    private RelativeEncoder funnelEncoder;
     private SparkClosedLoopController climbController;
     private SparkClosedLoopController funnelController;
 
     public ClimberIOSparkMax(){
         climberConfig.idleMode(IdleMode.kBrake);
         climberConfig.smartCurrentLimit(0);
-        funnelConfig = climberConfig;
 
         m_climber = new SparkMax(MechanismConstants.climberId, MotorType.kBrushless);
         m_climber.configure(climberConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
@@ -32,6 +31,7 @@ public class ClimberIOSparkMax implements ClimberIO{
         m_funnel.configure(climberConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
         climbEncoder = m_climber.getEncoder();
+        funnelEncoder = m_funnel.getEncoder();
 
         climbController = m_climber.getClosedLoopController();
         funnelController = m_funnel.getClosedLoopController();
@@ -39,15 +39,16 @@ public class ClimberIOSparkMax implements ClimberIO{
 
     @Override
     public void updateInputs(ClimberIOInputs inputs) {
-        inputs.ClimberPos = climbEncoder.getPosition();
+        inputs.climberPOS = climbEncoder.getPosition();
+        inputs.funnelPOS = funnelEncoder.getPosition();
     }
 
     public void setClimberPosition(double pos){
         climbController.setReference(pos, SparkBase.ControlType.kMAXMotionPositionControl);
     }
 
-    public void setFunnelPosition(){
-        funnelController.setReference(0, SparkBase.ControlType.kVoltage);
+    public void setFunnelPosition(double pos){
+        funnelController.setReference(pos, SparkBase.ControlType.kVoltage);
     }
 
     public void stop(){

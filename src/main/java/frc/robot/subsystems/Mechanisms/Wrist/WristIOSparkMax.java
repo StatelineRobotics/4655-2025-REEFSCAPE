@@ -17,6 +17,8 @@ public class WristIOSparkMax {
   private SparkMax m_rightIntake;
   private SparkMax m_wrist;
   private RelativeEncoder wristEncoder;
+  private RelativeEncoder leftEncoder;
+  private RelativeEncoder rightEncoder;
   private SparkClosedLoopController leftController;
   private SparkClosedLoopController rightController;
   private SparkClosedLoopController wristController;
@@ -34,6 +36,8 @@ public class WristIOSparkMax {
 
     m_leftIntake = new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
     m_rightIntake = new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
+    m_wrist = new SparkMax(0, MotorType.kBrushless);
+  
 
     m_leftIntake.configure(
         mleftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -42,6 +46,8 @@ public class WristIOSparkMax {
     m_wrist.configure(mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     wristEncoder = m_wrist.getEncoder();
+    leftEncoder = m_leftIntake.getEncoder();
+    rightEncoder = m_leftIntake.getEncoder();
 
     leftController = m_leftIntake.getClosedLoopController();
     rightController = m_rightIntake.getClosedLoopController();
@@ -49,15 +55,18 @@ public class WristIOSparkMax {
   }
 
   public void updateInputs(WristIOInputs inputs) {
-    inputs.leftIntakeRPM = RPM;
-    inputs.rightIntakeRPM = RPM;
+    inputs.leftIntakeRPM = leftEncoder.getVelocity();
+    inputs.rightIntakeRPM = rightEncoder.getVelocity();
     inputs.wristPos = wristEncoder.getPosition();
   }
 
-  public void requestWristPOS(double POS, double RPM) {
+  public void requestWristPOS(double POS) {
+    wristController.setReference(POS, SparkBase.ControlType.kMAXMotionPositionControl);
+  }
+
+  public void requestIntake(double RPM){
     leftController.setReference(RPM, SparkBase.ControlType.kVelocity);
     rightController.setReference(RPM, SparkBase.ControlType.kVelocity);
-    wristController.setReference(POS, SparkBase.ControlType.kMAXMotionPositionControl);
   }
 
   public void stop() {

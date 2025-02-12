@@ -44,6 +44,10 @@ public class Elevator extends SubsystemBase {
     return Commands.runOnce(this::stop);
   }
 
+  public boolean okToHome(){
+    return (inputs.zeroed);
+  }
+
   @AutoLogOutput(key = "Elevator/OKToReach")
   public boolean ElevatorOkToReach() {
     return (inputs.rightElevatorPosition < 0 && inputs.leftElevatorPosition < 0);
