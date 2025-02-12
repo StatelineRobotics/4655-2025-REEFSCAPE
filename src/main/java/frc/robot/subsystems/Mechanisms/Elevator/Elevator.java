@@ -64,4 +64,25 @@ public class Elevator extends SubsystemBase {
   public boolean isHomed(){
     return inputs.zeroed;
   }
+
+  @autoLogOutput
+  public double getCarrageHeight() {
+    return get1stStageHeight() * 4.0;
+  }
+
+  @autoLogOutput
+  public double get2ndStageHeight() {
+    return get1stStageHeight() * 2.0;
+  }
+
+  @autoLogOutput
+  public double get1stStageHeight() {
+    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M;
+  }
+
+  @autoLogOutput
+  public double getCarrageVelocity() {
+    return inputs.elevatorVelo * ElevatorConstants.conversion_RPM_MS * 4.0;
+  }
+    
 }
