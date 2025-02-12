@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Mechanisms.Elevator;
+package frc.robot.subsystems.mechanisms.elevator;
 
 import org.littletonrobotics.junction.AutoLog;
 

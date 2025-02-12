@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Mechanisms.Elevator;
+package frc.robot.subsystems.mechanisms.elevator;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -45,7 +45,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean okToHome(){
-    return (inputs.zeroed);
+    return inputs.zeroed;
   }
 
   @AutoLogOutput(key = "Elevator/OKToReach")

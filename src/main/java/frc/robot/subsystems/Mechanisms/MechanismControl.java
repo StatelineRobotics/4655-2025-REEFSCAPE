@@ -1,9 +1,9 @@
-package frc.robot.subsystems.Mechanisms;
+package frc.robot.subsystems.mechanisms;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Mechanisms.Climber.Climber;
-import frc.robot.subsystems.Mechanisms.Elevator.Elevator;
-import frc.robot.subsystems.Mechanisms.Wrist.Wrist;
+import frc.robot.subsystems.mechanisms.climber.Climber;
+import frc.robot.subsystems.mechanisms.elevator.Elevator;
+import frc.robot.subsystems.mechanisms.wrist.Wrist;
 
 public class MechanismControl extends SubsystemBase {
 

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Mechanisms.Elevator;
+package frc.robot.subsystems.mechanisms.elevator;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -11,7 +11,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import frc.robot.subsystems.Mechanisms.MechanismConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMax m_leftElevator;

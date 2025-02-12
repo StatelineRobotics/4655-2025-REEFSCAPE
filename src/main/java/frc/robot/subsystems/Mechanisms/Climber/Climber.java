@@ -1,7 +1,7 @@
-package frc.robot.subsystems.Mechanisms.Climber;
+package frc.robot.subsystems.mechanisms.climber;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.Mechanisms.Elevator.ElevatorIOInputsAutoLogged;
+
 
 public class Climber extends SubsystemBase{
     private final ClimberIO io;

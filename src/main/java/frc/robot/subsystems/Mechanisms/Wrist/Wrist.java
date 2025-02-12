@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Mechanisms.Wrist;
+package frc.robot.subsystems.mechanisms.wrist;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;

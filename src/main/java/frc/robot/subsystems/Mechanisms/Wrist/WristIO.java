@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Mechanisms.Wrist;
+package frc.robot.subsystems.mechanisms.wrist;
 
 import org.littletonrobotics.junction.AutoLog;
 

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.Mechanisms.Wrist;
+package frc.robot.subsystems.mechanisms.wrist;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
@@ -9,8 +9,8 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import frc.robot.subsystems.Mechanisms.MechanismConstants;
-import frc.robot.subsystems.Mechanisms.Wrist.WristIO.WristIOInputs;
+import frc.robot.subsystems.mechanisms.MechanismConstants;
+import frc.robot.subsystems.mechanisms.wrist.WristIO.WristIOInputs;
 
 public class WristIOSparkMax {
   private SparkMax m_leftIntake;
