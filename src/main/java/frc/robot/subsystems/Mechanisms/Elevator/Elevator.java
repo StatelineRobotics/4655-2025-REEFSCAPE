@@ -49,6 +49,7 @@ public class Elevator extends SubsystemBase {
   }
 
   private void positionControl(double targetPostion) {
+    io.setPoint = targetPosition;
     io.positionControl(targetPostion);
   }
 
