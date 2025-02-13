@@ -18,6 +18,32 @@ public class Elevator extends SubsystemBase {
   private final ElevatorIO io;
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
+  SysIdRoutine routine = new SysIdRoutine(
+    new SysIdRoutine.Config(
+      1,
+      7
+    ),
+    new SysIdRoutine.Elevator(
+      this::voltageControl, 
+      null, 
+      this)
+  );
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return routine.quasistatic(direction);
+  }
+  
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return routine.dynamic(direction);
+  }
+
+  public Command fullSysIdRoutine() {
+    return sysIdQuasistatic(kForward).andThen(
+           sysIdQuasistatic(kBackward).andThen(
+           sysIdDynamic(kForward).andThen(
+           sysIdDynamic(kBackkward);
+  }
+
   public Elevator(ElevatorIO io) {
     //  System.out.println("[Init] Creating Elevator");
     this.io = io;
