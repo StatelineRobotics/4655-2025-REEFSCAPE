@@ -19,7 +19,10 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -49,6 +52,10 @@ import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSparkMax;
 
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -59,13 +66,19 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   // Subsystems
-  private final Drive drive;
-  private final Elevator elevator;
+    private final Drive drive;
+    private final Elevator elevator;
 
-  private final Vision vision;
+    private final Vision vision;
 
-  // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+    // Controller
+    private final CommandXboxController controller = new CommandXboxController(0);
+
+    private LoggedMechanism2d superstructure2d = new LoggedMechanism2d(
+        Units.inchesToMeters(2), 
+        Units.inchesToMeters(32.5 * 4));
+    private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
+    private LoggedMechanismLigament2d elevatorVisual = superstructureRoot.append(new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -128,6 +141,7 @@ public class RobotContainer {
                 new ElevatorIO() {}
         );
         break;
+
     }
 
     // Set up auto routines
@@ -161,56 +175,53 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-//     drive.setDefaultCommand(
-//         DriveCommands.joystickDrive(
-//             drive,
-//             () -> -controller.getLeftY(),
-//             () -> -controller.getLeftX(),
-//             () -> -controller.getRightX()));
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
 
-//     // Lock to 0° when A button is held
-//     controller
-//         .a()
-//         .whileTrue(
-//             DriveCommands.joystickDriveAtAngle(
-//                 drive,
-//                 () -> -controller.getLeftY(),
-//                 () -> -controller.getLeftX(),
-//                 () -> new Rotation2d()));
+    // Lock to 0° when A button is held
+    controller
+        .a()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> new Rotation2d()));
 
-//     // Switch to X pattern when X button is pressed
-//     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    // Switch to X pattern when X button is pressed
+    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-//     // Reset gyro to 0° when B button is pressed
-//     controller
-//         .y()
-//         .onTrue(
-//             Commands.runOnce(
-//                     () ->
-//                         drive.setPose(
-//                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-//                     drive)
-//                 .ignoringDisable(true));
+    // Reset gyro to 0° when B button is pressed
+    controller
+        .y()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        drive.setPose(
+                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                    drive)
+                .ignoringDisable(true));
 
-//     // Auto aim command example
-//     @SuppressWarnings("resource")
-//     PIDController aimController = new PIDController(0.2, 0.0, 0.0);
-//     aimController.enableContinuousInput(-Math.PI, Math.PI);
-//     controller
-//         .b()
-//         .whileTrue(
-//             Commands.startRun(
-//                 () -> {
-//                   aimController.reset();
-//                 },
-//                 () -> {
-//                   // **drive.run(0.0, aimController.calculate
-//                 //   vision.getTargetX(0).getRadians();
-//                 },
-//                 drive));
-
-    controller.a().whileTrue(elevator.manualRunCommand(() -> controller.getLeftX()))
-                    .onFalse(elevator.stopCommand());
+    // Auto aim command example
+    @SuppressWarnings("resource")
+    PIDController aimController = new PIDController(0.2, 0.0, 0.0);
+    aimController.enableContinuousInput(-Math.PI, Math.PI);
+    controller
+        .b()
+        .whileTrue(
+            Commands.startRun(
+                () -> {
+                  aimController.reset();
+                },
+                () -> {
+                  // **drive.run(0.0, aimController.calculate
+                //   vision.getTargetX(0).getRadians();
+                },
+                drive));
 
    }
 
@@ -219,6 +230,18 @@ public class RobotContainer {
     SmartDashboard.putData("drive", drive);
     SmartDashboard.putData("elevator", elevator);
   }
+
+    public void updateMechanism2ds() {
+        elevatorVisual.setLength(Units.inchesToMeters(9.0) + elevator.getCarrageHeight());
+        Logger.recordOutput("mech2d/superstructure", superstructure2d);
+        Pose3d[] mechanismPoses = {
+            new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)),
+            new Pose3d(0, 0, elevator.get1stStageHeight(), new Rotation3d(0, 0, 0)),
+            new Pose3d(0, 0, elevator.get2ndStageHeight(), new Rotation3d(0, 0, 0)),
+            new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
+        };
+        Logger.recordOutput("mechanismPoses", mechanismPoses);
+    }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

@@ -120,6 +120,7 @@ public class Robot extends LoggedRobot {
     Threads.setCurrentThreadPriority(false, 10);
     SmartDashboard.putData("commandSchedualer", CommandScheduler.getInstance());
     robotContainer.logSubsystems();
+    robotContainer.updateMechanism2ds();
   }
 
   /** This function is called once when the robot is disabled. */
