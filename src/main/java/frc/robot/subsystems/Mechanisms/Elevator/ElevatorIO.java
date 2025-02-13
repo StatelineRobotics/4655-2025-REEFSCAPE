@@ -14,6 +14,7 @@ public interface ElevatorIO {
     public double dutyCycle = 0.0;
     public double appliedVolts = 0.0;
     public double appliedCurrent = 0.0;
+    public double setPoint = 0.0;
   }
 
   default void updateInputs(ElevatorIOInputs inputs) {}
