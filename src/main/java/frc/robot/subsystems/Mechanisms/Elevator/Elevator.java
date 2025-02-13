@@ -1,5 +1,6 @@
 package frc.robot.subsystems.mechanisms.elevator;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -8,7 +9,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import java.util.function.DoubleSupplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+
+import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
   private final ElevatorIO io;
@@ -65,22 +69,22 @@ public class Elevator extends SubsystemBase {
     return inputs.zeroed;
   }
 
-  @autoLogOutput
+  @AutoLogOutput
   public double getCarrageHeight() {
-    return get1stStageHeight() * 4.0;
+    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 4.0;
   }
 
-  @autoLogOutput
+  @AutoLogOutput
   public double get2ndStageHeight() {
-    return get1stStageHeight() * 2.0;
+    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 2.0 - Units.inchesToMeters(1.0);
   }
 
-  @autoLogOutput
+  @AutoLogOutput
   public double get1stStageHeight() {
-    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M;
+    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M - Units.inchesToMeters(2.0);
   }
 
-  @autoLogOutput
+  @AutoLogOutput
   public double getCarrageVelocity() {
     return inputs.elevatorVelo * ElevatorConstants.conversion_RPM_MS * 4.0;
   }

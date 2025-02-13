@@ -15,18 +15,20 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkMaxAlternateEncoder;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 /** Add your docs here. */
 public class ElevatorIOSim implements ElevatorIO{
@@ -34,9 +36,9 @@ public class ElevatorIOSim implements ElevatorIO{
         DCMotor.getNEO(2), 
         ElevatorConstants.elevatorGearing, 
         6.80389,
-        ElevatorConstatns.elevatorDrumRad,
+        ElevatorConstants.elevatorDrumRad,
         0.0,
-        10.0, 
+        Units.inchesToMeters(24.0), 
         true,
         0.0
         );
@@ -50,6 +52,10 @@ public class ElevatorIOSim implements ElevatorIO{
     private SparkLimitSwitchSim bottomLimitSwitchSim = motorSim.getReverseLimitSwitchSim();
     private static boolean zeroed = true;
     private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
+
+    private Trigger hitBottom = new Trigger(() -> elevatorSim.hasHitLowerLimit())
+            .onTrue(Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(true)))
+            .onFalse(Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(false)));
 
       public ElevatorIOSim() {
     //base config for all motors
@@ -94,11 +100,8 @@ public class ElevatorIOSim implements ElevatorIO{
             leftEncoder.setPosition(0);
             zeroed = true;
         }
-        if(inputs.elevatorPos == 0) {
-            bottomLimitSwitchSim.setPressed(true);
-        } else {
-            bottomLimitSwitchSim.setPressed(false);
-        }
+
+        
     }
 
 
