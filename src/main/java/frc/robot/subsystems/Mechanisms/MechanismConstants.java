@@ -14,6 +14,7 @@ public class MechanismConstants {
 
 
   public class ElevatorConstants {
+    //Gearing constants
     public static final double elevatorGearing = 25.0;
     public static final double elevatorDrumDiam = 0.044704;
     public static final double elevatorDrumRad = elevatorDrumDiam / 2;
@@ -21,7 +22,13 @@ public class MechanismConstants {
     public static final double conversion_RPM_MS = 1.0 / conversion_MS_RPM;
     public static final double conversion_M_Rot = Math.PI * elevatorDrumDiam * elevatorGearing;
     public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
-    
+
+    //Closed Loop Constants
+    public static final double kp = 0.0;
+    public static final double ki = 0.0;
+    public static final double kd = 0.0;
+    public static final double kg = 0.0;
+    public static final double ks = 0.0;
     
     // Elevator Constants
     public static final double levelOne = 0;
