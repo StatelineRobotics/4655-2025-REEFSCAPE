@@ -18,32 +18,6 @@ public class Elevator extends SubsystemBase {
   private final ElevatorIO io;
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
-  SysIdRoutine routine = new SysIdRoutine(
-    new SysIdRoutine.Config(
-      1,
-      7
-    ),
-    new SysIdRoutine.Elevator(
-      this::voltageControl, 
-      null, 
-      this)
-  );
-
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return routine.quasistatic(direction);
-  }
-  
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return routine.dynamic(direction);
-  }
-
-  public Command fullSysIdRoutine() {
-    return sysIdQuasistatic(kForward).andThen(
-           sysIdQuasistatic(kBackward).andThen(
-           sysIdDynamic(kForward).andThen(
-           sysIdDynamic(kBackkward);
-  }
-
   public Elevator(ElevatorIO io) {
     //  System.out.println("[Init] Creating Elevator");
     this.io = io;
@@ -75,15 +49,14 @@ public class Elevator extends SubsystemBase {
   }
 
   private void positionControl(double targetPostion) {
-    io.setPoint = targetPosition;
+    inputs.setPoint = targetPostion;
     io.positionControl(targetPostion);
   }
 
   public Command manualRunCommand(DoubleSupplier controllerInput) {
     return Commands.run(
       () -> {
-        System.out.println("command ran");
-        voltageControl(controllerInput.getAsDouble() * 4);
+        voltageControl(controllerInput.getAsDouble() * -12.0);
       }
     ).withName("Maual Run Command");
   }
@@ -98,7 +71,7 @@ public class Elevator extends SubsystemBase {
 
   @AutoLogOutput
   public double getCarrageHeight() {
-    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 4.0;
+    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 3.0;
   }
 
   @AutoLogOutput

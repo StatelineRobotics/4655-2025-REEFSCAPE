@@ -73,6 +73,7 @@ public class RobotContainer {
 
     // Controller
     private final CommandXboxController controller = new CommandXboxController(0);
+    private final CommandXboxController auxController = new CommandXboxController(1);
 
     private LoggedMechanism2d superstructure2d = new LoggedMechanism2d(
         Units.inchesToMeters(2), 
@@ -222,6 +223,9 @@ public class RobotContainer {
                 //   vision.getTargetX(0).getRadians();
                 },
                 drive));
+    
+    auxController.axisMagnitudeGreaterThan(1, 0.1).whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
+                    .onFalse(elevator.stopCommand());
 
    }
 

@@ -4,6 +4,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -11,11 +13,16 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
+import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
+
+import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMax m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
@@ -26,6 +33,11 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private static boolean zeroed;
   private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
   private SparkMaxConfig mRightConfig = new SparkMaxConfig();
+
+  private ElevatorFeedforward feedforward = new ElevatorFeedforward(
+                                            ElevatorConstants.ks,
+                                            ElevatorConstants.kg,
+                                            0.0);
 
 
   public ElevatorIOSparkMax() {
@@ -44,7 +56,9 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
     //Adjust left motor closed loop (pid controller) config
     ClosedLoopConfig closedLoopConfig = mLeftConfig.closedLoop;
-    closedLoopConfig.pidf(5, 0, 1, 1)
+    closedLoopConfig.pid(ElevatorConstants.kp, 
+                          ElevatorConstants.ki, 
+                          ElevatorConstants.kd)
                     .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                     .positionWrappingEnabled(false);
 
@@ -54,6 +68,10 @@ public class ElevatorIOSparkMax implements ElevatorIO {
                     .allowedClosedLoopError(1)
                     .maxAcceleration(100)
                     .maxVelocity(50);
+    
+    SoftLimitConfig softLimitConfig = mLeftConfig.softLimit;
+    softLimitConfig.forwardSoftLimit(ElevatorConstants.maxHeight)
+                    .forwardSoftLimitEnabled(true);
                     
     //Configure both motors
     m_leftElevator.configure(
@@ -86,7 +104,11 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     if(zeroed){
       zeroed = false;
       leftElevatorController.setReference(
-        targetPostion, ControlType.kMAXMotionPositionControl);
+        targetPostion, 
+        ControlType.kMAXMotionPositionControl, 
+        ClosedLoopSlot.kSlot0, 
+        feedforward.calculate(leftEncoder.getVelocity()),
+        ArbFFUnits.kVoltage);
     } else {
       leftElevatorController.setReference(0, ControlType.kVoltage);
     }

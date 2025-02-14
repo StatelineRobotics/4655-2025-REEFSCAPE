@@ -24,13 +24,14 @@ public class MechanismConstants {
     public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
 
     //Closed Loop Constants
-    public static final double kp = 0.0;
+    public static final double kp = 1.0;
     public static final double ki = 0.0;
     public static final double kd = 0.0;
     public static final double kg = 0.0;
     public static final double ks = 0.0;
     
     // Elevator Constants
+    public static final double maxHeight = 3000.0;
     public static final double levelOne = 0;
     public static final double levelTwo = 0;
     public static final double levelThree = 0;
