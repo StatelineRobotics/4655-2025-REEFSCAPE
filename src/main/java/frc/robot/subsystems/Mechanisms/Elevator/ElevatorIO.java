@@ -7,15 +7,23 @@ public interface ElevatorIO {
   @AutoLog
   class ElevatorIOInputs {
 
-    public double elevatorPos = 0.0;
-    public double rightElevatorPosition = 0.0;
-    public double leftElevatorPosition = 0.0;
     public boolean zeroed = false;
+
+    public double elevatorPos = 0.0;
+    public double elevatorVelo = 0.0;
+    public double dutyCycle = 0.0;
+    public double appliedVolts = 0.0;
+    public double appliedCurrent = 0.0;
+    public double setPoint = 0.0;
   }
 
   default void updateInputs(ElevatorIOInputs inputs) {}
 
-  default void setElevatorPosition(){}
+  default void voltageControl(double voltage) {}
+
+  default void positionControl(double target) {}
+
+  default void setElevatorPosition(double position){}
 
   default void stop() {}
 }

@@ -19,15 +19,24 @@ import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -38,7 +47,15 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 // import frc.robot.subsystems.Vision.VisionIO;
 // import frc.robot.subsystems.Vision.VisionIOPhotonVision;
 // import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.mechanisms.elevator.Elevator;
+import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
+import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
+import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSparkMax;
 
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -49,12 +66,20 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   // Subsystems
-  private final Drive drive;
+    private final Drive drive;
+    private final Elevator elevator;
 
-//   private final Vision vision;
+    private final Vision vision;
 
-  // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+    // Controller
+    private final CommandXboxController controller = new CommandXboxController(0);
+    private final CommandXboxController auxController = new CommandXboxController(1);
+
+    private LoggedMechanism2d superstructure2d = new LoggedMechanism2d(
+        Units.inchesToMeters(2), 
+        Units.inchesToMeters(32.5 * 4));
+    private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
+    private LoggedMechanismLigament2d elevatorVisual = superstructureRoot.append(new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -71,11 +96,15 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOPhotonVision(camera0Name, robotToCamera0),
-        //         new VisionIOPhotonVision(camera1Name, robotToCamera1));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
+                new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+        elevator = 
+            new Elevator(
+                new ElevatorIOSparkMax()
+            );
         break;
 
       case SIM:
@@ -87,11 +116,15 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement,
-        //         new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
-        //         new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+        elevator = 
+            new Elevator(
+                new ElevatorIOSim()
+            );
         break;
 
       default:
@@ -103,8 +136,13 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        // vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        elevator = 
+            new Elevator(
+                new ElevatorIO() {}
+        );
         break;
+
     }
 
     // Set up auto routines
@@ -185,8 +223,29 @@ public class RobotContainer {
                 //   vision.getTargetX(0).getRadians();
                 },
                 drive));
+    
+    auxController.axisMagnitudeGreaterThan(1, 0.1).whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
+                    .onFalse(elevator.stopCommand());
 
+   }
+
+
+  public void logSubsystems() {
+    SmartDashboard.putData("drive", drive);
+    SmartDashboard.putData("elevator", elevator);
   }
+
+    public void updateMechanism2ds() {
+        elevatorVisual.setLength(Units.inchesToMeters(9.0) + elevator.getCarrageHeight());
+        Logger.recordOutput("mech2d/superstructure", superstructure2d);
+        Pose3d[] mechanismPoses = {
+            new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)),
+            new Pose3d(0, 0, elevator.get1stStageHeight(), new Rotation3d(0, 0, 0)),
+            new Pose3d(0, 0, elevator.get2ndStageHeight(), new Rotation3d(0, 0, 0)),
+            new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
+        };
+        Logger.recordOutput("mechanismPoses", mechanismPoses);
+    }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

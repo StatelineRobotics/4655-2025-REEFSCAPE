@@ -37,7 +37,7 @@ public class MechanismControl extends SubsystemBase {
 
     switch(currentState){
       case home -> {
-        if(elevatorSubsystem.okToHome()){
+        if(elevatorSubsystem.isHomed()){
           
         }
       }
