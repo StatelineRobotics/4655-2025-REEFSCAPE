@@ -3,6 +3,7 @@ package frc.robot.subsystems.mechanisms.elevator;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -17,10 +18,14 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMax m_leftElevator;
   private SparkMax m_rightElevator;
   private SparkMax m_funnel;
+  private SparkMax m_belt;
   private SparkClosedLoopController leftElevatorController;
   private SparkClosedLoopController rightElevatorController;
+  private SparkClosedLoopController funnelController;
+  private SparkClosedLoopController beltController;
   private RelativeEncoder rightEncoder;
   private RelativeEncoder leftEncoder;
+  private RelativeEncoder funnelEncoder;
   private SparkLimitSwitch limitSwitch;
   private static boolean zeroed;
   private SparkBaseConfig mLeftConfig;
@@ -33,8 +38,14 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     mLeftConfig.smartCurrentLimit(0);
     mRightConfig = mLeftConfig;
     mRightConfig.follow(MechanismConstants.leftElevatorId);
+
+    
     m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
     m_rightElevator = new SparkMax(MechanismConstants.rightElevatorId, MotorType.kBrushless);
+    m_funnel = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushless);
+    m_belt = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushed);
+
+
     m_leftElevator.configure(
         mLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_rightElevator.configure(
@@ -42,11 +53,14 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
     leftEncoder = m_leftElevator.getEncoder();
     rightEncoder = m_rightElevator.getEncoder();
+    funnelEncoder = m_funnel.getEncoder();
 
     limitSwitch = m_leftElevator.getReverseLimitSwitch();
 
     leftElevatorController = m_leftElevator.getClosedLoopController();
     rightElevatorController = m_rightElevator.getClosedLoopController();
+    funnelController = m_funnel.getClosedLoopController();
+    beltController = m_belt.getClosedLoopController();
   }
 
   @Override
@@ -70,12 +84,18 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     // rightElevatorController.setReference(
     //     climberPosition, SparkBase.ControlType.kMAXMotionPositionControl);
     } else {
-      leftElevatorController.setReference(0, SparkBase.ControlType.kVoltage);
+      leftElevatorController.setReference(-10, SparkBase.ControlType.kVelcity);
       // rightElevatorController.setReference(-100, SparkBase.ControlType.kMAXMotionPositionControl);
     }
   }
 
+  public void requestFunnelPOS(double POS){
+    funnelController.setReference(POS, ControlType.kPosition);
+  }
 
+  public void requestBeltRPM(double RPM){
+    funnelController.setReference(RPM, ControlType.kVelocity);
+  }
 
   public void stop() {
     m_leftElevator.stopMotor();
