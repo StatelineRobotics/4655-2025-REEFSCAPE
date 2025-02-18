@@ -23,7 +23,7 @@ public interface ElevatorIO {
 
   default void positionControl(double target) {}
 
-  default void setElevatorPosition(double position){}
+  default void setElevatorPosition(double position) {}
 
   default void stop() {}
 }

@@ -16,10 +16,14 @@ import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
+import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
@@ -43,16 +47,15 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   public ElevatorIOSparkMax() {
     //base config for all motors
     mLeftConfig.idleMode(IdleMode.kBrake)
-                .inverted(false)
+                .inverted(true)
                 .smartCurrentLimit(60);
     
     //Create spesific right motor config from base config
     mRightConfig.apply(mLeftConfig);
-    mRightConfig.follow(MechanismConstants.leftElevatorId);
+    mRightConfig.follow(MechanismConstants.leftElevatorId,true);
 
     //Adjust left motor encoder config
     EncoderConfig encoderConfig = mLeftConfig.encoder;
-    encoderConfig.inverted(false);
 
     //Adjust left motor closed loop (pid controller) config
     ClosedLoopConfig closedLoopConfig = mLeftConfig.closedLoop;
@@ -66,8 +69,8 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     MAXMotionConfig maxMotionConfig = mLeftConfig.closedLoop.maxMotion;
     maxMotionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
                     .allowedClosedLoopError(1)
-                    .maxAcceleration(100)
-                    .maxVelocity(50);
+                    .maxAcceleration(ElevatorConstants.maxAccel)
+                    .maxVelocity(ElevatorConstants.maxVelo);
     
     SoftLimitConfig softLimitConfig = mLeftConfig.softLimit;
     softLimitConfig.forwardSoftLimit(ElevatorConstants.maxHeight)
@@ -78,6 +81,10 @@ public class ElevatorIOSparkMax implements ElevatorIO {
         mLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_rightElevator.configure(
         mRightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+    if (Constants.usePIDtuning) {
+      setUpPIDTuning();
+    }
   }
 
   @Override
@@ -85,11 +92,17 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     inputs.dutyCycle = m_leftElevator.getAppliedOutput();
     inputs.appliedCurrent = m_leftElevator.getOutputCurrent();
     inputs.appliedVolts = m_leftElevator.getBusVoltage() * m_leftElevator.getAppliedOutput();
+    inputs.elevatorVelo = leftEncoder.getVelocity();
     inputs.elevatorPos = leftEncoder.getPosition();
-    inputs.zeroed = zeroed;
     if (bottomLimitSwitch.isPressed()) {
       leftEncoder.setPosition(0);
       zeroed = true;
+    }
+
+    inputs.zeroed = zeroed;
+
+    if (Constants.usePIDtuning) {
+      updatePIDTuning();
     }
   }
 
@@ -102,7 +115,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
    */
   public void positionControl(double targetPostion) {
     if(zeroed){
-      zeroed = false;
       leftElevatorController.setReference(
         targetPostion, 
         ControlType.kMAXMotionPositionControl, 
@@ -122,6 +134,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
    * 
    */
   public void voltageControl(double voltage) {
+    voltage = voltage + ElevatorConstants.kg;
     //clamp to -12, 12 volts
     voltage = Math.max(-12.0, Math.min(voltage, 12.0));
     leftElevatorController.setReference(voltage, ControlType.kVoltage);
@@ -134,5 +147,55 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   public void stop() {
     m_leftElevator.stopMotor();
     m_rightElevator.stopMotor();
+  }
+
+
+  private void updatePIDTuning() {
+    ClosedLoopConfigAccessor closedLoop = m_leftElevator.configAccessor.closedLoop;
+    MAXMotionConfigAccessor maxMotion = closedLoop.maxMotion;
+    SparkMaxConfig updatedConfig = new SparkMaxConfig();
+    ClosedLoopConfig CLconfig = updatedConfig.closedLoop;
+    MAXMotionConfig mmConfig = CLconfig.maxMotion;
+
+    if (SmartDashboard.getNumber("Elevator/kp",0.0) != closedLoop.getP()) {
+        CLconfig.p(SmartDashboard.getNumber("Elevator/kp",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/ki",0.0) != closedLoop.getI()) {
+        CLconfig.i(SmartDashboard.getNumber("Elevator/ki",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/kd",0.0) != closedLoop.getD()) {
+        CLconfig.d(SmartDashboard.getNumber("Elevator/kd",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/kg",0.0) != feedforward.getKg()) {
+        //feedforward.(SmartDashboard.getNumber("Elevator/kg",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/ks",0.0) != feedforward.getKs()) {
+        //CLconfig.i(SmartDashboard.getNumber("Elevator/ki",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/maxVelo",0.0) != maxMotion.getMaxVelocity()) {
+        mmConfig.maxVelocity(SmartDashboard.getNumber("Elevator/maxVelo",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/maxAccel",0.0) != maxMotion.getMaxAcceleration()) {
+        mmConfig.maxAcceleration(SmartDashboard.getNumber("Elevator/maxAccel",0.0));
+    }
+    if (SmartDashboard.getNumber("Elevator/allowError",0.0) != maxMotion.getAllowedClosedLoopError()) {
+        mmConfig.allowedClosedLoopError(SmartDashboard.getNumber("Elevator/allowError",0.0));
+    }
+
+    m_leftElevator.configure(updatedConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+  }
+
+  private void setUpPIDTuning() {
+    ClosedLoopConfigAccessor closedLoop = m_leftElevator.configAccessor.closedLoop;
+    SmartDashboard.putNumber("Elevator/kp", closedLoop.getP());
+    SmartDashboard.putNumber("Elevator/ki", closedLoop.getI());
+    SmartDashboard.putNumber("Elevator/kd", closedLoop.getD());
+    SmartDashboard.putNumber("Elevator/kg", feedforward.getKg());
+    SmartDashboard.putNumber("Elevator/ks", feedforward.getKs());
+    SmartDashboard.putNumber("Elevator/maxVelo", closedLoop.maxMotion.getMaxVelocity());
+    SmartDashboard.putNumber("Elevator/maxAccel", closedLoop.maxMotion.getMaxAcceleration());
+    SmartDashboard.putNumber("Elevator/allowError", closedLoop.maxMotion.getAllowedClosedLoopError());
+    SmartDashboard.putNumber("Elevator/lowerSetpoint", 0.0);
+    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.0);
   }
 }
