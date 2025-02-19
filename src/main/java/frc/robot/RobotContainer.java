@@ -16,13 +16,6 @@ package frc.robot;
 // import static frc.robot.subsystems.Vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -34,8 +27,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -51,10 +42,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-// import frc.robot.subsystems.Vision.Vision;
-// import frc.robot.subsystems.Vision.VisionIO;
-// import frc.robot.subsystems.Vision.VisionIOPhotonVision;
-// import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
@@ -93,26 +80,12 @@ public class RobotContainer {
     private LoggedMechanismLigament2d elevatorVisual = superstructureRoot.append(new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
 
 
-    private static final SparkMax leftManipulator = new SparkMax(5, MotorType.kBrushless);
-    private static final SparkMax rightMaipulator = new SparkMax(6, MotorType.kBrushless);
-
-    private static SparkMaxConfig leftConfig = new SparkMaxConfig();
-    private static SparkMaxConfig rightConfig = new SparkMaxConfig();
-    static {
-        leftConfig.smartCurrentLimit(15).inverted(false).idleMode(IdleMode.kCoast);
-        rightConfig.apply(leftConfig).follow(5, true);
-    }
-
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-
-    leftManipulator.configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    rightMaipulator.configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -126,6 +99,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                drive::getPose,
                 new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                 new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
         elevator = 
@@ -146,6 +120,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                drive::getPose,
                 new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
         elevator = 
@@ -163,7 +138,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
         elevator = 
             new Elevator(
                 new ElevatorIO() {}
@@ -255,9 +230,6 @@ public class RobotContainer {
                     .whileFalse(elevator.holdPosition());
 
     auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
-
-    auxController.b().whileTrue(new RunCommand(() -> leftManipulator.set(0.75))).onFalse(new InstantCommand(() -> leftManipulator.stopMotor()));
-    auxController.y().whileTrue(new RunCommand(() -> leftManipulator.set(-0.75))).onFalse(new InstantCommand(() -> leftManipulator.stopMotor()));
 
    }
 
