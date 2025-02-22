@@ -18,7 +18,9 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 public class Elevator extends SubsystemBase {
   private final ElevatorIO io;
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
-
+  private double ElevatorPosition = 0.0;
+  private double FunnelPosition = 0.0;
+  private double beltRPM = 0.0;
   public Elevator(ElevatorIO io) {
     //  System.out.println("[Init] Creating Elevator");
     this.io = io;
@@ -43,6 +45,10 @@ public class Elevator extends SubsystemBase {
 
   public void setElevatorPosition(double ElevatorPosition) {
     io.setElevatorPosition(ElevatorPosition);
+  }
+
+  public void requestBeltRPM(double RPM){
+    beltRPM = RPM;
   }
 
   private void stop() {

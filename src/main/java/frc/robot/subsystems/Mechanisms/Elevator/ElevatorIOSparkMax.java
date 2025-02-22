@@ -1,6 +1,8 @@
 package frc.robot.subsystems.mechanisms.elevator;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -29,6 +31,16 @@ import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
+
+  private SparkMax m_funnel;
+  private SparkMax m_belt;
+
+  private SparkClosedLoopController funnelController;
+  private SparkClosedLoopController beltController;
+
+  private RelativeEncoder funnelEncoder;
+  private SparkLimitSwitch limitSwitch;
+  
   private SparkMax m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
   private SparkMax m_rightElevator = new SparkMax(MechanismConstants.rightElevatorId, MotorType.kBrushless);
   private SparkClosedLoopController leftElevatorController = m_leftElevator.getClosedLoopController();
@@ -53,6 +65,13 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     //Create spesific right motor config from base config
     mRightConfig.apply(mLeftConfig);
     mRightConfig.follow(MechanismConstants.leftElevatorId,true);
+
+    
+    m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
+    m_rightElevator = new SparkMax(MechanismConstants.rightElevatorId, MotorType.kBrushless);
+    m_funnel = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushless);
+    m_belt = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushed);
+
 
     //Adjust left motor encoder config
     EncoderConfig encoderConfig = mLeftConfig.encoder;
@@ -85,6 +104,10 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     if (Constants.usePIDtuning) {
       setUpPIDTuning();
     }
+    funnelEncoder = m_funnel.getEncoder();
+
+    funnelController = m_funnel.getClosedLoopController();
+    beltController = m_belt.getClosedLoopController();
   }
 
   @Override
@@ -122,11 +145,17 @@ public class ElevatorIOSparkMax implements ElevatorIO {
         feedforward.calculate(leftEncoder.getVelocity()),
         ArbFFUnits.kVoltage);
     } else {
-      leftElevatorController.setReference(0, ControlType.kVoltage);
+      leftElevatorController.setReference(-1, ControlType.kVoltage);
     }
   }
 
+  public void requestFunnelPOS(double POS){
+    funnelController.setReference(POS, ControlType.kPosition);
+  }
 
+  public void requestBeltRPM(double RPM){
+    funnelController.setReference(RPM, ControlType.kVelocity);
+  }
   /**
    * Drive motors in voltage control mode
    * 
@@ -199,3 +228,4 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SmartDashboard.putNumber("Elevator/upperSetpoint", 0.0);
   }
 }
+
