@@ -87,7 +87,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     //Adjust left motor max motion position specific config
     MAXMotionConfig maxMotionConfig = mLeftConfig.closedLoop.maxMotion;
     maxMotionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
-                    .allowedClosedLoopError(1)
+                    .allowedClosedLoopError(ElevatorConstants.allowedClosedLoopError)
                     .maxAcceleration(ElevatorConstants.maxAccel)
                     .maxVelocity(ElevatorConstants.maxVelo);
     

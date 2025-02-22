@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems.mechanisms.elevator;
 
-import org.opencv.features2d.Feature2D;
-
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.sim.SparkLimitSwitchSim;
 import com.revrobotics.sim.SparkMaxSim;
@@ -31,7 +29,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -91,7 +88,7 @@ public class ElevatorIOSim implements ElevatorIO{
         //Adjust left motor max motion position specific config
         MAXMotionConfig maxMotionConfig = mLeftConfig.closedLoop.maxMotion;
         maxMotionConfig.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
-                        .allowedClosedLoopError(1)
+                        .allowedClosedLoopError(ElevatorConstants.allowedClosedLoopError)
                         .maxAcceleration(ElevatorConstants.maxAccel)
                         .maxVelocity(ElevatorConstants.maxVelo);
 

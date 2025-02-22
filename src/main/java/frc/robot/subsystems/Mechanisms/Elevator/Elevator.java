@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import java.util.function.DoubleSupplier;
 
@@ -21,6 +22,9 @@ public class Elevator extends SubsystemBase {
   private double ElevatorPosition = 0.0;
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
+
+  public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
+
   public Elevator(ElevatorIO io) {
     //  System.out.println("[Init] Creating Elevator");
     this.io = io;
@@ -113,6 +117,13 @@ public class Elevator extends SubsystemBase {
         () -> positionControl(
           SmartDashboard.getNumber("Elevator/upperSetpoint", 
           0.0))));
+  }
+
+  public boolean isAtSetpoint() {
+    if (Math.abs(inputs.elevatorPos - inputs.setPoint) < ElevatorConstants.allowedClosedLoopError) {
+      return true;
+    }
+    return false;
   }
 
   public boolean isHomed(){
