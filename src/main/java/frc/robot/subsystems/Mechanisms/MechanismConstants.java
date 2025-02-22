@@ -43,6 +43,8 @@ public class MechanismConstants {
 
     public static final double simMaxAccel = 20000;
     public static final double simMaxVelo = 5000;
+
+    public static final double allowedClosedLoopError = 0.5;
     
     // Elevator Constants
     public static final double maxHeight = 103;
