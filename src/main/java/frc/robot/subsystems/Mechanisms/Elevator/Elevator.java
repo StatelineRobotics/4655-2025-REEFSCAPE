@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import java.util.function.DoubleSupplier;
 
@@ -14,6 +15,7 @@ import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.spark.SparkBase.ControlType;
 
+import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
@@ -22,9 +24,16 @@ public class Elevator extends SubsystemBase {
   private double ElevatorPosition = 0.0;
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
+
+  public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
+
   public Elevator(ElevatorIO io) {
     //  System.out.println("[Init] Creating Elevator");
     this.io = io;
+    if (Constants.usePIDtuning) {
+      SmartDashboard.putData("Elevator/lowerTestCommand", testLowerPosition());
+      SmartDashboard.putData("Elevator/upperTestCommand", testUpperPosition());
+    }
   }
 
   @Override
@@ -65,16 +74,62 @@ public class Elevator extends SubsystemBase {
     io.positionControl(targetPostion);
   }
 
-  public Command manualRunCommand(DoubleSupplier controllerInput) {
-    return Commands.run(
+  public Command testPositionControl() {
+    return this.runOnce(
       () -> {
-        voltageControl(controllerInput.getAsDouble() * -12.0);
+        positionControl(39);
+      }
+    );
+  }
+
+  public Command homeCommand() {
+    return this.run(
+      () -> {
+        positionControl(0.0);
+      }
+    );
+  }
+
+  public Command manualRunCommand(DoubleSupplier controllerInput) {
+    return this.run(
+      () -> {
+        voltageControl(controllerInput.getAsDouble() * -6.0);
       }
     ).withName("Maual Run Command");
   }
 
   public Command stopCommand() {
-    return Commands.runOnce(this::stop);
+    return this.runOnce(this::stop);
+  }
+
+  public Command holdPosition() {
+    return this.run(
+      () -> {
+        voltageControl(0.0);
+      });
+  }
+
+  public Command testLowerPosition() {
+    return this.defer(
+      () -> Commands.runOnce(
+        () -> positionControl(
+          SmartDashboard.getNumber("Elevator/lowerSetpoint", 
+          0.0))));
+  }
+
+  public Command testUpperPosition() {
+    return this.defer(
+      () -> Commands.runOnce(
+        () -> positionControl(
+          SmartDashboard.getNumber("Elevator/upperSetpoint", 
+          0.0))));
+  }
+
+  public boolean isAtSetpoint() {
+    if (Math.abs(inputs.elevatorPos - inputs.setPoint) < ElevatorConstants.allowedClosedLoopError) {
+      return true;
+    }
+    return false;
   }
 
   public boolean isHomed(){

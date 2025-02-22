@@ -3,8 +3,8 @@ package frc.robot.subsystems.mechanisms;
 public class MechanismConstants {
 
   // Motor Constants
-  public static final int leftElevatorId = 0;
-  public static final int rightElevatorId = 0;
+  public static final int leftElevatorId = 3;
+  public static final int rightElevatorId = 4;
   public static final int leftIntakeId = 0;
   public static final int rightIntakeId = 0;
   public static final int wristId = 0;
@@ -23,11 +23,13 @@ public class MechanismConstants {
     public static final double conversion_M_Rot = (elevatorGearing)/(Math.PI * elevatorDrumDiam);
     public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
 
-    //Closed Loop Constants
-    public static final double kp = 0.5;
+
+
+    //Closed Loop Constant
+    public static final double kp = 0.02;
     public static final double ki = 0.0;
     public static final double kd = 0.0;
-    public static final double kg = 0.45;
+    public static final double kg = 0.35;
     public static final double ks = 0.0;
 
 
@@ -38,11 +40,14 @@ public class MechanismConstants {
     public static final double simKs = 0.0;
 
 
-    public static final double maxAccel = 3600.0;
-    public static final double maxVelo = 1800.0;
+    public static final double maxAccel = 7000.0;
+    public static final double maxVelo = 3000.0;
 
     public static final double simMaxAccel = 20000;
     public static final double simMaxVelo = 5000;
+
+    public static final double allowedClosedLoopError = 0.5;
+
     
     // Elevator Constants
     public static final double maxHeight = 103;

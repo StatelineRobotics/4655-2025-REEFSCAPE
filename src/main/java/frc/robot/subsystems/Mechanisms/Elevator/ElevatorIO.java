@@ -28,7 +28,11 @@ public interface ElevatorIO {
 
   default void positionControl(double target) {}
 
+
   default void requestBeltRPM() {}
+
+  default void setElevatorPosition(double position) {}
+
 
   default void stop() {}
 }
