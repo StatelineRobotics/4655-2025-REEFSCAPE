@@ -12,6 +12,8 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.revrobotics.spark.SparkBase.ControlType;
+
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
@@ -38,12 +40,16 @@ public class Elevator extends SubsystemBase {
     }
   }
 
-  public void setElevatorPosition(double ElevatorPosition) {
-    io.setElevatorPosition(ElevatorPosition);
+  public void requestElevatorPosition(double ElevatorPosition) {
+    io.requestElevatorPosition();
   }
 
   public void requestBeltRPM(double RPM){
     beltRPM = RPM;
+  }
+
+    public void requestFunnelPOS(double POS){
+    FunnelPosition = POS;
   }
 
   private void stop() {

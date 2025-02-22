@@ -1,10 +1,13 @@
 package frc.robot.subsystems.mechanisms.wrist;
 
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
@@ -15,8 +18,8 @@ import frc.robot.subsystems.mechanisms.wrist.WristIO.WristIOInputs;
 public class WristIOSparkMax {
   private SparkMax m_leftIntake;
   private SparkMax m_rightIntake;
-  private SparkMax m_wrist;
-  private RelativeEncoder wristEncoder;
+  private SparkFlex m_wrist;
+  private AbsoluteEncoder wristEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder rightEncoder;
   private SparkClosedLoopController leftController;
@@ -31,27 +34,29 @@ public class WristIOSparkMax {
     mleftConfig.idleMode(IdleMode.kCoast);
     mleftConfig.smartCurrentLimit(20);
     mrightConfig = mleftConfig;
+    mrightConfig.inverted(true);
     mwristConfig = mleftConfig;
     mwristConfig.idleMode(IdleMode.kBrake);
 
     m_leftIntake = new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
     m_rightIntake = new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
-    m_wrist = new SparkMax(0, MotorType.kBrushless);
+    m_wrist = new SparkFlex(MechanismConstants.wristId, MotorType.kBrushless);
   
 
     m_leftIntake.configure(
         mleftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_rightIntake.configure(
         mrightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    m_wrist.configure(mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_wrist.configure(
+      mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-    wristEncoder = m_wrist.getEncoder();
     leftEncoder = m_leftIntake.getEncoder();
     rightEncoder = m_leftIntake.getEncoder();
+    wristEncoder = m_wrist.getAbsoluteEncoder();
 
     leftController = m_leftIntake.getClosedLoopController();
     rightController = m_rightIntake.getClosedLoopController();
-    wristController = m_wrist.getClosedLoopController();
+    
   }
 
   public void updateInputs(WristIOInputs inputs) {
@@ -61,7 +66,7 @@ public class WristIOSparkMax {
   }
 
   public void requestWristPOS(double POS) {
-    wristController.setReference(POS, SparkBase.ControlType.kMAXMotionPositionControl);
+    
   }
 
   public void requestIntake(double RPM){
