@@ -16,7 +16,6 @@ package frc.robot;
 // import static frc.robot.subsystems.Vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -43,10 +42,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-// import frc.robot.subsystems.Vision.Vision;
-// import frc.robot.subsystems.Vision.VisionIO;
-// import frc.robot.subsystems.Vision.VisionIOPhotonVision;
-// import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
@@ -65,6 +60,9 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+
+
   // Subsystems
     private final Drive drive;
     private final Elevator elevator;
@@ -80,6 +78,8 @@ public class RobotContainer {
         Units.inchesToMeters(32.5 * 4));
     private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
     private LoggedMechanismLigament2d elevatorVisual = superstructureRoot.append(new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
+
+
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -99,6 +99,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                drive::getPose,
                 new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                 new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
         elevator = 
@@ -119,6 +120,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                drive::getPose,
                 new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
         elevator = 
@@ -136,7 +138,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
         elevator = 
             new Elevator(
                 new ElevatorIO() {}
@@ -196,7 +198,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
+    // Reset gyro to 0 when B button is pressed
     controller
         .y()
         .onTrue(
@@ -225,7 +227,9 @@ public class RobotContainer {
                 drive));
     
     auxController.axisMagnitudeGreaterThan(1, 0.1).whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
-                    .onFalse(elevator.stopCommand());
+                    .whileFalse(elevator.holdPosition());
+
+    auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
 
    }
 
