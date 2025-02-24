@@ -2,6 +2,8 @@ package frc.robot.subsystems.mechanisms.wrist;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.units.measure.Angle;
+
 // Values to control subsystem
 public interface WristIO {
   @AutoLog
