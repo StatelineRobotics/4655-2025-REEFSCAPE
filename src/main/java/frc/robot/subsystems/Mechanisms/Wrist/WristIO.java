@@ -15,9 +15,15 @@ public interface WristIO {
     public double funnelRPM = 0.0;
   }
 
-  default void updateInputs(WristIOInputs inputs) {}
+  default void updateInputs(WristIOInputs inputs){}
 
-  default void requestIntake(){}
+  default void requestIntakeVelo(double targetVelo){}
+
+  default void requestIntakeVoltage(double voltage){}
+
+  default void requestWristPosition(double targetPos){}
+
+  default void requestWristVoltage(double voltage){}
 
   default void stopIntake(){}
 

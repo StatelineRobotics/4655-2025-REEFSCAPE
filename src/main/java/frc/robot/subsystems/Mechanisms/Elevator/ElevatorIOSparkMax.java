@@ -23,6 +23,7 @@ import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -42,11 +43,16 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private RelativeEncoder rightEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder funnelEncoder;
-  private SparkLimitSwitch limitSwitch;
+  private SparkLimitSwitch bottomLimitSwitch;
   private static boolean zeroed;
   private SparkBaseConfig mLeftConfig;
   private SparkBaseConfig mRightConfig;
 
+  private ElevatorFeedforward feedforward = new ElevatorFeedforward(
+    ElevatorConstants.ks,
+    ElevatorConstants.kg,
+    0.0
+  );
 
   public ElevatorIOSparkMax() {
     //base config for all motors
@@ -123,7 +129,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   }
 
 
-  public void requestElevatorPosition(Double climberPosition) {
+  public void requestElevatorPosition(double targetPostion) {
     if(zeroed){
       leftElevatorController.setReference(
         targetPostion, 
