@@ -185,7 +185,7 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    // Lock to 0° when A button is held
+    // Lock to 0 when A button is held
     controller
         .a()
         .whileTrue(
@@ -198,7 +198,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0 when B button is pressed
+    // Reset gyro to 0 when B button is pressed
     controller
         .y()
         .onTrue(
