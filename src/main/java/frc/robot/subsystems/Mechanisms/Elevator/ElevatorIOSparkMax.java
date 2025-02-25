@@ -43,7 +43,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private RelativeEncoder rightEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder funnelEncoder;
-  private SparkLimitSwitch limitSwitch;
+  private SparkLimitSwitch bottomLimitSwitch;
   private static boolean zeroed;
   private SparkBaseConfig mLeftConfig;
   private SparkBaseConfig mRightConfig;
@@ -129,7 +129,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   }
 
 
-  public void requestElevatorPosition(Double climberPosition) {
+  public void requestElevatorPosition(double targetPostion) {
     if(zeroed){
       leftElevatorController.setReference(
         targetPostion, 
