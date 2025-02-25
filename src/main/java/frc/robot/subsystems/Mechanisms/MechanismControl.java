@@ -55,6 +55,7 @@ public class MechanismControl extends SubsystemBase {
       
     case coralPickup -> {
       wristSubsystem.requestIntake(test);
+      elevatorSubsystem.requestBeltRPM(0);
       break;
     }
 

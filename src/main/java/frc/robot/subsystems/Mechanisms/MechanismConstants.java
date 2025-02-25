@@ -23,8 +23,6 @@ public class MechanismConstants {
     public static final double conversion_M_Rot = (elevatorGearing)/(Math.PI * elevatorDrumDiam);
     public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
 
-
-
     //Closed Loop Constant
     public static final double kp = 0.02;
     public static final double ki = 0.0;
@@ -47,7 +45,6 @@ public class MechanismConstants {
     public static final double simMaxVelo = 5000;
 
     public static final double allowedClosedLoopError = 0.5;
-
     
     // Elevator Constants
     public static final double maxHeight = 103;

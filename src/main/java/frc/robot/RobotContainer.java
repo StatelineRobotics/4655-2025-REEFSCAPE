@@ -111,6 +111,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                drive::getPose,
                 new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                 new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
         elevator = 
@@ -134,6 +135,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                drive::getPose,
                 new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
         elevator = 
@@ -159,7 +161,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, drive::getPose ,new VisionIO() {}, new VisionIO() {});
         elevator = 
             new Elevator(
                 new ElevatorIO() {}
