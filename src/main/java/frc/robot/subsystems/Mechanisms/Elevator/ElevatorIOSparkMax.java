@@ -6,12 +6,13 @@ import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
-import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
@@ -22,39 +23,36 @@ import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
-
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
-
-  private SparkMax m_funnel;
+  private SparkMax m_leftElevator;
+  private SparkMax m_rightElevator;
+  private SparkFlex m_funnel;
   private SparkMax m_belt;
-
+  private SparkClosedLoopController leftElevatorController;
+  private SparkClosedLoopController rightElevatorController;
   private SparkClosedLoopController funnelController;
   private SparkClosedLoopController beltController;
-
+  private RelativeEncoder rightEncoder;
+  private RelativeEncoder leftEncoder;
   private RelativeEncoder funnelEncoder;
-  private SparkLimitSwitch limitSwitch;
-  
-  private SparkMax m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
-  private SparkMax m_rightElevator = new SparkMax(MechanismConstants.rightElevatorId, MotorType.kBrushless);
-  private SparkClosedLoopController leftElevatorController = m_leftElevator.getClosedLoopController();
-  private RelativeEncoder leftEncoder = m_leftElevator.getEncoder();
-  private SparkLimitSwitch bottomLimitSwitch = m_leftElevator.getReverseLimitSwitch();
+  private SparkLimitSwitch bottomLimitSwitch;
   private static boolean zeroed;
-  private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
-  private SparkMaxConfig mRightConfig = new SparkMaxConfig();
+  private SparkBaseConfig mLeftConfig;
+  private SparkBaseConfig mRightConfig;
 
   private ElevatorFeedforward feedforward = new ElevatorFeedforward(
-                                            ElevatorConstants.ks,
-                                            ElevatorConstants.kg,
-                                            0.0);
-
+    ElevatorConstants.ks,
+    ElevatorConstants.kg,
+    0.0
+  );
 
   public ElevatorIOSparkMax() {
     //base config for all motors
@@ -69,8 +67,8 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     
     m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
     m_rightElevator = new SparkMax(MechanismConstants.rightElevatorId, MotorType.kBrushless);
-    m_funnel = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushless);
-    m_belt = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushed);
+    m_funnel = new SparkFlex(MechanismConstants.funnelId, MotorType.kBrushless);
+    m_belt = new SparkMax(MechanismConstants.beltId, MotorType.kBrushless);
 
 
     //Adjust left motor encoder config
@@ -119,6 +117,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     inputs.elevatorPos = leftEncoder.getPosition();
     if (bottomLimitSwitch.isPressed()) {
       leftEncoder.setPosition(0);
+      rightEncoder.setPosition(0);
       zeroed = true;
     }
 
@@ -130,13 +129,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   }
 
 
-  /**
-   * Drive motors in maxMotion position mode
-   *
-   * @param targetPosition The target position for the elevator to go to in motor rotations
-   * 
-   */
-  public void positionControl(double targetPostion) {
+  public void requestElevatorPosition(double targetPostion) {
     if(zeroed){
       leftElevatorController.setReference(
         targetPostion, 
@@ -169,10 +162,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     leftElevatorController.setReference(voltage, ControlType.kVoltage);
   }
 
-
-  /**
-   * Stop both motors
-   */
   public void stop() {
     m_leftElevator.stopMotor();
     m_rightElevator.stopMotor();
@@ -228,4 +217,3 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SmartDashboard.putNumber("Elevator/upperSetpoint", 0.0);
   }
 }
-

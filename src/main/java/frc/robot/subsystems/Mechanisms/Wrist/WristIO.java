@@ -2,6 +2,8 @@ package frc.robot.subsystems.mechanisms.wrist;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.units.measure.Angle;
+
 // Values to control subsystem
 public interface WristIO {
   @AutoLog
@@ -13,9 +15,15 @@ public interface WristIO {
     public double funnelRPM = 0.0;
   }
 
-  default void updateInputs(WristIOInputs inputs) {}
+  default void updateInputs(WristIOInputs inputs){}
 
-  default void requestIntake(){}
+  default void requestIntakeVelo(double targetVelo){}
+
+  default void requestIntakeVoltage(double voltage){}
+
+  default void requestWristPosition(double targetPos){}
+
+  default void requestWristVoltage(double voltage){}
 
   default void stopIntake(){}
 

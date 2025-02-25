@@ -9,8 +9,8 @@ public class MechanismControl extends SubsystemBase {
 
   public enum State {
     algaePickup,
-    algaeEject,
     coralPickup,
+    eject,
     levelOne,
     levelTwo,
     levelThree,
@@ -41,7 +41,40 @@ public class MechanismControl extends SubsystemBase {
           
         }
       }
-    }
     
+
+    case coralPickup -> {
+      wristSubsystem.requestIntake(0);
+      break;
+    }
+
+    case eject -> {
+      wristSubsystem.requestIntake(-0);
+      break;
+    }
+
+    case levelOne ->{
+      elevatorSubsystem.requestElevatorPosition(0);
+      wristSubsystem.requestWristPOS(0);
+      break;
+    }
+
+    case levelTwo ->{
+      elevatorSubsystem.requestElevatorPosition(0);
+      wristSubsystem.requestWristPOS(0);
+      break;
+    }
+
+    case levelThree ->{
+      elevatorSubsystem.requestElevatorPosition(0);
+      wristSubsystem.requestWristPOS(0);
+      break;
+    }
+
+    case climberPrep ->{
+      elevatorSubsystem.requestFunnelPOS(0);
+      break;
+    }
+  }
   }
 }
