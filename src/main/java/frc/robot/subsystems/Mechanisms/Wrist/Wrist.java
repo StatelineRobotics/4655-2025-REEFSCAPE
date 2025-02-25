@@ -37,7 +37,7 @@ public class Wrist extends SubsystemBase {
     wirstPos = POS;
   }
 
-    public void requestIntake(double RPM){
+  public void requestIntake(double RPM){
     leftIntakeRPM = RPM;
     rightIntakeRPM = RPM;
   }
