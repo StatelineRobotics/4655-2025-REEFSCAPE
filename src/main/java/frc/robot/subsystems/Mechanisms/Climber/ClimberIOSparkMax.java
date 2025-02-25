@@ -8,6 +8,7 @@ import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -20,6 +21,7 @@ public class ClimberIOSparkMax implements ClimberIO{
     private RelativeEncoder funnelEncoder;
     private SparkClosedLoopController climbController;
     private SparkClosedLoopController funnelController;
+    private ClosedLoopConfig climberClosedLoopConfig;
 
     public ClimberIOSparkMax(){
         climberConfig.idleMode(IdleMode.kBrake);
@@ -31,6 +33,9 @@ public class ClimberIOSparkMax implements ClimberIO{
         climbEncoder = m_climber.getEncoder();
 
         climbController = m_climber.getClosedLoopController();
+
+        climberClosedLoopConfig = climberConfig.closedLoop;
+        climberClosedLoopConfig.pid(0.002, 0, 0);
     }
 
     @Override

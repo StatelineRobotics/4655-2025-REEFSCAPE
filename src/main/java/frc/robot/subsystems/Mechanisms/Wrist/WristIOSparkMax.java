@@ -4,18 +4,20 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.wrist.WristIO.WristIOInputs;
 
-public class WristIOSparkMax {
+public class WristIOSparkMax implements WristIO{
   private SparkMax m_leftIntake;
   private SparkMax m_rightIntake;
   private SparkFlex m_wrist;
@@ -29,12 +31,13 @@ public class WristIOSparkMax {
   private SparkBaseConfig mrightConfig;
   private SparkBaseConfig mwristConfig;
   private double RPM;
+  private ClosedLoopConfig intakeConfig;
 
   public WristIOSparkMax() {
     mleftConfig.idleMode(IdleMode.kCoast);
     mleftConfig.smartCurrentLimit(20);
     mrightConfig = mleftConfig;
-    mrightConfig.inverted(true);
+    mrightConfig.follow(MechanismConstants.leftElevatorId, true);
     mwristConfig = mleftConfig;
     mwristConfig.idleMode(IdleMode.kBrake);
 
@@ -51,11 +54,18 @@ public class WristIOSparkMax {
       mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     leftEncoder = m_leftIntake.getEncoder();
-    rightEncoder = m_leftIntake.getEncoder();
+
     wristEncoder = m_wrist.getAbsoluteEncoder();
 
     leftController = m_leftIntake.getClosedLoopController();
     rightController = m_rightIntake.getClosedLoopController();
+
+    intakeConfig = mleftConfig.closedLoop;
+    intakeConfig.pid(
+    0.0013,
+    0,
+    0
+    );
     
   }
 
@@ -66,12 +76,11 @@ public class WristIOSparkMax {
   }
 
   public void requestWristPOS(double POS) {
-    
+    wristController.setReference(POS, ControlType.kPosition);
   }
 
   public void requestIntake(double RPM){
     leftController.setReference(RPM, SparkBase.ControlType.kVelocity);
-    rightController.setReference(RPM, SparkBase.ControlType.kVelocity);
   }
 
   public void stop() {

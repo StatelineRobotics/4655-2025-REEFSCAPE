@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -42,10 +43,11 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private RelativeEncoder rightEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder funnelEncoder;
-  private SparkLimitSwitch limitSwitch;
+  private SparkLimitSwitch bottomLimitSwitch;
   private static boolean zeroed;
   private SparkBaseConfig mLeftConfig;
   private SparkBaseConfig mRightConfig;
+  private ElevatorFeedforward feedforward;
 
 
   public ElevatorIOSparkMax() {
@@ -100,6 +102,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
     funnelController = m_funnel.getClosedLoopController();
     beltController = m_belt.getClosedLoopController();
+    
   }
 
   @Override
@@ -123,10 +126,10 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   }
 
 
-  public void requestElevatorPosition(Double climberPosition) {
+  public void requestElevatorPosition(Double targetPosition) {
     if(zeroed){
       leftElevatorController.setReference(
-        targetPostion, 
+        targetPosition, 
         ControlType.kMAXMotionPositionControl, 
         ClosedLoopSlot.kSlot0, 
         feedforward.calculate(leftEncoder.getVelocity()),
@@ -168,6 +171,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SparkMaxConfig updatedConfig = new SparkMaxConfig();
     ClosedLoopConfig CLconfig = updatedConfig.closedLoop;
     MAXMotionConfig mmConfig = CLconfig.maxMotion;
+    
 
     if (SmartDashboard.getNumber("Elevator/kp",0.0) != closedLoop.getP()) {
         CLconfig.p(SmartDashboard.getNumber("Elevator/kp",0.0));

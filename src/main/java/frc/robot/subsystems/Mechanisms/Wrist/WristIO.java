@@ -17,6 +17,8 @@ public interface WristIO {
 
   default void updateInputs(WristIOInputs inputs) {}
 
+  default void requestWristPOS(double POS) {}
+
   default void requestIntake(){}
 
   default void stopIntake(){}
