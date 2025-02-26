@@ -13,20 +13,18 @@ public class Wrist extends SubsystemBase {
   private double rightIntakeRPM;
   private double wirstPos;
 
+  DriverStationTriggers.onDisable.onTrue(this::stop);
+
   public Wrist(WristIO io) {
     this.io = io;
+    Smartdashboard.putData("wrist/upperCommand", upperCommand());
+    Smartdashboard.putData("wrist/lowerCommand", lowerCommand())
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Elevator", inputs);
-
-    if (DriverStation.isDisabled()) {
-      stop();
-    } else {
-
-    }
   }
 
   private void stop() {
@@ -40,5 +38,19 @@ public class Wrist extends SubsystemBase {
   public void requestIntake(double RPM){
     leftIntakeRPM = RPM;
     rightIntakeRPM = RPM;
+  }
+
+  public Command upperTestCommand() {
+    return this.defer(
+      () ->
+        Commands.run(
+          () -> positionThing(SmartDashboard.get("wrist/upperPosition", 0.0))));
+  }
+
+  public Command lowerTestCommand() {
+    return this.defer(
+      () -> 
+        Commands.run(
+          () -> postionThing(SmartDashboard.get("wrist/lowerPosition", 0.0))));
   }
 }
