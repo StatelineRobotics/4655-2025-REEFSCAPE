@@ -65,6 +65,10 @@ public class MechanismConstants {
     public static final double kd = 0.0;
     public static final double kg = 0.0;
     public static final double ks = 0.0;
+
+    public static final double coralPickup = 0;
+    public static final double coralAngle = 0;
+    public static final double coralLevelFour = 0;
   }
 
 }
