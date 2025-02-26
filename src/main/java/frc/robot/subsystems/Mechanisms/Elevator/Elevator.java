@@ -7,17 +7,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
-import java.util.function.DoubleSupplier;
-
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
-
-
-import com.revrobotics.spark.SparkBase.ControlType;
-
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
   private final ElevatorIO io;
@@ -51,14 +45,14 @@ public class Elevator extends SubsystemBase {
   }
 
   public void requestElevatorPosition(double ElevatorPosition) {
-    io.requestElevatorPosition();
+    io.requestElevatorPosition(ElevatorPosition);
   }
 
-  public void requestBeltRPM(double RPM){
+  public void requestBeltRPM(double RPM) {
     beltRPM = RPM;
   }
 
-    public void requestFunnelPOS(double POS){
+  public void requestFunnelPOS(double POS) {
     FunnelPosition = POS;
   }
 
@@ -72,31 +66,29 @@ public class Elevator extends SubsystemBase {
 
   private void positionControl(double targetPostion) {
     inputs.setPoint = targetPostion;
-    io.positionControl(targetPostion);
+    io.requestElevatorPosition(targetPostion);
   }
 
   public Command testPositionControl() {
     return this.runOnce(
-      () -> {
-        positionControl(39);
-      }
-    );
+        () -> {
+          positionControl(39);
+        });
   }
 
   public Command homeCommand() {
     return this.run(
-      () -> {
-        positionControl(0.0);
-      }
-    );
+        () -> {
+          positionControl(0.0);
+        });
   }
 
   public Command manualRunCommand(DoubleSupplier controllerInput) {
     return this.run(
-      () -> {
-        voltageControl(controllerInput.getAsDouble() * -6.0);
-      }
-    ).withName("Maual Run Command");
+            () -> {
+              voltageControl(controllerInput.getAsDouble() * -6.0);
+            })
+        .withName("Maual Run Command");
   }
 
   public Command stopCommand() {
@@ -105,25 +97,23 @@ public class Elevator extends SubsystemBase {
 
   public Command holdPosition() {
     return this.run(
-      () -> {
-        voltageControl(0.0);
-      });
+        () -> {
+          voltageControl(0.0);
+        });
   }
 
   public Command testLowerPosition() {
     return this.defer(
-      () -> Commands.runOnce(
-        () -> positionControl(
-          SmartDashboard.getNumber("Elevator/lowerSetpoint", 
-          0.0))));
+        () ->
+            Commands.runOnce(
+                () -> positionControl(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.0))));
   }
 
   public Command testUpperPosition() {
     return this.defer(
-      () -> Commands.runOnce(
-        () -> positionControl(
-          SmartDashboard.getNumber("Elevator/upperSetpoint", 
-          0.0))));
+        () ->
+            Commands.runOnce(
+                () -> positionControl(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.0))));
   }
 
   public boolean isAtSetpoint() {
@@ -133,7 +123,7 @@ public class Elevator extends SubsystemBase {
     return false;
   }
 
-  public boolean isHomed(){
+  public boolean isHomed() {
     return inputs.zeroed;
   }
 
@@ -144,7 +134,8 @@ public class Elevator extends SubsystemBase {
 
   @AutoLogOutput
   public double get2ndStageHeight() {
-    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 2.0 - Units.inchesToMeters(1.0);
+    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 2.0
+        - Units.inchesToMeters(1.0);
   }
 
   @AutoLogOutput
@@ -156,5 +147,4 @@ public class Elevator extends SubsystemBase {
   public double getCarrageVelocity() {
     return inputs.elevatorVelo * ElevatorConstants.conversion_RPM_MS * 4.0;
   }
-    
 }
