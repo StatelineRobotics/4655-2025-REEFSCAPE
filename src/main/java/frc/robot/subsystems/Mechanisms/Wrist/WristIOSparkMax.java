@@ -1,11 +1,6 @@
 package frc.robot.subsystems.mechanisms.wrist;
 
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
-import com.ctre.phoenix6.configs.CANrangeConfigurator;
-import com.ctre.phoenix6.hardware.CANrange;
-import com.ctre.phoenix6.hardware.DeviceIdentifier;
 import com.ctre.phoenix6.signals.UpdateModeValue;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
@@ -14,34 +9,32 @@ import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig;
-import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-
+import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.units.FrequencyUnit;
-import edu.wpi.first.units.measure.Frequency;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.wrist.WristIO.WristIOInputs;
+import java.util.function.Supplier;
 
-public class WristIOSparkMax {
-  private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
+public class WristIOSparkMax implements WristIO {
+  // private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
-  public Trigger detectsCoral = new Trigger(() -> canRange.getIsDetected().getValue());
-  private SparkMax m_leftIntake;
-  private SparkMax m_rightIntake;
-  private SparkFlex m_wrist;
+  // public Trigger detectsCoral = new Trigger(() -> canRange.getIsDetected().getValue());
+  private SparkMax m_leftIntake =
+      new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
+  private SparkMax m_rightIntake =
+      new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
+  private SparkFlex m_wrist = new SparkFlex(MechanismConstants.wristId, MotorType.kBrushless);
   private AbsoluteEncoder wristEncoder = m_wrist.getAbsoluteEncoder();
   private RelativeEncoder leftEncoder = m_leftIntake.getEncoder();
   private RelativeEncoder rightEncoder = m_rightIntake.getEncoder();
@@ -51,65 +44,65 @@ public class WristIOSparkMax {
   private SparkMaxConfig mleftConfig = new SparkMaxConfig();
   private SparkMaxConfig mrightConfig = new SparkMaxConfig();
   private SparkFlexConfig mwristConfig = new SparkFlexConfig();
-  private ArmFeedforward feedforward = new ArmFeedforward(WristConstants.ks, 
-                                                          WristConstants.kg, 
-                                                          0);
+  private ArmFeedforward feedforward = new ArmFeedforward(WristConstants.ks, WristConstants.kg, 0);
   private double RPM;
 
   public WristIOSparkMax() {
-    mleftConfig.idleMode(IdleMode.kCoast)
-               .smartCurrentLimit(10)
-               .inverted(false);
+    mleftConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(10).inverted(false);
 
-    mleftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                          .p(RollerConstants.kp)
-                          .i(RollerConstants.ki)
-                          .d(RollerConstants.kd)
-                          .velocityFF(RollerConstants.ff);
+    mleftConfig
+        .closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .p(RollerConstants.kp)
+        .i(RollerConstants.ki)
+        .d(RollerConstants.kd)
+        .velocityFF(RollerConstants.ff);
 
-    mrightConfig.apply(mleftConfig)
-                .inverted(true);
+    mrightConfig.apply(mleftConfig).inverted(true);
 
-    mwristConfig.idleMode(IdleMode.kBrake)
-                .smartCurrentLimit(20);
+    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(20);
 
-    mwristConfig.softLimit.forwardSoftLimitEnabled(true)
-                          .forwardSoftLimit(-1)
-                          .reverseSoftLimitEnabled(true)
-                          .reverseSoftLimit(-1);
+    mwristConfig
+        .softLimit
+        .forwardSoftLimitEnabled(true)
+        .forwardSoftLimit(-1)
+        .reverseSoftLimitEnabled(true)
+        .reverseSoftLimit(-1);
 
-    mwristConfig.absoluteEncoder.setSparkMaxDataPortConfig()
-                                .inverted(false)
-                                .positionConversionFactor(Math.PI * 2.0)
-                                .velocityConversionFactor(Math.PI * 2.0);
+    mwristConfig
+        .absoluteEncoder
+        .setSparkMaxDataPortConfig()
+        .inverted(false)
+        .positionConversionFactor(Math.PI * 2.0)
+        .velocityConversionFactor(Math.PI * 2.0);
 
-    mwristConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                           .p(WristConstants.kp)
-                           .i(WristConstants.ki)
-                           .d(WristConstants.kd)
-                           .positionWrappingEnabled(false);
+    mwristConfig
+        .closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .p(WristConstants.kp)
+        .i(WristConstants.ki)
+        .d(WristConstants.kd)
+        .positionWrappingEnabled(false);
 
-    mwristConfig.closedLoop.maxMotion.positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
-                                     .maxAcceleration(WristConstants.maxAccel)
-                                     .maxVelocity(WristConstants.maxVelo)
-                                     .allowedClosedLoopError(WristConstants.allowError);
-
-    m_leftIntake = new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
-    m_rightIntake = new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
-    m_wrist = new SparkFlex(MechanismConstants.wristId, MotorType.kBrushless);
+    mwristConfig
+        .closedLoop
+        .maxMotion
+        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
+        .maxAcceleration(WristConstants.maxAccel)
+        .maxVelocity(WristConstants.maxVelo)
+        .allowedClosedLoopError(WristConstants.allowError);
 
     m_leftIntake.configure(
         mleftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_rightIntake.configure(
         mrightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    m_wrist.configure(
-        mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_wrist.configure(mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-
-    canRangeConfig.ToFParams.withUpdateMode(UpdateModeValue.ShortRangeUserFreq)
-                            .withUpdateFrequency(50);
-    canRange.getConfigurator().apply(canRangeConfig);
-
+    canRangeConfig
+        .ToFParams
+        .withUpdateMode(UpdateModeValue.ShortRangeUserFreq)
+        .withUpdateFrequency(50);
+    // canRange.getConfigurator().apply(canRangeConfig);
   }
 
   public void updateInputs(WristIOInputs inputs) {
@@ -124,16 +117,18 @@ public class WristIOSparkMax {
   }
 
   public void requestWristPosition(double targetPos) {
-    wristController.setReference(targetPos, 
-                                 ControlType.kMAXMotionPositionControl,
-                                 ClosedLoopSlot.kSlot0,
-                                 feedforward.calculate(wristEncoder.getPosition(), wristEncoder.getVelocity()),
-                                 ArbFFUnits.kVoltage);
+    wristController.setReference(
+        targetPos,
+        ControlType.kMAXMotionPositionControl,
+        ClosedLoopSlot.kSlot0,
+        feedforward.calculate(wristEncoder.getPosition(), wristEncoder.getVelocity()),
+        ArbFFUnits.kVoltage);
   }
 
   public void requestWristVoltage(double voltage) {
-    wristController.setReference(voltage + feedforward.calculate(wristEncoder.getPosition(), wristEncoder.getVelocity()), 
-                                 ControlType.kVoltage);
+    wristController.setReference(
+        voltage + feedforward.calculate(wristEncoder.getPosition(), wristEncoder.getVelocity()),
+        ControlType.kVoltage);
   }
 
   public void requestIntakeVelo(double RPM) {
@@ -157,7 +152,7 @@ public class WristIOSparkMax {
   }
 
   public Supplier<Boolean> detectCoral() {
-    return canRange.getIsDetected().asSupplier();
+    // return canRange.getIsDetected().asSupplier();
+    return () -> false;
   }
-
 }

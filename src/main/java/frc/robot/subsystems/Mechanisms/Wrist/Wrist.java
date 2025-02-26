@@ -5,16 +5,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
-
 import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.Logger;
-
-import com.revrobotics.spark.SparkBase;
 
 public class Wrist extends SubsystemBase {
   private WristIO io;
-  private WristIOInputsAutoLogged inputs;
+  private WristIOInputsAutoLogged inputs = new WristIOInputsAutoLogged();
   private double leftIntakeRPM;
   private double rightIntakeRPM;
   private double wirstPos;
@@ -26,7 +22,7 @@ public class Wrist extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Elevator", inputs);
+    Logger.processInputs("Wrist", inputs);
 
     if (DriverStation.isDisabled()) {
       stop();
@@ -79,7 +75,7 @@ public class Wrist extends SubsystemBase {
     return Commands.runOnce(() -> io.requestIntakeVelo(setPoint));
   }
 
-  private void requestIntakeVelo(double RPM){
+  private void requestIntakeVelo(double RPM) {
     leftIntakeRPM = RPM;
     rightIntakeRPM = RPM;
   }

@@ -23,13 +23,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -100,7 +97,7 @@ public class Vision extends SubsystemBase {
         }
       }
 
-      //Loop over pose observations
+      // Loop over pose observations
       for (var observation : inputs[cameraIndex].poseObservations) {
         // Check whether to reject pose
         boolean rejectPose =
@@ -115,10 +112,11 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
                 || observation.pose().getY() > aprilTagLayout.getFieldWidth()
-                || poseSupplier.getPose().getTranslation()
-                        .getDistance(
-                              observation.pose().getTranslation().toTranslation2d()) 
-                        > maxDistance;
+                || poseSupplier
+                        .getPose()
+                        .getTranslation()
+                        .getDistance(observation.pose().getTranslation().toTranslation2d())
+                    > maxDistance;
 
         // Add pose to log
         robotPoses.add(observation.pose());

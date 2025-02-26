@@ -31,11 +31,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -46,7 +41,14 @@ import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSparkMax;
-
+import frc.robot.subsystems.mechanisms.wrist.Wrist;
+import frc.robot.subsystems.mechanisms.wrist.WristIO;
+import frc.robot.subsystems.mechanisms.wrist.WristIOSparkMax;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -61,25 +63,23 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
 
-
-
   // Subsystems
-    private final Drive drive;
-    private final Elevator elevator;
+  private final Drive drive;
+  private final Elevator elevator;
+  private final Wrist wrist;
 
-    private final Vision vision;
+  private final Vision vision;
 
-    // Controller
-    private final CommandXboxController controller = new CommandXboxController(0);
-    private final CommandXboxController auxController = new CommandXboxController(1);
+  // Controller
+  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController auxController = new CommandXboxController(1);
 
-    private LoggedMechanism2d superstructure2d = new LoggedMechanism2d(
-        Units.inchesToMeters(2), 
-        Units.inchesToMeters(32.5 * 4));
-    private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
-    private LoggedMechanismLigament2d elevatorVisual = superstructureRoot.append(new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
-
-
+  private LoggedMechanism2d superstructure2d =
+      new LoggedMechanism2d(Units.inchesToMeters(2), Units.inchesToMeters(32.5 * 4));
+  private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
+  private LoggedMechanismLigament2d elevatorVisual =
+      superstructureRoot.append(
+          new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -100,12 +100,12 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 drive::getPose,
-                new VisionIOPhotonVision(VisionConstants.camera0Name, VisionConstants.robotToCamera0),
-                new VisionIOPhotonVision(VisionConstants.camera1Name, VisionConstants.robotToCamera1));
-        elevator = 
-            new Elevator(
-                new ElevatorIOSparkMax()
-            );
+                new VisionIOPhotonVision(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+        elevator = new Elevator(new ElevatorIOSparkMax());
+        wrist = new Wrist(new WristIOSparkMax());
         break;
 
       case SIM:
@@ -121,12 +121,12 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 drive::getPose,
-                new VisionIOPhotonVisionSim(VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
-        elevator = 
-            new Elevator(
-                new ElevatorIOSim()
-            );
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+        elevator = new Elevator(new ElevatorIOSim());
+        wrist = new Wrist(new WristIO() {});
         break;
 
       default:
@@ -138,13 +138,12 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        vision = new Vision(drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
-        elevator = 
-            new Elevator(
-                new ElevatorIO() {}
-        );
+        vision =
+            new Vision(
+                drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
+        elevator = new Elevator(new ElevatorIO() {});
+        wrist = new Wrist(new WristIO() {});
         break;
-
     }
 
     // Set up auto routines
@@ -222,34 +221,34 @@ public class RobotContainer {
                 },
                 () -> {
                   // **drive.run(0.0, aimController.calculate
-                //   vision.getTargetX(0).getRadians();
+                  //   vision.getTargetX(0).getRadians();
                 },
                 drive));
-    
-    auxController.axisMagnitudeGreaterThan(1, 0.1).whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
-                    .whileFalse(elevator.holdPosition());
+
+    auxController
+        .axisMagnitudeGreaterThan(1, 0.1)
+        .whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
+        .whileFalse(elevator.holdPosition());
 
     auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
-
-   }
-
+  }
 
   public void logSubsystems() {
     SmartDashboard.putData("drive", drive);
     SmartDashboard.putData("elevator", elevator);
   }
 
-    public void updateMechanism2ds() {
-        elevatorVisual.setLength(Units.inchesToMeters(9.0) + elevator.getCarrageHeight());
-        Logger.recordOutput("mech2d/superstructure", superstructure2d);
-        Pose3d[] mechanismPoses = {
-            new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)),
-            new Pose3d(0, 0, elevator.get1stStageHeight(), new Rotation3d(0, 0, 0)),
-            new Pose3d(0, 0, elevator.get2ndStageHeight(), new Rotation3d(0, 0, 0)),
-            new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
-        };
-        Logger.recordOutput("mechanismPoses", mechanismPoses);
-    }
+  public void updateMechanism2ds() {
+    elevatorVisual.setLength(Units.inchesToMeters(9.0) + elevator.getCarrageHeight());
+    Logger.recordOutput("mech2d/superstructure", superstructure2d);
+    Pose3d[] mechanismPoses = {
+      new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)),
+      new Pose3d(0, 0, elevator.get1stStageHeight(), new Rotation3d(0, 0, 0)),
+      new Pose3d(0, 0, elevator.get2ndStageHeight(), new Rotation3d(0, 0, 0)),
+      new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
+    };
+    Logger.recordOutput("mechanismPoses", mechanismPoses);
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.

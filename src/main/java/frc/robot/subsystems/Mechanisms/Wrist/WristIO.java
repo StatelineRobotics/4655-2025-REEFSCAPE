@@ -2,8 +2,6 @@ package frc.robot.subsystems.mechanisms.wrist;
 
 import org.littletonrobotics.junction.AutoLog;
 
-import edu.wpi.first.units.measure.Angle;
-
 // Values to control subsystem
 public interface WristIO {
   @AutoLog
@@ -27,7 +25,7 @@ public interface WristIO {
 
   default void stopIntake() {}
 
-  default void stopWrist(){}
+  default void stopWrist() {}
 
-  default void stop(){}
+  default void stop() {}
 }

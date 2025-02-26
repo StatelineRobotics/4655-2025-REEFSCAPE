@@ -15,18 +15,15 @@ public interface ElevatorIO {
     public double appliedVolts = 0.0;
     public double appliedCurrent = 0.0;
     public double setPoint = 0.0;
-
   }
 
   default void updateInputs(ElevatorIOInputs inputs) {}
-
-  default void requestElevatorPosition(){}
 
   default void requestFunnelPOS() {}
 
   default void voltageControl(double voltage) {}
 
-  default void positionControl(double target) {}
+  default void requestElevatorPosition(double target) {}
 
   default void requestBeltRPM() {}
 
