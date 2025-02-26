@@ -1,7 +1,13 @@
 package frc.robot.subsystems.mechanisms.wrist;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
+
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 
 import com.revrobotics.spark.SparkBase;
@@ -33,11 +39,47 @@ public class Wrist extends SubsystemBase {
     io.stop();
   }
 
-  public void requestWristPOS(double POS) {
+  private void requestWristPOS(double POS) {
     wirstPos = POS;
   }
 
-  public void requestIntake(double RPM){
+  public Command intakePosition() {
+    return requestWristPosition(WristConstants.intakeAngle);
+  }
+
+  public Command holdPostion() {
+    return requestWristPosition(WristConstants.holdAngle);
+  }
+
+  public Command scorePosition() {
+    return requestWristPosition(WristConstants.scoreAngle);
+  }
+
+  public Command intakeFastSpeed() {
+    return requestIntakeSpeed(500000);
+  }
+
+  public Command intakeScoreSpeed() {
+    return requestIntakeSpeed(50000);
+  }
+
+  public Command wristVoltageControl(Supplier<Double> voltage) {
+    return Commands.run(() -> io.requestWristVoltage(voltage.get()));
+  }
+
+  public Command intakeVoltageControl(Supplier<Double> voltage) {
+    return Commands.run(() -> io.requestIntakeVoltage(voltage.get()));
+  }
+
+  public Command requestWristPosition(double setPoint) {
+    return Commands.runOnce(() -> io.requestWristPosition(setPoint));
+  }
+
+  public Command requestIntakeSpeed(double setPoint) {
+    return Commands.runOnce(() -> io.requestIntakeVelo(setPoint));
+  }
+
+  private void requestIntakeVelo(double RPM){
     leftIntakeRPM = RPM;
     rightIntakeRPM = RPM;
   }

@@ -44,30 +44,30 @@ public class MechanismControl extends SubsystemBase {
     
 
     case coralPickup -> {
-      wristSubsystem.requestIntake(0);
+      wristSubsystem.requestIntakeSpeed(0);
       break;
     }
 
     case eject -> {
-      wristSubsystem.requestIntake(-0);
+      wristSubsystem.requestIntakeSpeed(-0);
       break;
     }
 
     case levelOne ->{
       elevatorSubsystem.requestElevatorPosition(0);
-      wristSubsystem.requestWristPOS(0);
+      wristSubsystem.requestIntakeSpeed(0);
       break;
     }
 
     case levelTwo ->{
       elevatorSubsystem.requestElevatorPosition(0);
-      wristSubsystem.requestWristPOS(0);
+      wristSubsystem.requestWristPosition(0);
       break;
     }
 
     case levelThree ->{
       elevatorSubsystem.requestElevatorPosition(0);
-      wristSubsystem.requestWristPOS(0);
+      wristSubsystem.requestWristPosition(0);
       break;
     }
 

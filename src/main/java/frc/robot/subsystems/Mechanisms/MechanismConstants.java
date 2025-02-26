@@ -11,6 +11,7 @@ public class MechanismConstants {
   public static final int climberId = 0;
   public static final int funnelId = 0;
   public static final int beltId = 0;
+  public static final int canRangeID = 0;
 
 
   public class ElevatorConstants {
@@ -60,11 +61,36 @@ public class MechanismConstants {
     public static final double gearing = 25.0/1.0;
     
     //Closed Loop Constatns
-    public static final double kp = 1.0;
+    public static final double kp = 0.0;
     public static final double ki = 0.0;
     public static final double kd = 0.0;
     public static final double kg = 0.0;
     public static final double ks = 0.0;
+
+    public static final double maxAccel = 0.0;
+    public static final double maxVelo = 0.0;
+    public static final double allowError = 0.0;
+    
+    public static final double simKp = 1.0;
+    public static final double simKi = 0.0;
+    public static final double simKd = 0.0;
+    public static final double simKg = 0.0;
+    public static final double simKs = 0.0;
+
+    public static final double intakeAngle = 0.0;
+    public static final double holdAngle = 0.0;
+    public static final double scoreAngle = 0.0;
   }
+
+  public class RollerConstants {
+
+    public static final double kp = 0.0;
+    public static final double ki = 0.0; 
+    public static final double kd = 0.0;
+    public static final double ff = 0.0;
+
+  }
+
+
 
 }
