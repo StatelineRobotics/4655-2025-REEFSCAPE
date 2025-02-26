@@ -66,6 +66,8 @@ public class WristIOSparkMax implements WristIO{
     0,
     0
     );
+
+    setUpPIDTuning();
     
   }
 
@@ -73,6 +75,22 @@ public class WristIOSparkMax implements WristIO{
     inputs.leftIntakeRPM = leftEncoder.getVelocity();
     inputs.rightIntakeRPM = rightEncoder.getVelocity();
     inputs.wristPos = wristEncoder.getPosition();
+
+    inputs.wristDutyCycle = m_wrist.getAppliedOutput();
+    inputs.wristAppliedVoltage = m_wrist.getBusVoltage() * inputs.wristDutyCycle;
+    inputs.wristAppliedCurrent = m_wrist.getOutputCurrent();
+
+    inputs.rightDutyCycle = m_rightIntake.getAppliedOutput();
+    inputs.rightAppliedVoltage = m_rightIntake.getBusVoltage() * inputs.rightDutyCycle;
+    inputs.rightAppliedCurrent = m_rightIntake.getOutputCurrent();
+
+    inputs.leftDutyCycle = m_leftIntake.getAppliedOutput();
+    inputs.leftAppliedVoltage = m_leftIntake.getBusVoltage() * inputs.rightDutyCycle;
+    inputs.leftAppliedCurrent = m_leftIntake.getOutputCurrent();
+
+    if (Constants.usePIDtuning) {
+      updatePIDTuning();
+    }
   }
 
   public void requestWristPOS(double POS) {
@@ -97,4 +115,56 @@ public class WristIOSparkMax implements WristIO{
   public void stopWrist() {
     m_wrist.stopMotor();
   }
+
+  private void setUpPIDTuning() {
+    ClosedLoopConfigAccessor closedLoop = m_wrist.configAccessor.closedLoop;
+    SmartDashboard.putNumber("Wrist/kp", closedLoop.getP());
+    SmartDashboard.putNumber("Wrist/ki", closedLoop.getI());
+    SmartDashboard.putNumber("Wrist/kd", closedLoop.getD());
+    SmartDashboard.putNumber("Wrist/kg", feedforward.getKg());
+    SmartDashboard.putNumber("Wrist/ks", feedforward.getKs());
+    SmartDashboard.putNumber("Wrist/maxVelo", closedLoop.maxMotion.getMaxVelocity());
+    SmartDashboard.putNumber("Wrist/maxAccel", closedLoop.maxMotion.getMaxAcceleration());
+    SmartDashboard.putNumber("Wrist/allowError", closedLoop.maxMotion.getAllowedClosedLoopError());
+    SmartDashboard.putNumber("Wrist/lowerSetpoint", 0.0);
+    SmartDashboard.putNumber("Wrist/upperSetpoint", 0.0);
+  }
+
+  private void updatePIDTuning() {
+    ClosedLoopConfigAccessor closedLoop = m_leftElevator.configAccessor.closedLoop;
+    MAXMotionConfigAccessor maxMotion = closedLoop.maxMotion;
+    SparkMaxConfig updatedConfig = new SparkFlexConfig();
+    ClosedLoopConfig CLconfig = updatedConfig.closedLoop;
+    MAXMotionConfig mmConfig = CLconfig.maxMotion;
+    
+    if (SmartDashboard.getNumber("Wrist/kp",0.0) != closedLoop.getP()) {
+        CLconfig.p(SmartDashboard.getNumber("Wrist/kp",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/ki",0.0) != closedLoop.getI()) {
+        CLconfig.i(SmartDashboard.getNumber("Wrist/ki",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/kd",0.0) != closedLoop.getD()) {
+        CLconfig.d(SmartDashboard.getNumber("Wrist/kd",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/kg",0.0) != feedforward.getKg()) {
+        //feedforward.(SmartDashboard.getNumber("Elevator/kg",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/ks",0.0) != feedforward.getKs()) {
+        //CLconfig.i(SmartDashboard.getNumber("Elevator/ki",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/maxVelo",0.0) != maxMotion.getMaxVelocity()) {
+        mmConfig.maxVelocity(SmartDashboard.getNumber("Wrist/maxVelo",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/maxAccel",0.0) != maxMotion.getMaxAcceleration()) {
+        mmConfig.maxAcceleration(SmartDashboard.getNumber("Wrist/maxAccel",0.0));
+    }
+    if (SmartDashboard.getNumber("Wrist/allowError",0.0) != maxMotion.getAllowedClosedLoopError()) {
+        mmConfig.allowedClosedLoopError(SmartDashboard.getNumber("Wrist/allowError",0.0));
+    }
+
+    m_leftElevator.configure(updatedConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+  }
+
+
+  
 }
