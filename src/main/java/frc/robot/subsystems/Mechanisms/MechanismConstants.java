@@ -76,6 +76,9 @@ public class MechanismConstants {
     public static final double intakeAngle = 0.0;
     public static final double holdAngle = 0.0;
     public static final double scoreAngle = 0.0;
+    public static final double coralPickup = 0;
+    public static final double coralAngle = 0;
+    public static final double coralLevelFour = 0;
   }
 
   public class RollerConstants {

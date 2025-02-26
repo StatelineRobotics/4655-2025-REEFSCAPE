@@ -42,8 +42,12 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
   private SparkMaxConfig mRightConfig = new SparkMaxConfig();
 
-  private ElevatorFeedforward feedforward =
-      new ElevatorFeedforward(ElevatorConstants.ks, ElevatorConstants.kg, 0.0);
+
+  private ElevatorFeedforward feedforward = new ElevatorFeedforward(
+    ElevatorConstants.ks,
+    ElevatorConstants.kg,
+    0.0
+  );
 
   public ElevatorIOSparkMax() {
     // base config for all motors
@@ -160,6 +164,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SparkMaxConfig updatedConfig = new SparkMaxConfig();
     ClosedLoopConfig CLconfig = updatedConfig.closedLoop;
     MAXMotionConfig mmConfig = CLconfig.maxMotion;
+    
 
     if (SmartDashboard.getNumber("Elevator/kp", 0.0) != closedLoop.getP()) {
       CLconfig.p(SmartDashboard.getNumber("Elevator/kp", 0.0));

@@ -7,17 +7,19 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 
-public class ClimberIOSparkMax implements ClimberIO {
-  private SparkFlex m_climber;
-  private SparkBaseConfig climberConfig;
-  private RelativeEncoder climbEncoder;
-  private RelativeEncoder funnelEncoder;
-  private SparkClosedLoopController climbController;
-  private SparkClosedLoopController funnelController;
+public class ClimberIOSparkMax implements ClimberIO{
+    private SparkFlex m_climber;
+    private SparkBaseConfig climberConfig;
+    private RelativeEncoder climbEncoder;
+    private RelativeEncoder funnelEncoder;
+    private SparkClosedLoopController climbController;
+    private SparkClosedLoopController funnelController;
+    private ClosedLoopConfig climberClosedLoopConfig;
 
   public ClimberIOSparkMax() {
     climberConfig.idleMode(IdleMode.kBrake);
@@ -29,8 +31,11 @@ public class ClimberIOSparkMax implements ClimberIO {
 
     climbEncoder = m_climber.getEncoder();
 
-    climbController = m_climber.getClosedLoopController();
-  }
+        climbController = m_climber.getClosedLoopController();
+
+        climberClosedLoopConfig = climberConfig.closedLoop;
+        climberClosedLoopConfig.pid(0.002, 0, 0);
+    }
 
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
