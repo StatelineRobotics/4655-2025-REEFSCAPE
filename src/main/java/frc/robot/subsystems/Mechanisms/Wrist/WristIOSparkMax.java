@@ -12,12 +12,12 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
-import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
@@ -26,14 +26,13 @@ import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
-import java.util.function.Supplier;
 
 public class WristIOSparkMax implements WristIO {
   private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
-  private SparkMax m_leftIntake;
-  private SparkMax m_rightIntake;
-  private SparkFlex m_wrist;
+  protected SparkMax m_leftIntake;
+  protected SparkMax m_rightIntake;
+  protected SparkFlex m_wrist;
   private AbsoluteEncoder wristEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder rightEncoder;
@@ -97,15 +96,14 @@ public class WristIOSparkMax implements WristIO {
         mrightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_wrist.configure(mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
+    canRangeConfig.ToFParams.withUpdateMode(UpdateModeValue.ShortRange100Hz);
     canRangeConfig
-        .ToFParams
-        .withUpdateMode(UpdateModeValue.ShortRangeUserFreq)
-        .withUpdateFrequency(50);
-    canRange.getConfigurator().apply(canRangeConfig);
-    canRangeConfig.ProximityParams
+        .ProximityParams
         .withMinSignalStrengthForValidMeasurement(2500)
-        .withProximityHysteresis(.01)
-        .withProximityThreshold(.5);
+        .withProximityHysteresis(0.025)
+        .withProximityThreshold(0.1);
+
+    canRange.getConfigurator().apply(canRangeConfig);
 
     leftEncoder = m_leftIntake.getEncoder();
 
@@ -115,17 +113,14 @@ public class WristIOSparkMax implements WristIO {
     rightController = m_rightIntake.getClosedLoopController();
 
     intakeConfig = mleftConfig.closedLoop;
-    intakeConfig.pid(
-    0.0013,
-    0,
-    0
-    );
+    intakeConfig.pid(0.0013, 0, 0);
 
     setUpPIDTuning();
-    
   }
 
   public void updateInputs(WristIOInputs inputs) {
+    inputs.detectsNote = canRange.getIsDetected().getValue();
+
     inputs.leftIntakeRPM = leftEncoder.getVelocity();
     inputs.rightIntakeRPM = rightEncoder.getVelocity();
     inputs.wristPos = wristEncoder.getPosition();
@@ -153,15 +148,11 @@ public class WristIOSparkMax implements WristIO {
   }
 
   public void requestWristPosition(double targetPos) {
-    wristController.setReference(
-        targetPos,
-        ControlType.kMAXMotionPositionControl);
+    wristController.setReference(targetPos, ControlType.kMAXMotionPositionControl);
   }
 
   public void requestWristVoltage(double voltage) {
-    wristController.setReference(
-        voltage,
-        ControlType.kVoltage);
+    wristController.setReference(voltage, ControlType.kVoltage);
   }
 
   public void requestIntakeVelo(double RPM) {
@@ -183,10 +174,6 @@ public class WristIOSparkMax implements WristIO {
     m_wrist.stopMotor();
   }
 
-  public Supplier<Boolean> detectCoral() {
-    // return canRange.getIsDetected().asSupplier();
-    return () -> false;
-  }
   private void setUpPIDTuning() {
     ClosedLoopConfigAccessor closedLoop = m_wrist.configAccessor.closedLoop;
     SmartDashboard.putNumber("Wrist/kp", closedLoop.getP());
@@ -205,29 +192,28 @@ public class WristIOSparkMax implements WristIO {
     SparkFlexConfig updatedConfig = new SparkFlexConfig();
     ClosedLoopConfig CLconfig = updatedConfig.closedLoop;
     MAXMotionConfig mmConfig = CLconfig.maxMotion;
-    
-    if (SmartDashboard.getNumber("Wrist/kp",0.0) != closedLoop.getP()) {
-        CLconfig.p(SmartDashboard.getNumber("Wrist/kp",0.0));
+
+    if (SmartDashboard.getNumber("Wrist/kp", 0.0) != closedLoop.getP()) {
+      CLconfig.p(SmartDashboard.getNumber("Wrist/kp", 0.0));
     }
-    if (SmartDashboard.getNumber("Wrist/ki",0.0) != closedLoop.getI()) {
-        CLconfig.i(SmartDashboard.getNumber("Wrist/ki",0.0));
+    if (SmartDashboard.getNumber("Wrist/ki", 0.0) != closedLoop.getI()) {
+      CLconfig.i(SmartDashboard.getNumber("Wrist/ki", 0.0));
     }
-    if (SmartDashboard.getNumber("Wrist/kd",0.0) != closedLoop.getD()) {
-        CLconfig.d(SmartDashboard.getNumber("Wrist/kd",0.0));
+    if (SmartDashboard.getNumber("Wrist/kd", 0.0) != closedLoop.getD()) {
+      CLconfig.d(SmartDashboard.getNumber("Wrist/kd", 0.0));
     }
-    if (SmartDashboard.getNumber("Wrist/maxVelo",0.0) != maxMotion.getMaxVelocity()) {
-        mmConfig.maxVelocity(SmartDashboard.getNumber("Wrist/maxVelo",0.0));
+    if (SmartDashboard.getNumber("Wrist/maxVelo", 0.0) != maxMotion.getMaxVelocity()) {
+      mmConfig.maxVelocity(SmartDashboard.getNumber("Wrist/maxVelo", 0.0));
     }
-    if (SmartDashboard.getNumber("Wrist/maxAccel",0.0) != maxMotion.getMaxAcceleration()) {
-        mmConfig.maxAcceleration(SmartDashboard.getNumber("Wrist/maxAccel",0.0));
+    if (SmartDashboard.getNumber("Wrist/maxAccel", 0.0) != maxMotion.getMaxAcceleration()) {
+      mmConfig.maxAcceleration(SmartDashboard.getNumber("Wrist/maxAccel", 0.0));
     }
-    if (SmartDashboard.getNumber("Wrist/allowError",0.0) != maxMotion.getAllowedClosedLoopError()) {
-        mmConfig.allowedClosedLoopError(SmartDashboard.getNumber("Wrist/allowError",0.0));
+    if (SmartDashboard.getNumber("Wrist/allowError", 0.0)
+        != maxMotion.getAllowedClosedLoopError()) {
+      mmConfig.allowedClosedLoopError(SmartDashboard.getNumber("Wrist/allowError", 0.0));
     }
 
-    m_wrist.configure(updatedConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+    m_wrist.configure(
+        updatedConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
   }
-
-
-  
 }

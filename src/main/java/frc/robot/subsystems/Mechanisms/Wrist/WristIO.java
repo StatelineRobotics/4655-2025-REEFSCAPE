@@ -6,6 +6,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface WristIO {
   @AutoLog
   class WristIOInputs {
+    public boolean detectsNote = false;
 
     public double wristPos = 0.0;
     public double leftIntakeRPM = 0.0;

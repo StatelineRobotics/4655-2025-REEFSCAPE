@@ -17,7 +17,9 @@ public class Wrist extends SubsystemBase {
   private double rightIntakeRPM;
   private double wirstPos;
 
-  private Trigger disabled = new Trigger(() -> DriverStation.isDisabled()).onTrue(Commands.runOnce(this::stop));
+  private Trigger disabled =
+      new Trigger(() -> DriverStation.isDisabled()).onTrue(Commands.runOnce(this::stop));
+  public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
   public Wrist(WristIO io) {
     this.io = io;
@@ -65,6 +67,22 @@ public class Wrist extends SubsystemBase {
     return requestIntakeSpeed(50000);
   }
 
+  private Command reqestIntakeVoltage(double voltage) {
+    return this.run(() -> io.requestIntakeVoltage(voltage));
+  }
+
+  public Command requestIntakeSpeed() {
+    return reqestIntakeVoltage(12);
+  }
+
+  public Command requestSlowIntake() {
+    return reqestIntakeVoltage(6);
+  }
+
+  public Command requestSlowReverseIntake() {
+    return reqestIntakeVoltage(-3);
+  }
+
   public Command wristVoltageControl(Supplier<Double> voltage) {
     return Commands.run(() -> io.requestWristVoltage(voltage.get()));
   }
@@ -81,6 +99,16 @@ public class Wrist extends SubsystemBase {
     return Commands.runOnce(() -> io.requestIntakeVelo(setPoint));
   }
 
+  public Command intakeSequence() {
+    return requestIntakeSpeed()
+        .until(detectsNote)
+        .andThen(requestSlowIntake())
+        .until(detectsNote.negate())
+        .andThen(requestSlowReverseIntake())
+        .until(detectsNote)
+        .finallyDo(this::stop);
+  }
+
   private void requestIntakeVelo(double RPM) {
     leftIntakeRPM = RPM;
     rightIntakeRPM = RPM;
@@ -88,15 +116,15 @@ public class Wrist extends SubsystemBase {
 
   public Command upperTestCommand() {
     return this.defer(
-      () ->
-        Commands.run(
-          () -> requestWristPOS(SmartDashboard.getNumber("wrist/upperPosition", 0.0))));
+        () ->
+            Commands.run(
+                () -> requestWristPOS(SmartDashboard.getNumber("wrist/upperPosition", 0.0))));
   }
 
   public Command lowerTestCommand() {
     return this.defer(
-      () -> 
-        Commands.run(
-          () -> requestWristPOS(SmartDashboard.getNumber("wrist/lowerPosition", 0.0))));
+        () ->
+            Commands.run(
+                () -> requestWristPOS(SmartDashboard.getNumber("wrist/lowerPosition", 0.0))));
   }
 }

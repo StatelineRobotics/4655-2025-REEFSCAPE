@@ -38,11 +38,12 @@ public final class Constants {
     /** Replaying from a log file. */
     REPLAY
   }
-    public static final class OIConstants{
+
+  public static final class OIConstants {
     public static final double kDriveDeadband = 0.10;
     public static final Joystick kdriveJoyButton = new Joystick(0);
 
     public static final CommandXboxController m_driverController = new CommandXboxController(0);
     public static final Joystick kauxController = new Joystick(1);
-    }
+  }
 }

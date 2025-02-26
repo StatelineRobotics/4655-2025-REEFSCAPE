@@ -1,7 +1,6 @@
 package frc.robot.subsystems.mechanisms;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.climber.Climber;
@@ -31,8 +30,6 @@ public class MechanismControl extends SubsystemBase {
   private final Climber climber;
   private double test = 0.0;
 
-  
-
   public MechanismControl(Elevator elevatorSubsystem, Wrist wristSubsystem, Climber climber) {
     this.elevatorSubsystem = elevatorSubsystem;
     this.wristSubsystem = wristSubsystem;
@@ -44,61 +41,58 @@ public class MechanismControl extends SubsystemBase {
 
     switch (currentState) {
       case home -> {
-        if(elevatorSubsystem.isHomed()){
+        if (elevatorSubsystem.isHomed()) {
           elevatorSubsystem.requestElevatorPosition(0);
           climber.setClimberPosition(test);
         }
         elevatorSubsystem.requestElevatorPosition(-10);
         break;
       }
-    
-      
-    case coralPickup -> {
-      wristSubsystem.requestWristPOS(test);
-      elevatorSubsystem.requestBeltRPM(0);
-      break;
-    }
+
+      case coralPickup -> {
+        wristSubsystem.requestWristPOS(test);
+        elevatorSubsystem.requestBeltRPM(0);
+        break;
+      }
 
       case eject -> {
         wristSubsystem.requestIntakeSpeed(-0);
         break;
       }
 
-    case levelOne ->{
-      elevatorSubsystem.requestElevatorPosition(elevatorSubsystem.get1stStageHeight());
-      wristSubsystem.requestWristPOS(WristConstants.coralAngle);
-      break;
-    }
+      case levelOne -> {
+        elevatorSubsystem.requestElevatorPosition(elevatorSubsystem.get1stStageHeight());
+        wristSubsystem.requestWristPOS(WristConstants.coralAngle);
+        break;
+      }
 
-    case levelTwo ->{
-      elevatorSubsystem.requestElevatorPosition(elevatorSubsystem.get2ndStageHeight());
-      wristSubsystem.requestWristPOS(WristConstants.coralAngle);
-      break;
-    }
+      case levelTwo -> {
+        elevatorSubsystem.requestElevatorPosition(elevatorSubsystem.get2ndStageHeight());
+        wristSubsystem.requestWristPOS(WristConstants.coralAngle);
+        break;
+      }
 
-    case levelThree ->{
-      elevatorSubsystem.requestElevatorPosition(0);
-      wristSubsystem.requestWristPOS(WristConstants.coralAngle);
-      break;
-    }
+      case levelThree -> {
+        elevatorSubsystem.requestElevatorPosition(0);
+        wristSubsystem.requestWristPOS(WristConstants.coralAngle);
+        break;
+      }
 
-    case climberPrep ->{
-      elevatorSubsystem.requestFunnelPOS(0);
+      case climberPrep -> {
+        elevatorSubsystem.requestFunnelPOS(0);
 
-      break;
-    }
+        break;
+      }
 
-    case climberHome ->{
-      climber.setClimberPosition(0);
-      break;
+      case climberHome -> {
+        climber.setClimberPosition(0);
+        break;
+      }
     }
   }
 
-  
-  }
   public void setDesiredState(State desiredState) {
 
-            currentState = desiredState;
-        
-      }
+    currentState = desiredState;
+  }
 }
