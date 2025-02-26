@@ -13,6 +13,21 @@ public interface WristIO {
     public double leftIntakeRPM = 0.0;
     public double rightIntakeRPM = 0.0;
     public double funnelRPM = 0.0;
+
+    public double wristDutyCycle = 0.0;
+    public double wristAppliedVoltage = 0.0;
+    public double wristAppliedCurrent = 0.0;
+    public double wristSetpoint = 0.0;
+
+    public double rightDutyCycle = 0.0;
+    public double rightAppliedVoltage = 0.0;
+    public double rightAppliedCurrent = 0.0;
+    public double rightSetpoint = 0.0;
+
+    public double leftDutyCycle = 0.0;
+    public double leftAppliedVoltage = 0.0;
+    public double leftAppliedCurrent = 0.0;
+    public double leftSetpoint = 0.0;
   }
 
   default void updateInputs(WristIOInputs inputs){}
