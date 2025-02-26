@@ -29,5 +29,5 @@ public interface WristIO {
 
   default void stopWrist(){}
 
-  default void stop() {}
+  default void stop(){}
 }
