@@ -23,6 +23,7 @@ public class Wrist extends SubsystemBase {
 
   public Wrist(WristIO io) {
     this.io = io;
+
     SmartDashboard.putData("Wrist/upperCommand", upperTestCommand());
     SmartDashboard.putData("Wrist/lowerCommand", lowerTestCommand());
   }
@@ -100,6 +101,7 @@ public class Wrist extends SubsystemBase {
   }
 
   public Command intakeSequence() {
+
     Command firstIntakeSequence = requestSlowIntake().until(detectsNote);
     Command secondSequence = requestSlowIntake().until(detectsNote.negate());
     return firstIntakeSequence.andThen(secondSequence).andThen(stopCommand());

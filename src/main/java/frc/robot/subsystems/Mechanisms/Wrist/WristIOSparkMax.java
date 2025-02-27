@@ -11,7 +11,6 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -19,6 +18,7 @@ import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
+
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -31,11 +31,13 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 public class WristIOSparkMax implements WristIO {
   private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
+
   protected SparkMax m_leftIntake =
       new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
   protected SparkMax m_rightIntake =
       new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
   protected SparkFlex m_wrist = new SparkFlex(MechanismConstants.wristId, MotorType.kBrushless);
+
   private AbsoluteEncoder wristEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder rightEncoder;

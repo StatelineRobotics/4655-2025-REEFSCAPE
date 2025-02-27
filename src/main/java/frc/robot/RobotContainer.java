@@ -248,7 +248,6 @@ public class RobotContainer {
     auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
     auxController.y().onTrue(wrist.intakeSequence());
     auxController.x().whileTrue(wrist.requestIntakeSpeed()).onFalse(wrist.stopCommand());
-  }
 
   public void logSubsystems() {
     SmartDashboard.putData("drive", drive);
