@@ -82,7 +82,7 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case coralPickupS3 -> {
-        wristSubsystem.reqestIntakeVoltage(3);
+        wristSubsystem.reqestIntakeVoltage(1);
         if (!wristSubsystem.detectsNote.getAsBoolean()) {
           wristSubsystem.stopIntake();
           elevatorSubsystem.reqestBeltVoltage(0);
@@ -90,9 +90,13 @@ public class MechanismControl extends SubsystemBase {
         }
       }
 
+      //Idealy this should be the correct height to score algea into processor
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
+        if (!wristSubsystem.intakeStalled.getAsBoolean()) {
+          wristSubsystem.stopIntake();
+        }
       }
 
         // Also used as score
@@ -129,12 +133,18 @@ public class MechanismControl extends SubsystemBase {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL2);
         wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
         wristSubsystem.reqestIntakeVoltage(6);
+        if (wristSubsystem.intakeStalled.getAsBoolean()) {
+          wristSubsystem.reqestIntakeVoltage(1);
+        }
       }
 
       case algeaPickupL3 -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL3);
         wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
         wristSubsystem.reqestIntakeVoltage(6);
+        if (wristSubsystem.intakeStalled.getAsBoolean()) {
+          wristSubsystem.reqestIntakeVoltage(1);
+        }
       }
 
       case climberPrep -> {
@@ -150,6 +160,7 @@ public class MechanismControl extends SubsystemBase {
     }
   }
 
+  //Just a shorthand for setting state with commands to avoid needing more repetition in RobotContainer
   public Command setState(State desiredState) {
     return Commands.deferredProxy(
         () -> {

@@ -51,7 +51,9 @@ public class WristIOSparkMax implements WristIO {
   private ClosedLoopConfig intakeConfig;
 
   public WristIOSparkMax() {
-    mleftConfig.idleMode(IdleMode.kCoast).smartCurrentLimit(10).inverted(false);
+    mleftConfig.idleMode(IdleMode.kCoast)
+               .smartCurrentLimit(RollerConstants.currentLimit)
+               .inverted(false);
 
     mleftConfig
         .closedLoop

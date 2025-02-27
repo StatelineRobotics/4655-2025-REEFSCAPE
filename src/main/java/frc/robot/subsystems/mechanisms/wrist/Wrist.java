@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -17,6 +18,9 @@ public class Wrist extends SubsystemBase {
   private double rightIntakeRPM;
   private double wirstPos;
   public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
+  public Trigger intakeStalled = new Trigger(
+    () -> Math.round(inputs.rightAppliedCurrent) > RollerConstants.currentLimit 
+    || Math.round(inputs.leftAppliedCurrent) > RollerConstants.currentLimit);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
