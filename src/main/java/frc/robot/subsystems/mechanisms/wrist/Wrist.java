@@ -19,8 +19,8 @@ public class Wrist extends SubsystemBase {
   private double wirstPos;
   public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
   public Trigger intakeStalled = new Trigger(
-    () -> inputs.rightAppliedCurrent > (RollerConstants.currentLimit - 0.5) 
-    || inputs.leftAppliedCurrent > (RollerConstants.currentLimit - 0.5));
+    () -> Math.round(inputs.rightAppliedCurrent) > RollerConstants.currentLimit 
+    || round(inputs.leftAppliedCurrent) > RollerConstants.currentLimit);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
