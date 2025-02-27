@@ -11,6 +11,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
@@ -18,9 +19,9 @@ import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
-import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
@@ -30,18 +31,20 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 public class WristIOSparkMax implements WristIO {
   private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
-  protected SparkMax m_leftIntake;
-  protected SparkMax m_rightIntake;
-  protected SparkFlex m_wrist;
+  protected SparkMax m_leftIntake =
+      new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
+  protected SparkMax m_rightIntake =
+      new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
+  protected SparkFlex m_wrist = new SparkFlex(MechanismConstants.wristId, MotorType.kBrushless);
   private AbsoluteEncoder wristEncoder;
   private RelativeEncoder leftEncoder;
   private RelativeEncoder rightEncoder;
   private SparkClosedLoopController leftController;
   private SparkClosedLoopController rightController;
   private SparkClosedLoopController wristController;
-  private SparkBaseConfig mleftConfig;
-  private SparkBaseConfig mrightConfig;
-  private SparkBaseConfig mwristConfig;
+  private SparkMaxConfig mleftConfig = new SparkMaxConfig();
+  private SparkMaxConfig mrightConfig = new SparkMaxConfig();
+  private SparkFlexConfig mwristConfig = new SparkFlexConfig();
   private double RPM;
   private ClosedLoopConfig intakeConfig;
 
@@ -62,9 +65,9 @@ public class WristIOSparkMax implements WristIO {
 
     mwristConfig
         .softLimit
-        .forwardSoftLimitEnabled(true)
-        .forwardSoftLimit(-1)
-        .reverseSoftLimitEnabled(true)
+        .forwardSoftLimitEnabled(false)
+        .forwardSoftLimit(0)
+        .reverseSoftLimitEnabled(false)
         .reverseSoftLimit(-1);
 
     mwristConfig
@@ -106,11 +109,13 @@ public class WristIOSparkMax implements WristIO {
     canRange.getConfigurator().apply(canRangeConfig);
 
     leftEncoder = m_leftIntake.getEncoder();
+    rightEncoder = m_rightIntake.getEncoder();
 
     wristEncoder = m_wrist.getAbsoluteEncoder();
 
     leftController = m_leftIntake.getClosedLoopController();
     rightController = m_rightIntake.getClosedLoopController();
+    wristController = m_wrist.getClosedLoopController();
 
     intakeConfig = mleftConfig.closedLoop;
     intakeConfig.pid(0.0013, 0, 0);

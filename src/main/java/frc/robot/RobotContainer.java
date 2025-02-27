@@ -240,12 +240,20 @@ public class RobotContainer {
         .whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
         .whileFalse(elevator.holdPosition());
 
+    auxController
+        .axisMagnitudeGreaterThan(5, 0.1)
+        .whileTrue(wrist.wristVoltageControl(() -> auxController.getRightY() * 2.0))
+        .whileFalse(wrist.stopCommand());
+
     auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
+    auxController.y().onTrue(wrist.intakeSequence());
+    auxController.x().whileTrue(wrist.requestIntakeSpeed()).onFalse(wrist.stopCommand());
   }
 
   public void logSubsystems() {
     SmartDashboard.putData("drive", drive);
     SmartDashboard.putData("elevator", elevator);
+    SmartDashboard.putData("wrist", wrist);
   }
 
   public void updateMechanism2ds() {
