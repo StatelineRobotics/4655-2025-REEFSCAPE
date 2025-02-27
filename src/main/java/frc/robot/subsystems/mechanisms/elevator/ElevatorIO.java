@@ -19,13 +19,15 @@ public interface ElevatorIO {
 
   default void updateInputs(ElevatorIOInputs inputs) {}
 
-  default void requestFunnelPOS() {}
+  default void requestFunnelPOS(double postiion) {}
 
   default void voltageControl(double voltage) {}
 
   default void requestElevatorPosition(double target) {}
 
   default void requestBeltRPM() {}
+
+  default void reqestBeltVoltage(double voltage) {}
 
   default void setElevatorPosition(double position) {}
 

@@ -16,10 +16,9 @@ public class Wrist extends SubsystemBase {
   private double leftIntakeRPM;
   private double rightIntakeRPM;
   private double wirstPos;
+  public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
 
-  private Trigger disabled =
-      new Trigger(() -> DriverStation.isDisabled()).onTrue(Commands.runOnce(this::stop));
-  public Trigger detectsNote = new Trigger(() -> true);
+  public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
   public Wrist(WristIO io) {
     this.io = io;
@@ -40,48 +39,39 @@ public class Wrist extends SubsystemBase {
     }
   }
 
+  public boolean isAtSetpoint() {
+    if (Math.abs(inputs.wristPos - inputs.wristSetpoint) < WristConstants.allowError) {
+      return true;
+    }
+    return false;
+  }
+
   private void stop() {
     io.stop();
+  }
+
+  public void stopWrist() {
+    io.stopWrist();
+  }
+
+  public void stopIntake() {
+    io.stopIntake();
   }
 
   public void requestWristPOS(double POS) {
     wirstPos = POS;
   }
 
-  public Command intakePosition() {
-    return requestWristPosition(WristConstants.intakeAngle);
+  public void reqestIntakeVoltage(double voltage) {
+    io.requestIntakeVoltage(voltage);
   }
 
-  public Command holdPostion() {
-    return requestWristPosition(WristConstants.holdAngle);
+  public Command requestWristPosition(double setPoint) {
+    return Commands.runOnce(() -> io.requestWristPosition(setPoint));
   }
 
-  public Command scorePosition() {
-    return requestWristPosition(WristConstants.scoreAngle);
-  }
-
-  public Command intakeFastSpeed() {
-    return requestIntakeSpeed(500000);
-  }
-
-  public Command intakeScoreSpeed() {
-    return requestIntakeSpeed(50000);
-  }
-
-  private Command reqestIntakeVoltage(double voltage) {
-    return this.run(() -> io.requestIntakeVoltage(voltage));
-  }
-
-  public Command requestIntakeSpeed() {
-    return reqestIntakeVoltage(12);
-  }
-
-  public Command requestSlowIntake() {
-    return reqestIntakeVoltage(6);
-  }
-
-  public Command requestSlowReverseIntake() {
-    return reqestIntakeVoltage(-3);
+  private Command reqestIntakeVoltage(Supplier<Double> voltage) {
+    return Commands.run(() -> io.requestIntakeVoltage(voltage.get()));
   }
 
   public Command wristVoltageControl(Supplier<Double> voltage) {
@@ -90,26 +80,6 @@ public class Wrist extends SubsystemBase {
 
   public Command intakeVoltageControl(Supplier<Double> voltage) {
     return Commands.run(() -> io.requestIntakeVoltage(voltage.get()));
-  }
-
-  public Command requestWristPosition(double setPoint) {
-    return Commands.runOnce(() -> io.requestWristPosition(setPoint));
-  }
-
-  public Command requestIntakeSpeed(double setPoint) {
-    return Commands.runOnce(() -> io.requestIntakeVelo(setPoint));
-  }
-
-  public Command intakeSequence() {
-
-    Command firstIntakeSequence = requestSlowIntake().until(detectsNote);
-    Command secondSequence = requestSlowIntake().until(detectsNote.negate());
-    return firstIntakeSequence.andThen(secondSequence).andThen(stopCommand());
-  }
-
-  private void requestIntakeVelo(double RPM) {
-    leftIntakeRPM = RPM;
-    rightIntakeRPM = RPM;
   }
 
   public Command upperTestCommand() {

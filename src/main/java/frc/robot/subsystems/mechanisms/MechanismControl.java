@@ -1,16 +1,23 @@
 package frc.robot.subsystems.mechanisms;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.climber.Climber;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
+import org.littletonrobotics.junction.Logger;
 
 public class MechanismControl extends SubsystemBase {
 
   public enum State {
-    algaePickup,
+    idle,
+    algaePickupL2,
+    algeaPickupL3,
     coralPickup,
     eject,
     levelOne,
@@ -20,10 +27,13 @@ public class MechanismControl extends SubsystemBase {
     home,
     climberHome,
     climberPrep,
-    climb
+    climb,
+    store,
+    coralPickupS2,
+    coralPickupS3
   }
 
-  private State currentState = State.home;
+  private State currentState = State.idle;
 
   private final Elevator elevatorSubsystem;
   private final Wrist wristSubsystem;
@@ -38,44 +48,93 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public void periodic() {
+    Logger.recordOutput("MechanismControl/currentState", currentState);
 
     switch (currentState) {
+      case idle -> {
+        break;
+      }
+
       case home -> {
-        if (elevatorSubsystem.isHomed()) {
-          elevatorSubsystem.requestElevatorPosition(0);
-          climber.setClimberPosition(test);
-        }
-        elevatorSubsystem.requestElevatorPosition(-10);
+        climber.setClimberPosition(test);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.intakeHeight);
+        wristSubsystem.requestWristPOS(0);
+        wristSubsystem.stopIntake();
         break;
       }
 
       case coralPickup -> {
-        wristSubsystem.requestWristPOS(test);
-        elevatorSubsystem.requestBeltRPM(0);
+        wristSubsystem.requestWristPOS(WristConstants.intakeCoralAngle);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.intakeHeight);
+        if (elevatorSubsystem.isAtSetpoint() && wristSubsystem.isAtSetpoint()) {
+          setDesiredState(State.coralPickupS2);
+        }
         break;
       }
 
+      case coralPickupS2 -> {
+        wristSubsystem.reqestIntakeVoltage(3);
+        elevatorSubsystem.reqestBeltVoltage(6);
+        if (wristSubsystem.detectsNote.getAsBoolean()) {
+          setDesiredState(State.coralPickupS3);
+        }
+        break;
+      }
+
+      case coralPickupS3 -> {
+        wristSubsystem.reqestIntakeVoltage(3);
+        if (!wristSubsystem.detectsNote.getAsBoolean()) {
+          wristSubsystem.stopIntake();
+          elevatorSubsystem.reqestBeltVoltage(0);
+          setDesiredState(State.store);
+        }
+      }
+
+      case store -> {
+        wristSubsystem.requestWristPOS(WristConstants.storeAngle);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
+      }
+
+        // Also used as score
       case eject -> {
-        wristSubsystem.requestIntakeSpeed(-0);
+        wristSubsystem.reqestIntakeVoltage(12);
         break;
       }
 
       case levelOne -> {
-        elevatorSubsystem.requestElevatorPosition(elevatorSubsystem.get1stStageHeight());
-        wristSubsystem.requestWristPOS(WristConstants.coralAngle);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelOne);
+        wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
         break;
       }
 
       case levelTwo -> {
-        elevatorSubsystem.requestElevatorPosition(elevatorSubsystem.get2ndStageHeight());
-        wristSubsystem.requestWristPOS(WristConstants.coralAngle);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelTwo);
+        wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
         break;
       }
 
       case levelThree -> {
-        elevatorSubsystem.requestElevatorPosition(0);
-        wristSubsystem.requestWristPOS(WristConstants.coralAngle);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelThree);
+        wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
         break;
+      }
+
+      case levelFour -> {
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelFour);
+        wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
+        break;
+      }
+
+      case algaePickupL2 -> {
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL2);
+        wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
+        wristSubsystem.reqestIntakeVoltage(6);
+      }
+
+      case algeaPickupL3 -> {
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL3);
+        wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
+        wristSubsystem.reqestIntakeVoltage(6);
       }
 
       case climberPrep -> {
@@ -89,6 +148,13 @@ public class MechanismControl extends SubsystemBase {
         break;
       }
     }
+  }
+
+  public Command setState(State desiredState) {
+    return Commands.deferredProxy(
+        () -> {
+          return new InstantCommand(() -> setDesiredState(desiredState));
+        });
   }
 
   public void setDesiredState(State desiredState) {

@@ -42,7 +42,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
   private SparkMaxConfig mRightConfig = new SparkMaxConfig();
 
-  private ElevatorFeedforward feedforward =
+  protected ElevatorFeedforward feedforward =
       new ElevatorFeedforward(ElevatorConstants.ks, ElevatorConstants.kg, 0.0);
 
   public ElevatorIOSparkMax() {
@@ -88,6 +88,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     if (Constants.usePIDtuning) {
       setUpPIDTuning();
     }
+
     funnelEncoder = m_funnel.getEncoder();
     leftEncoder = m_leftElevator.getEncoder();
 
@@ -143,10 +144,14 @@ public class ElevatorIOSparkMax implements ElevatorIO {
    * @param voltage Voltage to drive motors at
    */
   public void voltageControl(double voltage) {
-    voltage = voltage + ElevatorConstants.kg;
+    voltage = voltage + feedforward.calculate(leftEncoder.getVelocity());
     // clamp to -12, 12 volts
     voltage = Math.max(-12.0, Math.min(voltage, 12.0));
     leftElevatorController.setReference(voltage, ControlType.kVoltage);
+  }
+
+  public void reqestBeltVoltage(double voltage) {
+    beltController.setReference(voltage, ControlType.kVoltage);
   }
 
   public void stop() {
@@ -191,7 +196,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
         updatedConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
   }
 
-  private void setUpPIDTuning() {
+  protected void setUpPIDTuning() {
     ClosedLoopConfigAccessor closedLoop = m_leftElevator.configAccessor.closedLoop;
     SmartDashboard.putNumber("Elevator/kp", closedLoop.getP());
     SmartDashboard.putNumber("Elevator/ki", closedLoop.getI());

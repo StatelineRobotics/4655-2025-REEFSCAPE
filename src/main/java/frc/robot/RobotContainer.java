@@ -27,6 +27,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -37,12 +39,18 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.mechanisms.MechanismControl;
+import frc.robot.subsystems.mechanisms.MechanismControl.State;
+import frc.robot.subsystems.mechanisms.climber.Climber;
+import frc.robot.subsystems.mechanisms.climber.ClimberIO;
+import frc.robot.subsystems.mechanisms.climber.ClimberIOSparkMax;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSparkMax;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
 import frc.robot.subsystems.mechanisms.wrist.WristIO;
+import frc.robot.subsystems.mechanisms.wrist.WristIOSim;
 import frc.robot.subsystems.mechanisms.wrist.WristIOSparkMax;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
@@ -67,6 +75,9 @@ public class RobotContainer {
   private final Drive drive;
   private final Elevator elevator;
   private final Wrist wrist;
+  private final Climber climber;
+
+  private final MechanismControl mechanismControl;
 
   private final Vision vision;
 
@@ -106,6 +117,7 @@ public class RobotContainer {
                     VisionConstants.camera1Name, VisionConstants.robotToCamera1));
         elevator = new Elevator(new ElevatorIOSparkMax());
         wrist = new Wrist(new WristIOSparkMax());
+        climber = new Climber(new ClimberIOSparkMax());
         break;
 
       case SIM:
@@ -126,7 +138,8 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
-        wrist = new Wrist(new WristIO() {});
+        wrist = new Wrist(new WristIOSim());
+        climber = new Climber(new ClimberIO() {});
         break;
 
       default:
@@ -143,8 +156,11 @@ public class RobotContainer {
                 drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
         elevator = new Elevator(new ElevatorIO() {});
         wrist = new Wrist(new WristIO() {});
+        climber = new Climber(new ClimberIO() {});
         break;
     }
+
+    mechanismControl = new MechanismControl(elevator, wrist, climber);
 
     // public void configureNamedCommands(){
 
@@ -231,19 +247,96 @@ public class RobotContainer {
                 },
                 drive));
 
+    controller
+        .rightBumper()
+        .whileTrue(Commands.run(() -> wrist.reqestIntakeVoltage(12)))
+        .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
+    controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
+
+    auxController
+        .leftTrigger()
+        // Go to algeL2 if b is pressed, else go to level one
+        .onTrue(
+            new ConditionalCommand(
+                mechanismControl.setState(State.algaePickupL2),
+                mechanismControl.setState(State.levelOne),
+                auxController.b()))
+        // Go to store if only score position button pressed
+        .onFalse(
+            new ConditionalCommand(
+                mechanismControl.setState(State.store),
+                new InstantCommand(),
+                (auxController
+                        .rightBumper()
+                        .or((auxController.leftBumper().or(auxController.rightTrigger()))))
+                    .negate()));
+
+    auxController
+        .rightTrigger()
+        // Go to algeL2 if b is pressed, else go to level two
+        .onTrue(
+            new ConditionalCommand(
+                mechanismControl.setState(State.algaePickupL2),
+                mechanismControl.setState(State.levelTwo),
+                auxController.b()))
+        // Go to store if only score position button pressed
+        .onFalse(
+            new ConditionalCommand(
+                mechanismControl.setState(State.store),
+                new InstantCommand(),
+                (auxController
+                        .rightBumper()
+                        .or((auxController.leftBumper().or(auxController.leftTrigger()))))
+                    .negate()));
+
+    auxController
+        .leftBumper()
+        // Go to algeL3 if b is pressed, else go to level three
+        .onTrue(
+            new ConditionalCommand(
+                mechanismControl.setState(State.algaePickupL2),
+                mechanismControl.setState(State.levelThree),
+                auxController.b()))
+        // Go to store if only score position button pressed
+        .onFalse(
+            new ConditionalCommand(
+                mechanismControl.setState(State.store),
+                new InstantCommand(),
+                (auxController
+                        .rightBumper()
+                        .or((auxController.rightTrigger().or(auxController.leftTrigger()))))
+                    .negate()));
+
+    auxController
+        .rightBumper()
+        // Go to algeL3 if b is pressed, else go to level four
+        .onTrue(
+            new ConditionalCommand(
+                mechanismControl.setState(State.algaePickupL2),
+                mechanismControl.setState(State.levelFour),
+                auxController.b()))
+        // Go to store if only score position button pressed
+        .onFalse(
+            new ConditionalCommand(
+                mechanismControl.setState(State.store),
+                new InstantCommand(),
+                (auxController
+                        .leftBumper()
+                        .or((auxController.rightTrigger().or(auxController.leftTrigger()))))
+                    .negate()));
+
     auxController
         .axisMagnitudeGreaterThan(1, 0.1)
-        .whileTrue(elevator.manualRunCommand(() -> auxController.getLeftY()))
+        .whileTrue(
+            elevator
+                .manualRunCommand(() -> auxController.getLeftY())
+                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(elevator.holdPosition());
 
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
         .whileTrue(wrist.wristVoltageControl(() -> auxController.getRightY() * 2.0))
         .whileFalse(wrist.stopCommand());
-
-    auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
-    auxController.y().onTrue(wrist.intakeSequence());
-    auxController.x().whileTrue(wrist.requestIntakeSpeed()).onFalse(wrist.stopCommand());
   }
 
   public void logSubsystems() {
