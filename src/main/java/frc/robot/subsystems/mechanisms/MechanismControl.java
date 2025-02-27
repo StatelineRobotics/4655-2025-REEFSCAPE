@@ -90,7 +90,7 @@ public class MechanismControl extends SubsystemBase {
         }
       }
 
-      //Idealy this should be the correct height to score algea into processor
+      // Idealy this should be the correct height to score algea into processor
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
@@ -160,7 +160,8 @@ public class MechanismControl extends SubsystemBase {
     }
   }
 
-  //Just a shorthand for setting state with commands to avoid needing more repetition in RobotContainer
+  // Just a shorthand for setting state with commands to avoid needing more repetition in
+  // RobotContainer
   public Command setState(State desiredState) {
     return Commands.deferredProxy(
         () -> {
