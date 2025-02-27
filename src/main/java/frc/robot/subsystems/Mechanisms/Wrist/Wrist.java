@@ -23,8 +23,9 @@ public class Wrist extends SubsystemBase {
 
   public Wrist(WristIO io) {
     this.io = io;
-    SmartDashboard.putData("wrist/upperCommand", upperTestCommand());
-    SmartDashboard.putData("wrist/lowerCommand", lowerTestCommand());
+
+    SmartDashboard.putData("Wrist/upperCommand", upperTestCommand());
+    SmartDashboard.putData("Wrist/lowerCommand", lowerTestCommand());
   }
 
   @Override
@@ -100,13 +101,10 @@ public class Wrist extends SubsystemBase {
   }
 
   public Command intakeSequence() {
-    return requestIntakeSpeed()
-        .until(detectsNote)
-        .andThen(requestSlowIntake())
-        .until(detectsNote.negate())
-        .andThen(requestSlowReverseIntake())
-        .until(detectsNote)
-        .finallyDo(this::stop);
+
+    Command firstIntakeSequence = requestSlowIntake().until(detectsNote);
+    Command secondSequence = requestSlowIntake().until(detectsNote.negate());
+    return firstIntakeSequence.andThen(secondSequence).andThen(stopCommand());
   }
 
   private void requestIntakeVelo(double RPM) {
@@ -126,5 +124,9 @@ public class Wrist extends SubsystemBase {
         () ->
             Commands.run(
                 () -> requestWristPOS(SmartDashboard.getNumber("wrist/lowerPosition", 0.0))));
+  }
+
+  public Command stopCommand() {
+    return this.runOnce(this::stop);
   }
 }
