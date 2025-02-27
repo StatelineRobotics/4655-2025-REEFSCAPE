@@ -28,10 +28,10 @@ import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
-  private SparkMax m_leftElevator;
-  private SparkMax m_rightElevator;
-  private SparkFlex m_funnel;
-  private SparkMax m_belt;
+  protected SparkMax m_leftElevator;
+  protected SparkMax m_rightElevator;
+  protected SparkFlex m_funnel;
+  protected SparkMax m_belt;
   private SparkClosedLoopController leftElevatorController;
   private SparkClosedLoopController funnelController;
   private SparkClosedLoopController beltController;

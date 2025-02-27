@@ -37,10 +37,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-// import frc.robot.subsystems.Vision.Vision;
-// import frc.robot.subsystems.Vision.VisionIO;
-// import frc.robot.subsystems.Vision.VisionIOPhotonVision;
-// import frc.robot.subsystems.Vision.VisionIOPhotonVisionSim;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIO;
 import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSim;
@@ -248,6 +244,7 @@ public class RobotContainer {
     auxController.a().whileTrue(elevator.testPositionControl()).whileFalse(elevator.homeCommand());
     auxController.y().onTrue(wrist.intakeSequence());
     auxController.x().whileTrue(wrist.requestIntakeSpeed()).onFalse(wrist.stopCommand());
+  }
 
   public void logSubsystems() {
     SmartDashboard.putData("drive", drive);

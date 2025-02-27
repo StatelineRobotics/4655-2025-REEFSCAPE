@@ -19,7 +19,7 @@ public class Wrist extends SubsystemBase {
 
   private Trigger disabled =
       new Trigger(() -> DriverStation.isDisabled()).onTrue(Commands.runOnce(this::stop));
-  public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
+  public Trigger detectsNote = new Trigger(() -> true);
 
   public Wrist(WristIO io) {
     this.io = io;
