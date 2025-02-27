@@ -13,6 +13,7 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 
 public class WristIOSim extends WristIOSparkMax {
@@ -57,22 +58,34 @@ public class WristIOSim extends WristIOSparkMax {
 
     rightMotorSim = new SparkMaxSim(m_rightIntake, DCMotor.getNeo550(1));
     rightEncoderSim = rightMotorSim.getRelativeEncoderSim();
+
+    if (Constants.usePIDtuning) {
+      super.setUpPIDTuning();
+    }
   }
 
   public void updateInputs(WristIOInputs inputs) {
-    super.updateInputs(inputs);
     updateSim(inputs);
+    super.updateInputs(inputs);
   }
 
   private void updateSim(WristIOInputs inputs) {
     leftSim.setInputVoltage(inputs.leftAppliedVoltage);
+    leftSim.update(.02);
     rightSim.setInputVoltage(inputs.rightAppliedVoltage);
+    rightSim.update(.02);
     armSim.setInputVoltage(inputs.wristAppliedVoltage);
+    armSim.update(.02);
+
+    leftMotorSim.iterate(leftSim.getAngularVelocityRPM() * 25, 12, 0.02);
+    rightMotorSim.iterate(rightSim.getAngularVelocityRPM() * 25, 12, 0.02);
+    wristMotorSim.iterate(
+        Units.radiansPerSecondToRotationsPerMinute(armSim.getVelocityRadPerSec()) * 25, 12, 0.02);
   }
 
   private ClosedLoopConfig getWristClosedLoopConfig() {
     ClosedLoopConfig config = new ClosedLoopConfig();
-    config.p(WristConstants.simKp).i(WristConstants.simKi).d(WristConstants.simKd);
+    config.pid(WristConstants.simKp, WristConstants.simKi, WristConstants.simKd);
     return config;
   }
 }

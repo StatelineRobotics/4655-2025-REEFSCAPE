@@ -12,11 +12,13 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 
 /** Add your docs here. */
@@ -37,14 +39,17 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
   private SparkRelativeEncoderSim simEncoder = motorSim.getRelativeEncoderSim();
 
   private SparkLimitSwitchSim bottomLimitSwitchSim = motorSim.getReverseLimitSwitchSim();
-  private SparkMaxConfig simConfig;
+  private SparkMaxConfig simConfig = new SparkMaxConfig();
 
   private Trigger hitBottom =
       new Trigger(() -> elevatorSim.hasHitLowerLimit())
-          .onTrue(Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(true)))
-          .onFalse(Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(false)));
+          .onTrue(
+              Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(true)).ignoringDisable(true))
+          .onFalse(
+              Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(false)).ignoringDisable(true));
 
   public ElevatorIOSim() {
+    super();
 
     // Adjust left motor closed loop (pid controller) config
     ClosedLoopConfig closedLoopConfig = simConfig.closedLoop;
@@ -56,6 +61,12 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
     // Configure both motors
     m_leftElevator.configure(
         simConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+    feedforward = new ElevatorFeedforward(ElevatorConstants.simKs, ElevatorConstants.simKg, 0);
+
+    if (Constants.usePIDtuning) {
+      super.setUpPIDTuning();
+    }
   }
 
   @Override

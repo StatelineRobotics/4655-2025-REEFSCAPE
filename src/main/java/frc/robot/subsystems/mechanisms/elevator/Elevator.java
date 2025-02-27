@@ -52,6 +52,10 @@ public class Elevator extends SubsystemBase {
     beltRPM = RPM;
   }
 
+  public void reqestBeltVoltage(double voltage) {
+    io.reqestBeltVoltage(voltage);
+  }
+
   public void requestFunnelPOS(double POS) {
     FunnelPosition = POS;
   }

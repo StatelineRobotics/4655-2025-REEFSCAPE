@@ -46,11 +46,15 @@ public class MechanismConstants {
     public static final double allowedClosedLoopError = 0.5;
 
     // Elevator Constants
+    public static final double intakeHeight = 0.0;
+    public static final double storeHeight = 0.0;
     public static final double maxHeight = 103;
     public static final double levelOne = 0;
-    public static final double levelTwo = 0;
-    public static final double levelThree = 0;
-    public static final double levelFour = 0;
+    public static final double levelTwo = 40;
+    public static final double levelThree = 60;
+    public static final double levelFour = 103;
+    public static final double algeaL2 = 40;
+    public static final double algeaL3 = 65;
   }
 
   public class WristConstants {
@@ -73,12 +77,11 @@ public class MechanismConstants {
     public static final double simKg = 0.0;
     public static final double simKs = 0.0;
 
-    public static final double intakeAngle = 0.0;
-    public static final double holdAngle = 0.0;
-    public static final double scoreAngle = 0.0;
-    public static final double coralPickup = 0;
-    public static final double coralAngle = 0;
-    public static final double coralLevelFour = 0;
+    public static final double intakeCoralAngle = 0.0;
+    public static final double storeAngle = 0.0;
+    public static final double coralScoreAngle = 30.0;
+    public static final double algeaIntakeAngle = 0.0;
+    public static final double algeaScoreAngle = 0.0;
   }
 
   public class RollerConstants {

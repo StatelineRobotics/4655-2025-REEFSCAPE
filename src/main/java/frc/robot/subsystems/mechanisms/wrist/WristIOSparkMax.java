@@ -76,8 +76,8 @@ public class WristIOSparkMax implements WristIO {
         .absoluteEncoder
         .setSparkMaxDataPortConfig()
         .inverted(false)
-        .positionConversionFactor(Math.PI * 2.0)
-        .velocityConversionFactor(Math.PI * 2.0);
+        .positionConversionFactor(360)
+        .velocityConversionFactor(360);
 
     mwristConfig
         .closedLoop
@@ -122,7 +122,9 @@ public class WristIOSparkMax implements WristIO {
     intakeConfig = mleftConfig.closedLoop;
     intakeConfig.pid(0.0013, 0, 0);
 
-    setUpPIDTuning();
+    if (Constants.usePIDtuning) {
+      setUpPIDTuning();
+    }
   }
 
   public void updateInputs(WristIOInputs inputs) {
@@ -181,7 +183,7 @@ public class WristIOSparkMax implements WristIO {
     m_wrist.stopMotor();
   }
 
-  private void setUpPIDTuning() {
+  protected void setUpPIDTuning() {
     ClosedLoopConfigAccessor closedLoop = m_wrist.configAccessor.closedLoop;
     SmartDashboard.putNumber("Wrist/kp", closedLoop.getP());
     SmartDashboard.putNumber("Wrist/ki", closedLoop.getI());
