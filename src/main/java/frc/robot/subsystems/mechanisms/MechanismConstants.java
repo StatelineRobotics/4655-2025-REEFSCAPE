@@ -85,7 +85,7 @@ public class MechanismConstants {
   }
 
   public class RollerConstants {
-    public static final double currentLimit = `10;
+    public static final double currentLimit = 10;
 
     public static final double kp = 0.0;
     public static final double ki = 0.0;
