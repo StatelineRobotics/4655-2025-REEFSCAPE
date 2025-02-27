@@ -20,7 +20,7 @@ public class Wrist extends SubsystemBase {
   public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
   public Trigger intakeStalled = new Trigger(
     () -> Math.round(inputs.rightAppliedCurrent) > RollerConstants.currentLimit 
-    || round(inputs.leftAppliedCurrent) > RollerConstants.currentLimit);
+    || Math.round(inputs.leftAppliedCurrent) > RollerConstants.currentLimit);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
