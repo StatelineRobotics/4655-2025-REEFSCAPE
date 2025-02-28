@@ -10,6 +10,7 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.climber.Climber;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
+import java.util.Set;
 import org.littletonrobotics.junction.Logger;
 
 public class MechanismControl extends SubsystemBase {
@@ -52,6 +53,7 @@ public class MechanismControl extends SubsystemBase {
 
     switch (currentState) {
       case idle -> {
+        elevatorSubsystem.reqestBeltVoltage(0);
         break;
       }
 
@@ -74,7 +76,7 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(3);
-        elevatorSubsystem.reqestBeltVoltage(6);
+        elevatorSubsystem.reqestBeltVoltage(-6);
         if (wristSubsystem.detectsNote.getAsBoolean()) {
           setDesiredState(State.coralPickupS3);
         }
@@ -82,7 +84,7 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case coralPickupS3 -> {
-        wristSubsystem.reqestIntakeVoltage(1);
+        wristSubsystem.reqestIntakeVoltage(2);
         if (!wristSubsystem.detectsNote.getAsBoolean()) {
           wristSubsystem.stopIntake();
           elevatorSubsystem.reqestBeltVoltage(0);
@@ -90,7 +92,7 @@ public class MechanismControl extends SubsystemBase {
         }
       }
 
-      // Idealy this should be the correct height to score algea into processor
+        // Idealy this should be the correct height to score algea into processor
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
@@ -107,7 +109,7 @@ public class MechanismControl extends SubsystemBase {
 
       case levelOne -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelOne);
-        wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
+        wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         break;
       }
 
@@ -132,18 +134,18 @@ public class MechanismControl extends SubsystemBase {
       case algaePickupL2 -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL2);
         wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
-        wristSubsystem.reqestIntakeVoltage(6);
+        wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
-          wristSubsystem.reqestIntakeVoltage(1);
+          wristSubsystem.reqestIntakeVoltage(-6);
         }
       }
 
       case algeaPickupL3 -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL3);
         wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
-        wristSubsystem.reqestIntakeVoltage(6);
+        wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
-          wristSubsystem.reqestIntakeVoltage(1);
+          wristSubsystem.reqestIntakeVoltage(-6);
         }
       }
 
@@ -163,10 +165,18 @@ public class MechanismControl extends SubsystemBase {
   // Just a shorthand for setting state with commands to avoid needing more repetition in
   // RobotContainer
   public Command setState(State desiredState) {
-    return Commands.deferredProxy(
-        () -> {
-          return new InstantCommand(() -> setDesiredState(desiredState));
-        });
+    if (desiredState == State.idle) {
+      return Commands.deferredProxy(
+          () -> {
+            return new InstantCommand(() -> setDesiredState(desiredState));
+          });
+    } else {
+      return Commands.defer(
+          () -> {
+            return new InstantCommand(() -> setDesiredState(desiredState));
+          },
+          Set.of(elevatorSubsystem, wristSubsystem, climber));
+    }
   }
 
   public void setDesiredState(State desiredState) {

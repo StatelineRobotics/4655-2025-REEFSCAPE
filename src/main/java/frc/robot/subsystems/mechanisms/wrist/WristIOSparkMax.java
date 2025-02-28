@@ -22,6 +22,7 @@ import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
@@ -49,6 +50,7 @@ public class WristIOSparkMax implements WristIO {
   private SparkFlexConfig mwristConfig = new SparkFlexConfig();
   private double RPM;
   private ClosedLoopConfig intakeConfig;
+  private ArmFeedforward armFeedforward = new ArmFeedforward(0, .25, RPM);
 
   public WristIOSparkMax() {
     mleftConfig
@@ -66,7 +68,7 @@ public class WristIOSparkMax implements WristIO {
 
     mrightConfig.apply(mleftConfig).inverted(true);
 
-    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(20);
+    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(30);
 
     mwristConfig
         .softLimit
@@ -80,11 +82,12 @@ public class WristIOSparkMax implements WristIO {
         .setSparkMaxDataPortConfig()
         .inverted(false)
         .positionConversionFactor(360)
-        .velocityConversionFactor(360);
+        .velocityConversionFactor(360)
+        .zeroCentered(true);
 
     mwristConfig
         .closedLoop
-        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
         .p(WristConstants.kp)
         .i(WristConstants.ki)
         .d(WristConstants.kd)
@@ -160,7 +163,7 @@ public class WristIOSparkMax implements WristIO {
   }
 
   public void requestWristPosition(double targetPos) {
-    wristController.setReference(targetPos, ControlType.kMAXMotionPositionControl);
+    wristController.setReference(targetPos, ControlType.kPosition);
   }
 
   public void requestWristVoltage(double voltage) {

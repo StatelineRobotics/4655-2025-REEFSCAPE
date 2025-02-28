@@ -41,11 +41,15 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private static boolean zeroed = false;
   private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
   private SparkMaxConfig mRightConfig = new SparkMaxConfig();
+  private SparkMaxConfig mFunnelConfig = new SparkMaxConfig();
 
   protected ElevatorFeedforward feedforward =
       new ElevatorFeedforward(ElevatorConstants.ks, ElevatorConstants.kg, 0.0);
 
   public ElevatorIOSparkMax() {
+
+    mFunnelConfig.inverted(true).smartCurrentLimit(10).idleMode(IdleMode.kCoast);
+
     // base config for all motors
     mLeftConfig.idleMode(IdleMode.kBrake).inverted(true).smartCurrentLimit(60);
 
@@ -84,6 +88,8 @@ public class ElevatorIOSparkMax implements ElevatorIO {
         mLeftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_rightElevator.configure(
         mRightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_funnel.configure(
+        mFunnelConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     if (Constants.usePIDtuning) {
       setUpPIDTuning();

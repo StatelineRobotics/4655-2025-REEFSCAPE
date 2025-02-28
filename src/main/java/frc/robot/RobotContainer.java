@@ -57,6 +57,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.ScorePositionSelector;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -80,6 +81,8 @@ public class RobotContainer {
   private final MechanismControl mechanismControl;
 
   private final Vision vision;
+
+  private final ScorePositionSelector selector;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -161,6 +164,8 @@ public class RobotContainer {
     }
 
     mechanismControl = new MechanismControl(elevator, wrist, climber);
+
+    selector = new ScorePositionSelector(auxController.b(), mechanismControl.setState(State.store));
 
     // public void configureNamedCommands(){
 
@@ -253,6 +258,28 @@ public class RobotContainer {
         .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
     controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
 
+    // selector
+    //     .addBinding(
+    //         new Binding(
+    //             auxController.leftTrigger(),
+    //             mechanismControl.setState(State.levelOne),
+    //             mechanismControl.setState(State.algaePickupL2)))
+    //     .addBinding(
+    //         new Binding(
+    //             auxController.rightTrigger(),
+    //             mechanismControl.setState(State.levelTwo),
+    //             mechanismControl.setState(State.algaePickupL2)))
+    //     .addBinding(
+    //         new Binding(
+    //             auxController.leftBumper(),
+    //             mechanismControl.setState(State.levelThree),
+    //             mechanismControl.setState(State.algeaPickupL3)))
+    //     .addBinding(
+    //         new Binding(
+    //             auxController.rightBumper(),
+    //             mechanismControl.setState(State.levelFour),
+    //             mechanismControl.setState(State.algeaPickupL3)));
+
     auxController
         .leftTrigger()
         // Go to algeL2 if b is pressed, else go to level one
@@ -294,7 +321,7 @@ public class RobotContainer {
         // Go to algeL3 if b is pressed, else go to level three
         .onTrue(
             new ConditionalCommand(
-                mechanismControl.setState(State.algaePickupL2),
+                mechanismControl.setState(State.algeaPickupL3),
                 mechanismControl.setState(State.levelThree),
                 auxController.b()))
         // Go to store if only score position button pressed
@@ -312,7 +339,7 @@ public class RobotContainer {
         // Go to algeL3 if b is pressed, else go to level four
         .onTrue(
             new ConditionalCommand(
-                mechanismControl.setState(State.algaePickupL2),
+                mechanismControl.setState(State.algeaPickupL3),
                 mechanismControl.setState(State.levelFour),
                 auxController.b()))
         // Go to store if only score position button pressed
@@ -335,7 +362,10 @@ public class RobotContainer {
 
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
-        .whileTrue(wrist.wristVoltageControl(() -> auxController.getRightY() * 2.0))
+        .whileTrue(
+            wrist
+                .wristVoltageControl(() -> auxController.getRightY() * -2.0)
+                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(wrist.stopCommand());
   }
 

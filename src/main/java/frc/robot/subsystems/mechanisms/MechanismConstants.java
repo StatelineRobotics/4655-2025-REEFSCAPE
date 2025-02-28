@@ -47,11 +47,11 @@ public class MechanismConstants {
 
     // Elevator Constants
     public static final double intakeHeight = 0.0;
-    public static final double storeHeight = 0.0;
+    public static final double storeHeight = 11.0;
     public static final double maxHeight = 103;
-    public static final double levelOne = 0;
+    public static final double levelOne = 30;
     public static final double levelTwo = 40;
-    public static final double levelThree = 60;
+    public static final double levelThree = 65;
     public static final double levelFour = 103;
     public static final double algeaL2 = 40;
     public static final double algeaL3 = 65;
@@ -61,27 +61,27 @@ public class MechanismConstants {
     public static final double gearing = 25.0 / 1.0;
 
     // Closed Loop Constatns
-    public static final double kp = 0.0;
+    public static final double kp = 0.05;
     public static final double ki = 0.0;
     public static final double kd = 0.0;
     public static final double kg = 0.0;
     public static final double ks = 0.0;
 
-    public static final double maxAccel = 0.0;
-    public static final double maxVelo = 0.0;
-    public static final double allowError = 0.0;
+    public static final double maxAccel = 40.0;
+    public static final double maxVelo = 20.0;
+    public static final double allowError = 1.0;
 
-    public static final double simKp = 1.0;
+    public static final double simKp = 0.05;
     public static final double simKi = 0.0;
     public static final double simKd = 0.0;
     public static final double simKg = 0.0;
     public static final double simKs = 0.0;
 
-    public static final double intakeCoralAngle = 0.0;
-    public static final double storeAngle = 0.0;
+    public static final double intakeCoralAngle = 2.0;
+    public static final double storeAngle = 2.0;
     public static final double coralScoreAngle = 30.0;
-    public static final double algeaIntakeAngle = 0.0;
-    public static final double algeaScoreAngle = 0.0;
+    public static final double algeaIntakeAngle = 2.0;
+    public static final double algeaScoreAngle = 2.0;
   }
 
   public class RollerConstants {
