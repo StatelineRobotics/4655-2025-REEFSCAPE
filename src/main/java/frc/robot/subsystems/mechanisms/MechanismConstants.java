@@ -47,7 +47,8 @@ public class MechanismConstants {
 
     // Elevator Constants
     public static final double intakeHeight = 0.0;
-    public static final double storeHeight = 11.0;
+    public static final double storeAlgeaHeight = 11.0;
+    public static final double storeHeight = 0.0;
     public static final double maxHeight = 103;
     public static final double levelOne = 30;
     public static final double levelTwo = 40;
@@ -78,6 +79,7 @@ public class MechanismConstants {
     public static final double simKs = 0.0;
 
     public static final double intakeCoralAngle = 2.0;
+    public static final double storeAlgeaAngle = 2.0;
     public static final double storeAngle = 2.0;
     public static final double coralScoreAngle = 30.0;
     public static final double algeaIntakeAngle = 2.0;

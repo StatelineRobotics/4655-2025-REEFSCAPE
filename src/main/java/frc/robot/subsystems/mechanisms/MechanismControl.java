@@ -31,7 +31,8 @@ public class MechanismControl extends SubsystemBase {
     climb,
     store,
     coralPickupS2,
-    coralPickupS3
+    coralPickupS3,
+    algeaStore
   }
 
   private State currentState = State.idle;
@@ -96,8 +97,18 @@ public class MechanismControl extends SubsystemBase {
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
-        if (!wristSubsystem.intakeStalled.getAsBoolean()) {
+        if (wristSubsystem.intakeStalled.getAsBoolean()) {
+          setState(State.algeaStore);
+        } else {
           wristSubsystem.stopIntake();
+        }
+      }
+
+      case algeaStore -> {
+        wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeAlgeaHeight);
+        if (!wristSubsystem.intakeStalled.getAsBoolean()) {
+          setState(State.store);
         }
       }
 
