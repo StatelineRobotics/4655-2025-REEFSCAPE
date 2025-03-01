@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -76,6 +77,7 @@ public class RobotContainer {
   private final Elevator elevator;
   private final Wrist wrist;
   private final Climber climber;
+  private final Lights lights;
 
   private final MechanismControl mechanismControl;
 
@@ -99,6 +101,8 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    lights = new Lights();
+
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -162,7 +166,9 @@ public class RobotContainer {
         break;
     }
 
-    mechanismControl = new MechanismControl(elevator, wrist, climber);
+    mechanismControl = new MechanismControl(elevator, wrist, climber, lights);
+
+    selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
 
     selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
 

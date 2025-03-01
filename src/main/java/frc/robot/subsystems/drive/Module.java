@@ -88,6 +88,17 @@ public class Module {
     io.setTurnPosition(state.angle);
   }
 
+  /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */
+  public void runTeleOpSetpoint(SwerveModuleState state) {
+    // Optimize velocity setpoint
+    state.optimize(getAngle());
+    state.cosineScale(inputs.turnPosition);
+
+    // Apply setpoints
+    io.setTeleOpDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
+    io.setTurnPosition(state.angle);
+  }
+
   /** Runs the module with the specified output while controlling to zero degrees. */
   public void runCharacterization(double output) {
     io.setDriveOpenLoop(output);

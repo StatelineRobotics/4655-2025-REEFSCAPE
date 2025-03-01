@@ -12,6 +12,7 @@ public class MechanismConstants {
   public static final int funnelId = 8;
   public static final int beltId = 10;
   public static final int canRangeID = 2;
+  public static final int CANdleID = 11;
 
   public class ElevatorConstants {
     // Gearing constants
