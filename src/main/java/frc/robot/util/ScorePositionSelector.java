@@ -4,35 +4,21 @@
 
 package frc.robot.util;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import java.util.ArrayList;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class ScorePositionSelector {
 
-  private Trigger alternateButton;
   private ArrayList<Binding> currentBindings = new ArrayList<Binding>();
   private ArrayList<Binding> allBindings = new ArrayList<Binding>();
   private Command defaultCommand;
-  private Command currentCommand;
-  private boolean wantUpdate = false;
-  private Trigger needsUpdate =
-      new Trigger(() -> wantUpdate)
-          .onTrue(
-              Commands.deferredProxy(
-                  () ->
-                      new InstantCommand(
-                              () -> {
-                                wantUpdate = false;
-                              })
-                          .andThen(currentCommand)));
+  private Command currentCommand = Commands.runOnce(() -> {}).withName("waiting for initial input");
 
-  public ScorePositionSelector(Trigger alternateButton, Command defaultCommand) {
-    this.alternateButton = alternateButton;
+  public ScorePositionSelector(Command defaultCommand) {
     this.defaultCommand = defaultCommand;
   }
 
@@ -40,15 +26,24 @@ public class ScorePositionSelector {
     allBindings.add(binding);
     binding
         .trigger
-        .onTrue(new InstantCommand(() -> addToPossibeList(binding)))
-        .onFalse(new InstantCommand(() -> removeFromPossibleList(binding)));
+        .onTrue(
+            Commands.deferredProxy(
+                () -> {
+                  addToPossibeList(binding);
+                  return getDesiredCommand();
+                }))
+        .onFalse(
+            Commands.deferredProxy(
+                () -> {
+                  removeFromPossibleList(binding);
+                  return getDesiredCommand();
+                }));
 
     return this;
   }
 
   private void addToPossibeList(Binding binding) {
     currentBindings.add(0, binding);
-    updateCurrentCommand();
   }
 
   private void removeFromPossibleList(Binding binding) {
@@ -58,18 +53,33 @@ public class ScorePositionSelector {
         i--;
       }
     }
-    updateCurrentCommand();
   }
 
-  private void updateCurrentCommand() {
+  private Command getDesiredCommand() {
     if (currentBindings.size() == 0) {
       currentCommand = defaultCommand;
-      wantUpdate = true;
+      return currentCommand;
     } else {
       Binding current = currentBindings.get(0);
-      currentCommand =
-          new ConditionalCommand(current.alternateCommand, current.targetCommand, alternateButton);
-      wantUpdate = true;
+      currentCommand = current.targetCommand;
+      return currentCommand;
     }
+  }
+
+  public void log() {
+    String[] names = new String[allBindings.size()];
+    for (int i = 0; i < names.length; i++) {
+      names[i] = allBindings.get(i).name;
+    }
+
+    String[] currentNames = new String[currentBindings.size()];
+    for (int i = 0; i < currentNames.length; i++) {
+      currentNames[i] = currentBindings.get(i).name;
+    }
+
+    Logger.recordOutput("Selector/AllBindings", names);
+    Logger.recordOutput("Selector/CurrentBindings", currentNames);
+    Logger.recordOutput("Selector/CurrentCommand", currentCommand.getName());
+    SmartDashboard.putData("Selector.CurrentCommand", currentCommand);
   }
 }
