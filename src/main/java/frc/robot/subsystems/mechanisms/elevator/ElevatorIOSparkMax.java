@@ -112,6 +112,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     inputs.appliedVolts = m_leftElevator.getBusVoltage() * m_leftElevator.getAppliedOutput();
     inputs.elevatorVelo = leftEncoder.getVelocity();
     inputs.elevatorPos = leftEncoder.getPosition();
+    inputs.funnelPos = funnelEncoder.getPosition();
     if (bottomLimitSwitch.isPressed() && zeroed == false) {
       leftEncoder.setPosition(0);
       zeroed = true;

@@ -152,4 +152,9 @@ public class Elevator extends SubsystemBase {
   public double getCarrageVelocity() {
     return inputs.elevatorVelo * ElevatorConstants.conversion_RPM_MS * 4.0;
   }
+
+  @AutoLogOutput
+  public double getFunnelPos() {
+    return inputs.funnelPos;
+  }
 }
