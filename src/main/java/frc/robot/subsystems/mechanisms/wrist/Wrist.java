@@ -1,13 +1,14 @@
 package frc.robot.subsystems.mechanisms.wrist;
 
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -18,9 +19,12 @@ public class Wrist extends SubsystemBase {
   private double rightIntakeRPM;
   private double wirstPos;
   public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
-  public Trigger intakeStalled = new Trigger(
-    () -> Math.round(inputs.rightAppliedCurrent) > RollerConstants.currentLimit 
-    || Math.round(inputs.leftAppliedCurrent) > RollerConstants.currentLimit);
+  public Trigger intakeStalled =
+      new Trigger(
+              () ->
+                  Math.round(inputs.rightAppliedCurrent) >= RollerConstants.currentLimit
+                      || Math.round(inputs.leftAppliedCurrent) >= RollerConstants.currentLimit)
+          .debounce(.25, DebounceType.kFalling);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
@@ -35,6 +39,7 @@ public class Wrist extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Wrist", inputs);
+    Logger.recordOutput("Wrist/IntakeStalled", intakeStalled);
 
     if (DriverStation.isDisabled()) {
       stop();
@@ -63,7 +68,8 @@ public class Wrist extends SubsystemBase {
   }
 
   public void requestWristPOS(double POS) {
-    wirstPos = POS;
+    inputs.wristSetpoint = POS;
+    io.requestWristPosition(POS);
   }
 
   public void reqestIntakeVoltage(double voltage) {
@@ -89,15 +95,15 @@ public class Wrist extends SubsystemBase {
   public Command upperTestCommand() {
     return this.defer(
         () ->
-            Commands.run(
-                () -> requestWristPOS(SmartDashboard.getNumber("wrist/upperPosition", 0.0))));
+            Commands.runOnce(
+                () -> requestWristPOS(SmartDashboard.getNumber("Wrist/upperSetpoint", 0.0))));
   }
 
   public Command lowerTestCommand() {
     return this.defer(
         () ->
-            Commands.run(
-                () -> requestWristPOS(SmartDashboard.getNumber("wrist/lowerPosition", 0.0))));
+            Commands.runOnce(
+                () -> requestWristPOS(SmartDashboard.getNumber("Wrist/lowerSetpoint", 0.0))));
   }
 
   public Command stopCommand() {

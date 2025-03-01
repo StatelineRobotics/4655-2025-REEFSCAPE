@@ -44,8 +44,9 @@ public class Elevator extends SubsystemBase {
     }
   }
 
-  public void requestElevatorPosition(double ElevatorPosition) {
-    io.requestElevatorPosition(ElevatorPosition);
+  public void requestElevatorPosition(double elevatorPosition) {
+    inputs.setPoint = elevatorPosition;
+    io.requestElevatorPosition(elevatorPosition);
   }
 
   public void requestBeltRPM(double RPM) {

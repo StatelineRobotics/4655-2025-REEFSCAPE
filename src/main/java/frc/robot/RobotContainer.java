@@ -27,8 +27,6 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
@@ -57,6 +55,8 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.util.Binding;
+import frc.robot.util.ScorePositionSelector;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -80,6 +80,8 @@ public class RobotContainer {
   private final MechanismControl mechanismControl;
 
   private final Vision vision;
+
+  private final ScorePositionSelector selector;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -161,6 +163,8 @@ public class RobotContainer {
     }
 
     mechanismControl = new MechanismControl(elevator, wrist, climber);
+
+    selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
 
     // public void configureNamedCommands(){
 
@@ -253,77 +257,32 @@ public class RobotContainer {
         .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
     controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
 
-    auxController
-        .leftTrigger()
-        // Go to algeL2 if b is pressed, else go to level one
-        .onTrue(
-            new ConditionalCommand(
-                mechanismControl.setState(State.algaePickupL2),
-                mechanismControl.setState(State.levelOne),
-                auxController.b()))
-        // Go to store if only score position button pressed
-        .onFalse(
-            new ConditionalCommand(
-                mechanismControl.setState(State.store),
-                new InstantCommand(),
-                (auxController
-                        .rightBumper()
-                        .or((auxController.leftBumper().or(auxController.rightTrigger()))))
-                    .negate()));
-
-    auxController
-        .rightTrigger()
-        // Go to algeL2 if b is pressed, else go to level two
-        .onTrue(
-            new ConditionalCommand(
-                mechanismControl.setState(State.algaePickupL2),
-                mechanismControl.setState(State.levelTwo),
-                auxController.b()))
-        // Go to store if only score position button pressed
-        .onFalse(
-            new ConditionalCommand(
-                mechanismControl.setState(State.store),
-                new InstantCommand(),
-                (auxController
-                        .rightBumper()
-                        .or((auxController.leftBumper().or(auxController.leftTrigger()))))
-                    .negate()));
-
-    auxController
-        .leftBumper()
-        // Go to algeL3 if b is pressed, else go to level three
-        .onTrue(
-            new ConditionalCommand(
-                mechanismControl.setState(State.algaePickupL2),
-                mechanismControl.setState(State.levelThree),
-                auxController.b()))
-        // Go to store if only score position button pressed
-        .onFalse(
-            new ConditionalCommand(
-                mechanismControl.setState(State.store),
-                new InstantCommand(),
-                (auxController
-                        .rightBumper()
-                        .or((auxController.rightTrigger().or(auxController.leftTrigger()))))
-                    .negate()));
-
-    auxController
-        .rightBumper()
-        // Go to algeL3 if b is pressed, else go to level four
-        .onTrue(
-            new ConditionalCommand(
-                mechanismControl.setState(State.algaePickupL2),
-                mechanismControl.setState(State.levelFour),
-                auxController.b()))
-        // Go to store if only score position button pressed
-        .onFalse(
-            new ConditionalCommand(
-                mechanismControl.setState(State.store),
-                new InstantCommand(),
-                (auxController
-                        .leftBumper()
-                        .or((auxController.rightTrigger().or(auxController.leftTrigger()))))
-                    .negate()));
+    selector
+        .addBinding(
+            new Binding(
+                auxController.leftTrigger().and(auxController.b().negate()),
+                mechanismControl.setState(State.levelOne).withName("L1")))
+        .addBinding(
+            new Binding(
+                auxController.rightTrigger().and(auxController.b().negate()),
+                mechanismControl.setState(State.levelTwo).withName("L2")))
+        .addBinding(
+            new Binding(
+                auxController.leftBumper().and(auxController.b().negate()),
+                mechanismControl.setState(State.levelThree).withName("L3")))
+        .addBinding(
+            new Binding(
+                auxController.rightBumper().and(auxController.b().negate()),
+                mechanismControl.setState(State.levelFour).withName("L4")))
+        .addBinding(
+            new Binding(
+                (auxController.leftTrigger().or(auxController.rightTrigger()))
+                    .and(auxController.b()),
+                mechanismControl.setState(State.algaePickupL2).withName("AlgeaL2")))
+        .addBinding(
+            new Binding(
+                (auxController.leftBumper().or(auxController.rightBumper())).and(auxController.b()),
+                mechanismControl.setState(State.algeaPickupL3).withName("AlgeaL3")));
 
     auxController
         .axisMagnitudeGreaterThan(1, 0.1)
@@ -335,7 +294,10 @@ public class RobotContainer {
 
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
-        .whileTrue(wrist.wristVoltageControl(() -> auxController.getRightY() * 2.0))
+        .whileTrue(
+            wrist
+                .wristVoltageControl(() -> auxController.getRightY() * -2.0)
+                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(wrist.stopCommand());
   }
 
@@ -343,6 +305,7 @@ public class RobotContainer {
     SmartDashboard.putData("drive", drive);
     SmartDashboard.putData("elevator", elevator);
     SmartDashboard.putData("wrist", wrist);
+    selector.log();
   }
 
   public void updateMechanism2ds() {
