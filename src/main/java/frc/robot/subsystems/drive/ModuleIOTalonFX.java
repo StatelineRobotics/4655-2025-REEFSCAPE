@@ -19,6 +19,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
@@ -70,7 +71,7 @@ public class ModuleIOTalonFX implements ModuleIO {
       new PositionTorqueCurrentFOC(0.0);
   private final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
       new VelocityTorqueCurrentFOC(0.0);
-
+  private final NeutralOut neutralOutReqest = new NeutralOut();
   // Timestamp inputs from Phoenix thread
   private final Queue<Double> timestampQueue;
 
@@ -254,6 +255,19 @@ public class ModuleIOTalonFX implements ModuleIO {
           case Voltage -> velocityVoltageRequest.withVelocity(velocityRotPerSec);
           case TorqueCurrentFOC -> velocityTorqueCurrentRequest.withVelocity(velocityRotPerSec);
         });
+  }
+
+  public void setTeleOpDriveVelocity(double velocityRadPerSec) {
+    double velocityRotPerSec = Units.radiansToRotations(velocityRadPerSec);
+    if (velocityRadPerSec == 0) {
+      driveTalon.setControl(neutralOutReqest);
+    } else {
+      driveTalon.setControl(
+          switch (constants.DriveMotorClosedLoopOutput) {
+            case Voltage -> velocityVoltageRequest.withVelocity(velocityRotPerSec);
+            case TorqueCurrentFOC -> velocityTorqueCurrentRequest.withVelocity(velocityRotPerSec);
+          });
+    }
   }
 
   @Override

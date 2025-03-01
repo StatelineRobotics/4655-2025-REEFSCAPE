@@ -134,6 +134,12 @@ public class ModuleIOSim implements ModuleIO {
     driveController.setSetpoint(velocityRadPerSec);
   }
 
+  public void setTeleOpDriveVelocity(double velocityRadPerSec) {
+    driveClosedLoop = true;
+    driveFFVolts = DRIVE_KS * Math.signum(velocityRadPerSec) + DRIVE_KV * velocityRadPerSec;
+    driveController.setSetpoint(velocityRadPerSec);
+  }
+
   @Override
   public void setTurnPosition(Rotation2d rotation) {
     turnClosedLoop = true;
