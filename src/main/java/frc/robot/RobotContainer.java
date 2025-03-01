@@ -170,6 +170,8 @@ public class RobotContainer {
 
     selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
 
+    selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
+
     // public void configureNamedCommands(){
 
     //     NamedCommands.registerCommand("Home",

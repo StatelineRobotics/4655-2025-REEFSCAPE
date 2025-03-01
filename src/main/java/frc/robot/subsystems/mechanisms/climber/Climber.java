@@ -17,8 +17,8 @@ public class Climber extends SubsystemBase {
     io.updateInputs(inputs);
   }
 
-  public void setFunnelPosition(double climberPOS) {
-    inputs.funnelPOS = funnelPOS;
+  public void requestPull() {
+    inputs.requestPull();
   }
 
   public void setClimberPosition(double pos) {
