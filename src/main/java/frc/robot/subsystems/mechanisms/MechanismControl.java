@@ -1,10 +1,13 @@
 package frc.robot.subsystems.mechanisms;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.climber.Climber;
@@ -40,12 +43,19 @@ public class MechanismControl extends SubsystemBase {
   private final Elevator elevatorSubsystem;
   private final Wrist wristSubsystem;
   private final Climber climber;
-  private double test = 0.0;
+  private final Lights lightSubsystem;
+  private final Trigger atDualSetPoint;
 
-  public MechanismControl(Elevator elevatorSubsystem, Wrist wristSubsystem, Climber climber) {
+  private double test = 0.0;
+  private boolean hasSetLEDS = false;
+
+  public MechanismControl(
+      Elevator elevatorSubsystem, Wrist wristSubsystem, Climber climber, Lights lightSubsystem) {
     this.elevatorSubsystem = elevatorSubsystem;
     this.wristSubsystem = wristSubsystem;
     this.climber = climber;
+    this.lightSubsystem = lightSubsystem;
+    this.atDualSetPoint = new Trigger(wristSubsystem.atSetpoint.and(elevatorSubsystem.atSetpoint));
     SmartDashboard.getNumber("test", test);
   }
 
@@ -179,19 +189,63 @@ public class MechanismControl extends SubsystemBase {
     if (desiredState == State.idle) {
       return Commands.deferredProxy(
           () -> {
-            return new InstantCommand(() -> setDesiredState(desiredState));
+            return new InstantCommand(() -> setDesiredState(desiredState))
+                .alongWith(getLEDCommand(desiredState));
           });
     } else {
       return Commands.defer(
           () -> {
-            return new InstantCommand(() -> setDesiredState(desiredState));
+            return new InstantCommand(() -> setDesiredState(desiredState))
+                .alongWith(getLEDCommand(desiredState));
           },
           Set.of(elevatorSubsystem, wristSubsystem, climber));
     }
   }
 
   public void setDesiredState(State desiredState) {
-
+    hasSetLEDS = false;
     currentState = desiredState;
+  }
+
+  private Command getLEDCommand(State desiredState) {
+    switch (desiredState) {
+      case idle, home:
+        // Single fade purple annimation
+        return lightSubsystem.singleFadeAnimation(new Color(80, 7, 120));
+
+        // When intaking solid red
+      case coralPickup:
+        return lightSubsystem.singleColorAnimation(new Color(255, 0, 0));
+
+        // When see coral, solid orange
+      case coralPickupS3:
+        return lightSubsystem.singleColorAnimation(new Color(250, 130, 38));
+
+        // Move elevatlor store (red) when at store blue
+      case store, algeaStore:
+        return lightSubsystem
+            .singleColorAnimation(new Color(255, 0, 0))
+            .andThen(Commands.waitUntil(atDualSetPoint))
+            .andThen(lightSubsystem.singleColorAnimation(new Color(0, 125, 255)));
+
+        // Starts red when moving, strobes green when at set point
+      case levelOne, levelTwo, levelThree, levelFour:
+        return lightSubsystem
+            .singleColorAnimation(new Color(255, 0, 0))
+            .andThen(Commands.waitUntil(atDualSetPoint))
+            .andThen(lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)));
+
+      case algeaPickupL3, algaePickupL2:
+        return lightSubsystem
+            .singleColorAnimation(new Color(255, 0, 0))
+            .andThen(Commands.waitUntil(atDualSetPoint))
+            .andThen(lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)))
+            .andThen(Commands.waitUntil(wristSubsystem.intakeStalled))
+            .andThen(lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)));
+
+        // default to yellow solid color
+      default:
+        return lightSubsystem.singleColorAnimation(new Color(255, 209, 0));
+    }
   }
 }
