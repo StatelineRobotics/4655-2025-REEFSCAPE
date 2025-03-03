@@ -56,7 +56,7 @@ public class Lights extends SubsystemBase {
   }
 
   private StrobeAnimation getStrobeAnimation(int r, int g, int b) {
-    return new StrobeAnimation(r, g, b, Math.min(r, Math.min(g,b)), 0.5, numLEDS, 8);
+    return new StrobeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS, 8);
   }
 
   private SingleFadeAnimation getFadeAnimation(int r, int g, int b) {
@@ -64,7 +64,7 @@ public class Lights extends SubsystemBase {
   }
 
   private void setLEDcolor(int r, int g, int b, int index) {
-    candle.setLEDs(r, g, b, Math.min(r, Math.min(g,b)), index, 1);
+    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), index, 1);
   }
 
   public void setLEDstrip(Animation animation) {
@@ -74,6 +74,6 @@ public class Lights extends SubsystemBase {
   }
 
   public void setSolidColor(int r, int g, int b) {
-    candle.setLEDs(r, g, b, Math.min(r, Math.min(g,b)), 8, 8 + numLEDS);
+    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 8, 8 + numLEDS);
   }
 }

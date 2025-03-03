@@ -14,6 +14,7 @@ import frc.robot.subsystems.mechanisms.climber.Climber;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
 import java.util.Set;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class MechanismControl extends SubsystemBase {
@@ -44,7 +45,8 @@ public class MechanismControl extends SubsystemBase {
   private final Wrist wristSubsystem;
   private final Climber climber;
   private final Lights lightSubsystem;
-  private final Trigger atDualSetPoint;
+
+  @AutoLogOutput public final Trigger atDualSetPoint;
 
   private double test = 0.0;
   private boolean hasSetLEDS = false;

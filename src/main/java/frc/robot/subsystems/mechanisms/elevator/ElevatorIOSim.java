@@ -51,12 +51,19 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
   public ElevatorIOSim() {
     super();
 
+    bottomLimitSwitchSim.setPressed(true);
+
     // Adjust left motor closed loop (pid controller) config
     ClosedLoopConfig closedLoopConfig = simConfig.closedLoop;
     closedLoopConfig
         .pid(ElevatorConstants.simKp, ElevatorConstants.simKi, ElevatorConstants.simKd)
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(false);
+
+    closedLoopConfig
+        .maxMotion
+        .maxAcceleration(ElevatorConstants.simMaxAccel)
+        .maxVelocity(ElevatorConstants.simMaxAccel);
 
     // Configure both motors
     m_leftElevator.configure(

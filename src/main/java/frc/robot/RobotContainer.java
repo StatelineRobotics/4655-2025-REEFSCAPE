@@ -16,6 +16,7 @@ package frc.robot;
 // import static frc.robot.subsystems.Vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -168,15 +169,9 @@ public class RobotContainer {
 
     mechanismControl = new MechanismControl(elevator, wrist, climber, lights);
 
-    selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
+    configureNamedCommands();
 
     selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
-
-    // public void configureNamedCommands(){
-
-    //     NamedCommands.registerCommand("Home",
-    //     new InstantCommand(mechanisimControl.setDesiredState(MechanismControl.State.home)));
-    // }
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -208,6 +203,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -324,6 +320,25 @@ public class RobotContainer {
       new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
     };
     Logger.recordOutput("mechanismPoses", mechanismPoses);
+  }
+
+  public void configureNamedCommands() {
+    NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour));
+    NamedCommands.registerCommand(
+        "score",
+        wrist
+            .runEnd(
+                () -> {
+                  wrist.intakeVoltageControl(() -> 12.0);
+                },
+                () -> wrist.stopIntake())
+            .withTimeout(0.5));
+    NamedCommands.registerCommand("algaeL3", mechanismControl.setState(State.algeaPickupL3));
+    NamedCommands.registerCommand("algeaL2", mechanismControl.setState(State.algaePickupL2));
+    NamedCommands.registerCommand("store", mechanismControl.setState(State.store));
+    NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
+    NamedCommands.registerCommand(
+        "waitUntilSetpoint", Commands.run(() -> {}).until(mechanismControl.atDualSetPoint));
   }
 
   /**
