@@ -169,6 +169,8 @@ public class RobotContainer {
 
     mechanismControl = new MechanismControl(elevator, wrist, climber, lights);
 
+    configureNamedCommands();
+
     selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
 
     // Set up auto routines
@@ -201,6 +203,7 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -329,11 +332,13 @@ public class RobotContainer {
                   wrist.intakeVoltageControl(() -> 12.0);
                 },
                 () -> wrist.stopIntake())
-            .withTimeout(2.0));
-    NamedCommands.registerCommand("AlgaeL3", mechanismControl.setState(State.algeaPickupL3));
-    NamedCommands.registerCommand("AlgeaL2", mechanismControl.setState(State.algaePickupL2));
-    NamedCommands.registerCommand("Store", mechanismControl.setState(State.store));
+            .withTimeout(0.5));
+    NamedCommands.registerCommand("algaeL3", mechanismControl.setState(State.algeaPickupL3));
+    NamedCommands.registerCommand("algeaL2", mechanismControl.setState(State.algaePickupL2));
+    NamedCommands.registerCommand("store", mechanismControl.setState(State.store));
     NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
+    NamedCommands.registerCommand(
+        "waitUntilSetpoint", Commands.run(() -> {}).until(mechanismControl.atDualSetPoint));
   }
 
   /**

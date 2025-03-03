@@ -18,10 +18,14 @@ public class Climber extends SubsystemBase {
   }
 
   public void requestPull() {
-    inputs.requestPull();
+    reqestPosition(0);
+  }
+
+  public void reqestPosition(double position) {
+    io.requestPull(position);
   }
 
   public void setClimberPosition(double pos) {
-    inputs.climberPOS = climberPOS;
+    inputs.climberPOS = pos;
   }
 }

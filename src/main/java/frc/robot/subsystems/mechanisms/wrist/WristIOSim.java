@@ -67,6 +67,7 @@ public class WristIOSim extends WristIOSparkMax {
   public void updateInputs(WristIOInputs inputs) {
     updateSim(inputs);
     super.updateInputs(inputs);
+    inputs.wristPos = inputs.wristSetpoint;
   }
 
   private void updateSim(WristIOInputs inputs) {

@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start to score J"
+            "pathName": "Start to score E."
           }
         },
         {
@@ -38,13 +38,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Score J to human"
+            "pathName": "Score E to Human."
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Human to score L"
+            "pathName": "Human to score C."
           }
         },
         {
@@ -75,13 +75,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Score L to Human"
+            "pathName": "Score C to Human."
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Human to score K"
+            "pathName": "Human to Score D."
           }
         },
         {
