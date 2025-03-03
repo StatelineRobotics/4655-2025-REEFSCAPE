@@ -10,6 +10,7 @@ public interface ElevatorIO {
     public boolean zeroed = false;
 
     public double elevatorPos = 0.0;
+    public double funnelPos = 0.0;
     public double elevatorVelo = 0.0;
     public double dutyCycle = 0.0;
     public double appliedVolts = 0.0;
