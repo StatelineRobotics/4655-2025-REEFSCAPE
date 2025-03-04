@@ -28,6 +28,8 @@ public class Wrist extends SubsystemBase {
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 
+  public Trigger detectsNoteDebounced = detectsNote.debounce(.25, DebounceType.kRising);
+
   public Wrist(WristIO io) {
     this.io = io;
 
