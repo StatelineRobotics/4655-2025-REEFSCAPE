@@ -88,17 +88,17 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case coralPickupS2 -> {
-        wristSubsystem.reqestIntakeVoltage(3);
-        elevatorSubsystem.reqestBeltVoltage(-6);
-        if (wristSubsystem.detectsNote.getAsBoolean()) {
+        wristSubsystem.reqestIntakeVoltage(6);
+        elevatorSubsystem.reqestBeltVoltage(-12);
+        if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
           setDesiredState(State.coralPickupS3);
         }
         break;
       }
 
       case coralPickupS3 -> {
-        wristSubsystem.reqestIntakeVoltage(2);
-        if (!wristSubsystem.detectsNote.getAsBoolean()) {
+        wristSubsystem.reqestIntakeVoltage(3);
+        if (wristSubsystem.detectsNote.getAsBoolean() == false) {
           wristSubsystem.stopIntake();
           elevatorSubsystem.reqestBeltVoltage(0);
           setDesiredState(State.store);
@@ -109,8 +109,8 @@ public class MechanismControl extends SubsystemBase {
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
-        if (wristSubsystem.intakeStalled.getAsBoolean()) {
-          setState(State.algeaStore);
+        if (wristSubsystem.intakeStalled.getAsBoolean() == true) {
+          setDesiredState(State.algeaStore);
         } else {
           wristSubsystem.stopIntake();
         }
@@ -119,8 +119,8 @@ public class MechanismControl extends SubsystemBase {
       case algeaStore -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeAlgeaHeight);
-        if (!wristSubsystem.intakeStalled.getAsBoolean()) {
-          setState(State.store);
+        if (wristSubsystem.intakeStalled.getAsBoolean() == false) {
+          setDesiredState(State.store);
         }
       }
 
@@ -212,7 +212,6 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public void setDesiredState(State desiredState) {
-    hasSetLEDS = false;
     currentState = desiredState;
   }
 
