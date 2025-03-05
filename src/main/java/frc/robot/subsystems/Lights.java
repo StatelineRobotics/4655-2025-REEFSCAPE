@@ -28,7 +28,7 @@ public class Lights extends SubsystemBase {
     candle.configAllSettings(config);
     candle.animate(getFadeAnimation(80, 7, 120));
 
-    //setLEDstrip(getFadeAnimation(0, 255, 0));
+    // setLEDstrip(getFadeAnimation(0, 255, 0));
   }
 
   @Override

@@ -108,11 +108,7 @@ public class MechanismControl extends SubsystemBase {
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
-<<<<<<< HEAD
-        if (wristSubsystem.intakeStalled.getAsBoolean()) {
-=======
         if (wristSubsystem.intakeStalled.getAsBoolean() == true) {
->>>>>>> 081a6e9d0d9efe4e36790d1d43cc046e6d51f7f3
           setDesiredState(State.algeaStore);
         } else {
           wristSubsystem.stopIntake();
@@ -122,11 +118,7 @@ public class MechanismControl extends SubsystemBase {
       case algeaStore -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeAlgeaHeight);
-<<<<<<< HEAD
-        if (!wristSubsystem.intakeStalled.getAsBoolean()) {
-=======
         if (wristSubsystem.intakeStalled.getAsBoolean() == false) {
->>>>>>> 081a6e9d0d9efe4e36790d1d43cc046e6d51f7f3
           setDesiredState(State.store);
         }
       }
@@ -240,8 +232,7 @@ public class MechanismControl extends SubsystemBase {
 
         // When see coral, solid orange
       case coralPickupS3:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(250, 130,
-    38)));
+        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(250, 130, 38)));
 
         // Move elevatlor store (red) when at store blue
       case store, algeaStore:
@@ -272,8 +263,7 @@ public class MechanismControl extends SubsystemBase {
 
         // default to yellow solid color
       default:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 209,
-    0)));
+        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 209, 0)));
     }
   }
 }
