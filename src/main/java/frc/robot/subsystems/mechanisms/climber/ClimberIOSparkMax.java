@@ -1,6 +1,5 @@
 package frc.robot.subsystems.mechanisms.climber;
 
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -19,8 +18,6 @@ public class ClimberIOSparkMax implements ClimberIO {
   private SparkFlex m_climber;
   private SparkFlexConfig climberConfig = new SparkFlexConfig();
   private RelativeEncoder climbEncoder;
-  private AbsoluteEncoder climbAbsoluteEncoder;
-  private RelativeEncoder funnelEncoder;
   private SparkClosedLoopController climbController;
   private SparkClosedLoopController funnelController;
   private ClosedLoopConfig climberClosedLoopConfig = climberConfig.closedLoop;
@@ -36,9 +33,8 @@ public class ClimberIOSparkMax implements ClimberIO {
     m_climber.configure(
         climberConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
-    climbAbsoluteEncoder = m_climber.getAbsoluteEncoder();
-
     climbController = m_climber.getClosedLoopController();
+    climbEncoder = m_climber.getEncoder();
 
     climberClosedLoopConfig = climberConfig.closedLoop;
     climberClosedLoopConfig.pid(0.002, 0, 0);
@@ -47,7 +43,6 @@ public class ClimberIOSparkMax implements ClimberIO {
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
     inputs.climberPOS = climbEncoder.getPosition();
-    // inputs.funnelPOS = funnelEncoder.getPosition();
   }
 
   public void setClimberPosition(double pos) {

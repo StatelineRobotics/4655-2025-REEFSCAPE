@@ -11,22 +11,24 @@ import com.ctre.phoenix.led.CANdleConfiguration;
 import com.ctre.phoenix.led.SingleFadeAnimation;
 import com.ctre.phoenix.led.StrobeAnimation;
 import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 
 public class Lights extends SubsystemBase {
   private static final CANdle candle = new CANdle(MechanismConstants.CANdleID);
   private static final CANdleConfiguration config = new CANdleConfiguration();
-  private static final int numLEDS = 60;
+  private static final int numLEDS = 33;
 
   /** Creates a new Lights. */
   public Lights() {
     config.brightnessScalar = .5;
     config.disableWhenLOS = false;
     config.statusLedOffWhenActive = false;
-    config.stripType = LEDStripType.RGBW;
+    config.stripType = LEDStripType.GRBW;
     candle.configAllSettings(config);
+    candle.animate(getFadeAnimation(80, 7, 120));
+
+    //setLEDstrip(getFadeAnimation(0, 255, 0));
   }
 
   @Override
@@ -34,46 +36,48 @@ public class Lights extends SubsystemBase {
     // This method will be called once per scheduler run
   }
 
-  public Command singleFadeAnimation(Color color) {
+  private double minValue(Color color) {
+    return Math.min(color.blue, Math.min(color.red, color.blue));
+  }
+
+  public void singleFadeAnimation(Color color) {
     SingleFadeAnimation animation =
         getFadeAnimation(
             (int) (color.red * 255), (int) (color.green * 255), (int) (color.blue * 255));
-    return this.runOnce(() -> setLEDstrip(animation));
+    setLEDstrip(animation);
   }
 
-  public Command singleStrobeAnimation(Color color) {
+  public void singleStrobeAnimation(Color color) {
     StrobeAnimation animation =
         getStrobeAnimation(
             (int) (color.red * 255), (int) (color.green * 255), (int) (color.blue * 255));
-    return this.runOnce(() -> setLEDstrip(animation));
+    setLEDstrip(animation);
   }
 
-  public Command singleColorAnimation(Color color) {
-    return this.runOnce(
-        () ->
-            setSolidColor(
-                (int) (color.red * 255), (int) (color.green * 255), (int) (color.blue * 255)));
+  public void singleColorAnimation(Color color) {
+    setSolidColor((int) (color.red * 255), (int) (color.green * 255), (int) (color.blue * 255));
   }
 
   private StrobeAnimation getStrobeAnimation(int r, int g, int b) {
-    return new StrobeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS, 8);
+    return new StrobeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS + 8);
   }
 
   private SingleFadeAnimation getFadeAnimation(int r, int g, int b) {
-    return new SingleFadeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS);
+    return new SingleFadeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS + 8);
   }
 
-  private void setLEDcolor(int r, int g, int b, int index) {
-    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), index, 1);
-  }
+  // private void setLEDcolor(int r, int g, int b, int index) {
+  //   candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), index, 1);
+  // }
 
   public void setLEDstrip(Animation animation) {
-    animation.setLedOffset(8);
-    animation.setNumLed(numLEDS);
+    animation.setLedOffset(0);
+    animation.setNumLed(numLEDS + 8);
     candle.animate(animation, 0);
   }
 
   public void setSolidColor(int r, int g, int b) {
-    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 8, 8 + numLEDS);
+    candle.clearAnimation(0);
+    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 0, numLEDS + 8);
   }
 }

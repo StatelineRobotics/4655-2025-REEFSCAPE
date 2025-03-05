@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Lights;
@@ -110,7 +109,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
-          setState(State.algeaStore);
+          setDesiredState(State.algeaStore);
         } else {
           wristSubsystem.stopIntake();
         }
@@ -120,7 +119,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeAlgeaHeight);
         if (!wristSubsystem.intakeStalled.getAsBoolean()) {
-          setState(State.store);
+          setDesiredState(State.store);
         }
       }
 
@@ -198,16 +197,22 @@ public class MechanismControl extends SubsystemBase {
     if (desiredState == State.idle) {
       return Commands.deferredProxy(
           () -> {
-            return new InstantCommand(() -> setDesiredState(desiredState))
+            return Commands.runOnce(() -> setDesiredState(desiredState))
                 .alongWith(getLEDCommand(desiredState));
+            // .alongWith(
+            //     Commands.runOnce(
+            //         () -> lightSubsystem.singleStrobeAnimation(new Color(255, 0, 0))));
           });
     } else {
       return Commands.defer(
           () -> {
-            return new InstantCommand(() -> setDesiredState(desiredState))
+            return Commands.runOnce(() -> setDesiredState(desiredState))
+                // .alongWith(
+                //     Commands.runOnce(
+                //         () -> lightSubsystem.singleStrobeAnimation(new Color(255, 0, 0))));
                 .alongWith(getLEDCommand(desiredState));
           },
-          Set.of(elevatorSubsystem, wristSubsystem, climber));
+          Set.of(elevatorSubsystem, wristSubsystem, climber, lightSubsystem));
     }
   }
 
@@ -217,44 +222,52 @@ public class MechanismControl extends SubsystemBase {
   }
 
   private Command getLEDCommand(State desiredState) {
-    switch (desiredState) {
-      case idle, home:
-        // Single fade purple annimation
-        return lightSubsystem.singleFadeAnimation(new Color(80, 7, 120));
+    return Commands.runOnce(() -> lightSubsystem.singleFadeAnimation(new Color(255, 0, 0)));
+    // switch (desiredState) {
+    //   case idle, home:
+    //     // Single fade purple annimation
+    //     return Commands.runOnce(() -> lightSubsystem.singleFadeAnimation(new Color(0, 7, 120)));
 
-        // When intaking solid red
-      case coralPickup:
-        return lightSubsystem.singleColorAnimation(new Color(255, 0, 0));
+    //     // When intaking solid red
+    //   case coralPickup:
+    //     return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)));
 
-        // When see coral, solid orange
-      case coralPickupS3:
-        return lightSubsystem.singleColorAnimation(new Color(250, 130, 38));
+    //     // When see coral, solid orange
+    //   case coralPickupS3:
+    //     return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(250, 130,
+    // 38)));
 
-        // Move elevatlor store (red) when at store blue
-      case store, algeaStore:
-        return lightSubsystem
-            .singleColorAnimation(new Color(255, 0, 0))
-            .andThen(Commands.waitUntil(atDualSetPoint))
-            .andThen(lightSubsystem.singleColorAnimation(new Color(0, 125, 255)));
+    //     // Move elevatlor store (red) when at store blue
+    //   case store, algeaStore:
+    //     return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+    //         .andThen(Commands.waitUntil(atDualSetPoint))
+    //         .andThen(
+    //             Commands.runOnce(
+    //                 () -> lightSubsystem.singleColorAnimation(new Color(0, 125, 255))));
 
-        // Starts red when moving, strobes green when at set point
-      case levelOne, levelTwo, levelThree, levelFour:
-        return lightSubsystem
-            .singleColorAnimation(new Color(255, 0, 0))
-            .andThen(Commands.waitUntil(atDualSetPoint))
-            .andThen(lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)));
+    //     // Starts red when moving, strobes green when at set point
+    //   case levelOne, levelTwo, levelThree, levelFour:
+    //     return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+    //         .andThen(Commands.waitUntil(atDualSetPoint))
+    //         .andThen(
+    //             Commands.runOnce(
+    //                 () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))));
 
-      case algeaPickupL3, algaePickupL2:
-        return lightSubsystem
-            .singleColorAnimation(new Color(255, 0, 0))
-            .andThen(Commands.waitUntil(atDualSetPoint))
-            .andThen(lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)))
-            .andThen(Commands.waitUntil(wristSubsystem.intakeStalled))
-            .andThen(lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)));
+    //   case algeaPickupL3, algaePickupL2:
+    //     return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+    //         .andThen(Commands.waitUntil(atDualSetPoint))
+    //         .andThen(
+    //             Commands.runOnce(
+    //                 () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))))
+    //         .andThen(Commands.waitUntil(wristSubsystem.intakeStalled))
+    //         .andThen(
+    //             Commands.runOnce(
+    //                 () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))));
 
-        // default to yellow solid color
-      default:
-        return lightSubsystem.singleColorAnimation(new Color(255, 209, 0));
-    }
+    //     // default to yellow solid color
+    //   default:
+    //     return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 209,
+    // 0)));
+    // }
   }
 }
