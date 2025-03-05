@@ -7,7 +7,6 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
-import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -30,7 +29,7 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 public class ElevatorIOSparkMax implements ElevatorIO {
   protected SparkMax m_leftElevator;
   protected SparkMax m_rightElevator;
-  protected SparkFlex m_funnel;
+  protected SparkMax m_funnel;
   protected SparkMax m_belt;
   private SparkClosedLoopController leftElevatorController;
   private SparkClosedLoopController funnelController;
@@ -51,7 +50,11 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     mFunnelConfig.inverted(true).smartCurrentLimit(10).idleMode(IdleMode.kCoast);
 
     // base config for all motors
-    mLeftConfig.idleMode(IdleMode.kBrake).inverted(true).smartCurrentLimit(60);
+    mLeftConfig
+        .idleMode(IdleMode.kBrake)
+        .inverted(true)
+        .smartCurrentLimit(60)
+        .closedLoopRampRate(0);
 
     // Create spesific right motor config from base config
     mRightConfig.apply(mLeftConfig);
@@ -59,7 +62,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
     m_leftElevator = new SparkMax(MechanismConstants.leftElevatorId, MotorType.kBrushless);
     m_rightElevator = new SparkMax(MechanismConstants.rightElevatorId, MotorType.kBrushless);
-    m_funnel = new SparkFlex(MechanismConstants.funnelId, MotorType.kBrushless);
+    m_funnel = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushless);
     m_belt = new SparkMax(MechanismConstants.beltId, MotorType.kBrushless);
 
     // Adjust left motor encoder config
