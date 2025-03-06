@@ -296,6 +296,17 @@ public class Drive extends SubsystemBase {
     stop();
   }
 
+  public void setWheelsStraightAndCoast() {
+    Rotation2d[] headings = new Rotation2d[4];
+    Rotation2d target = getPose().getRotation().plus(Rotation2d.kCW_90deg);
+    for (int i = 0; i < 4; i++) {
+      headings[i] = target;
+    }
+    kinematics.resetHeadings(headings);
+    stop();
+    coast();
+  }
+
   /** Returns a command to run a quasistatic test in the specified direction. */
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return run(() -> runCharacterization(0.0))
