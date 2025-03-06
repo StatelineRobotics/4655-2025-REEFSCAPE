@@ -21,13 +21,21 @@ public class Lights extends SubsystemBase {
 
   /** Creates a new Lights. */
   public Lights() {
-    config.brightnessScalar = .5;
+    config.brightnessScalar = 1.0;
     config.disableWhenLOS = false;
     config.statusLedOffWhenActive = false;
     config.stripType = LEDStripType.GRBW;
     candle.configAllSettings(config);
-    singleColorAnimation(new Color(80, 7, 120));
-    candle.animate(getFadeAnimation(255, 209, 0), 1);
+    clearAllAnimations();
+    singleFadeAnimation(new Color(80, 7, 120));
+    // candle.animate(getFadeAnimation(255, 209, 0), 1);
+  }
+
+  public void clearAllAnimations() {
+    int max = candle.getMaxSimultaneousAnimationCount();
+    for (int i = 0; i < max; i++) {
+      candle.clearAnimation(i);
+    }
   }
 
   @Override
