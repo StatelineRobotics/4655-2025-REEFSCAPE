@@ -11,11 +11,13 @@ public interface ElevatorIO {
 
     public double elevatorPos = 0.0;
     public double funnelPos = 0.0;
+    public double funnelVoltage = 0.0;
     public double elevatorVelo = 0.0;
     public double dutyCycle = 0.0;
     public double appliedVolts = 0.0;
     public double appliedCurrent = 0.0;
     public double setPoint = 0.0;
+    public double funnelCurrent = 0.0;
   }
 
   default void updateInputs(ElevatorIOInputs inputs) {}
