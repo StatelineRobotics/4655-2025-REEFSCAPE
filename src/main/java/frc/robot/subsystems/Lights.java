@@ -17,18 +17,25 @@ import frc.robot.subsystems.mechanisms.MechanismConstants;
 public class Lights extends SubsystemBase {
   private static final CANdle candle = new CANdle(MechanismConstants.CANdleID);
   private static final CANdleConfiguration config = new CANdleConfiguration();
-  private static final int numLEDS = 33;
+  private static final int numLEDS = 33 + 8;
 
   /** Creates a new Lights. */
   public Lights() {
-    config.brightnessScalar = .5;
+    config.brightnessScalar = 1.0;
     config.disableWhenLOS = false;
     config.statusLedOffWhenActive = false;
     config.stripType = LEDStripType.GRBW;
     candle.configAllSettings(config);
-    candle.animate(getFadeAnimation(80, 7, 120));
+    clearAllAnimations();
+    singleFadeAnimation(new Color(80, 7, 120));
+    // candle.animate(getFadeAnimation(255, 209, 0), 1);
+  }
 
-    // setLEDstrip(getFadeAnimation(0, 255, 0));
+  public void clearAllAnimations() {
+    int max = candle.getMaxSimultaneousAnimationCount();
+    for (int i = 0; i < max; i++) {
+      candle.clearAnimation(i);
+    }
   }
 
   @Override
@@ -59,11 +66,11 @@ public class Lights extends SubsystemBase {
   }
 
   private StrobeAnimation getStrobeAnimation(int r, int g, int b) {
-    return new StrobeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS + 8);
+    return new StrobeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS);
   }
 
   private SingleFadeAnimation getFadeAnimation(int r, int g, int b) {
-    return new SingleFadeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS + 8);
+    return new SingleFadeAnimation(r, g, b, Math.min(r, Math.min(g, b)), 0.5, numLEDS);
   }
 
   // private void setLEDcolor(int r, int g, int b, int index) {
@@ -72,12 +79,14 @@ public class Lights extends SubsystemBase {
 
   public void setLEDstrip(Animation animation) {
     animation.setLedOffset(0);
-    animation.setNumLed(numLEDS + 8);
+    animation.setNumLed(numLEDS);
+    candle.clearAnimation(0);
+    candle.clearAnimation(1);
     candle.animate(animation, 0);
   }
 
   public void setSolidColor(int r, int g, int b) {
     candle.clearAnimation(0);
-    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 0, numLEDS + 8);
+    candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 0, numLEDS);
   }
 }

@@ -1,0 +1,138 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Start to score G"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "waitUntilSetpoint"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "score"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "algaeL3"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Branch G to Back Algae"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "waitUntilSetpoint"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Back Algae to Algae Pickup 1"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Algae Pickup 1 to score processor"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "waitUntilSetpoint"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "score"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "algaeL2"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Processor to Algae Pickup 2"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Algae Pickup 2 to score processor"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "waitUntilSetpoint"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "score"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

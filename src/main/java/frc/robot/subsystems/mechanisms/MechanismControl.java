@@ -224,49 +224,78 @@ public class MechanismControl extends SubsystemBase {
   }
 
   private Command getLEDCommand(State desiredState) {
+    Command command;
     switch (desiredState) {
       case idle, home:
-        // Single fade purple annimation
-        return Commands.runOnce(() -> lightSubsystem.singleFadeAnimation(new Color(0, 7, 120)));
+        // Solid purple
+        command =
+            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(0, 7, 120)))
+                .withName("Solid PURPLE");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
 
         // When intaking solid red
       case coralPickup:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)));
+        command =
+            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+                .withName("Solid RED");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
 
         // When see coral, solid orange
       case coralPickupS3:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(250, 130, 38)));
+        command =
+            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(250, 130, 38)))
+                .withName("Solid ORANGE");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
 
         // Move elevatlor store (red) when at store blue
       case store, algeaStore:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-            .andThen(Commands.waitUntil(atDualSetPoint))
-            .andThen(
-                Commands.runOnce(
-                    () -> lightSubsystem.singleColorAnimation(new Color(0, 125, 255))));
+        command =
+            (Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+                    .andThen(Commands.waitUntil(atDualSetPoint))
+                    .andThen(
+                        Commands.runOnce(
+                            () -> lightSubsystem.singleColorAnimation(new Color(0, 125, 255)))))
+                .withName("Solid RED then Solid BLUE");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
 
         // Starts red when moving, strobes green when at set point
       case levelOne, levelTwo, levelThree, levelFour:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-            .andThen(Commands.waitUntil(atDualSetPoint))
-            .andThen(
-                Commands.runOnce(
-                    () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))));
+        command =
+            (Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+                    .andThen(Commands.waitUntil(atDualSetPoint))
+                    .andThen(
+                        Commands.runOnce(
+                            () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)))))
+                .withName("Solid RED then Strobe GREEN");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
 
       case algeaPickupL3, algaePickupL2:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-            .andThen(Commands.waitUntil(atDualSetPoint))
-            .andThen(
-                Commands.runOnce(
-                    () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))))
-            .andThen(Commands.waitUntil(wristSubsystem.intakeStalled))
-            .andThen(
-                Commands.runOnce(
-                    () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))));
+        command =
+            (Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
+                    .andThen(Commands.waitUntil(atDualSetPoint))
+                    .andThen(
+                        Commands.runOnce(
+                            () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))))
+                    .andThen(Commands.waitUntil(wristSubsystem.intakeStalled))
+                    .andThen(
+                        Commands.runOnce(
+                            () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)))))
+                .withName("Solid RED then Solid GREEN then Strobe GREEN");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
 
         // default to yellow solid color
       default:
-        return Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 209, 0)));
+        command =
+            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 209, 0)))
+                .withName("Solid YELLOW");
+        Logger.recordOutput("MechanismControl/latestLED", command.getName());
+        return command;
     }
   }
 }

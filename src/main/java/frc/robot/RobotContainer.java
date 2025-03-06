@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -204,6 +205,8 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
+    RobotModeTriggers.teleop().onTrue(mechanismControl.setState(State.idle));
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
@@ -341,9 +344,11 @@ public class RobotContainer {
     NamedCommands.registerCommand("algaeL3", mechanismControl.setState(State.algeaPickupL3));
     NamedCommands.registerCommand("algeaL2", mechanismControl.setState(State.algaePickupL2));
     NamedCommands.registerCommand("store", mechanismControl.setState(State.store));
+    NamedCommands.registerCommand("algaeStore", mechanismControl.setState(State.algeaStore));
     NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
     NamedCommands.registerCommand(
-        "waitUntilSetpoint", Commands.run(() -> {}).until(mechanismControl.atDualSetPoint));
+        "waitUntilSetpoint", Commands.waitUntil(mechanismControl.atDualSetPoint));
+
   }
 
   /**
