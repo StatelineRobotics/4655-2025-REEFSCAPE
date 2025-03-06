@@ -1,5 +1,6 @@
 package frc.robot.subsystems.mechanisms.climber;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -10,28 +11,30 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import edu.wpi.first.math.controller.ArmFeedforward;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.ClimberConstants;
 
 public class ClimberIOSparkMax implements ClimberIO {
   private SparkFlex m_climber;
   private SparkFlexConfig climberConfig = new SparkFlexConfig();
   private RelativeEncoder climbEncoder;
+  private AbsoluteEncoder climberEncoder;
   private SparkClosedLoopController climbController;
-  private SparkClosedLoopController funnelController;
   private ClosedLoopConfig climberClosedLoopConfig = climberConfig.closedLoop;
-  private ArmFeedforward armFeedforward =
-      new ArmFeedforward(ClimberConstants.ks, ClimberConstants.kg, 0);
+
+  // private ArmFeedforward armFeedforward =
+  //     new ArmFeedforward(ClimberConstants.ks, ClimberConstants.kg, 0);
 
   public ClimberIOSparkMax() {
-    climberConfig.idleMode(IdleMode.kBrake);
-    climberConfig.smartCurrentLimit(0);
-    climberConfig.closedLoop.velocityFF(100);
+    climberConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(0);
+
+    climberConfig.closedLoop.pidf(0.0002, 0, 0, 10);
 
     m_climber = new SparkFlex(MechanismConstants.climberId, MotorType.kBrushless);
     m_climber.configure(
         climberConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+
+    climbEncoder = m_climber.getEncoder();
+    climberEncoder = m_climber.getAbsoluteEncoder();
 
     climbController = m_climber.getClosedLoopController();
     climbEncoder = m_climber.getEncoder();
@@ -43,6 +46,8 @@ public class ClimberIOSparkMax implements ClimberIO {
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
     inputs.climberPOS = climbEncoder.getPosition();
+    inputs.climberCurrent = m_climber.getBusVoltage() * m_climber.getAppliedOutput();
+    // inputs.funnelPOS = funnelEncoder.getPosition();
   }
 
   public void setClimberPosition(double pos) {

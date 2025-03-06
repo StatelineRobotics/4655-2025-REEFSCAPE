@@ -175,9 +175,9 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case climberPrep -> {
-        elevatorSubsystem.requestFunnelPOS(0);
-        if (elevatorSubsystem.getFunnelPos() > 10) {
-          climber.setClimberPosition(9);
+        elevatorSubsystem.requestFunnelPOS(124);
+        if (elevatorSubsystem.getFunnelPos() > 100) {
+          climber.setClimberPosition(-22.3);
         }
         break;
       }
@@ -185,11 +185,14 @@ public class MechanismControl extends SubsystemBase {
       case climb -> {
         driveSubsystem.coast();
         climber.requestPull();
+        if (climber.climberStalled.getAsBoolean()) {
+          climber.stop();
+        }
         break;
       }
 
       case climberHome -> {
-        climber.setClimberPosition(0);
+        climber.setClimberPosition(2);
         break;
       }
     }

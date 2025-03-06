@@ -1,5 +1,6 @@
 package frc.robot.subsystems.mechanisms.elevator;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -35,7 +36,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkClosedLoopController funnelController;
   private SparkClosedLoopController beltController;
   private RelativeEncoder leftEncoder;
-  private RelativeEncoder funnelEncoder;
+  private AbsoluteEncoder funnelEncoder;
   private SparkLimitSwitch bottomLimitSwitch;
   private static boolean zeroed = false;
   private SparkMaxConfig mLeftConfig = new SparkMaxConfig();
@@ -47,7 +48,20 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
   public ElevatorIOSparkMax() {
 
-    mFunnelConfig.inverted(true).smartCurrentLimit(10).idleMode(IdleMode.kCoast);
+    mFunnelConfig.inverted(true).smartCurrentLimit(10).idleMode(IdleMode.kBrake);
+
+    mFunnelConfig
+        .absoluteEncoder
+        .setSparkMaxDataPortConfig()
+        .positionConversionFactor(360)
+        .velocityConversionFactor(360)
+        .zeroCentered(true);
+
+    mFunnelConfig
+        .closedLoop
+        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+        .pid(0.007, 0, 0.002)
+        .positionWrappingEnabled(false);
 
     // base config for all motors
     mLeftConfig
@@ -98,7 +112,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
       setUpPIDTuning();
     }
 
-    funnelEncoder = m_funnel.getEncoder();
+    funnelEncoder = m_funnel.getAbsoluteEncoder();
     leftEncoder = m_leftElevator.getEncoder();
 
     funnelController = m_funnel.getClosedLoopController();
@@ -116,6 +130,8 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     inputs.elevatorVelo = leftEncoder.getVelocity();
     inputs.elevatorPos = leftEncoder.getPosition();
     inputs.funnelPos = funnelEncoder.getPosition();
+    inputs.funnelVoltage = m_funnel.getBusVoltage() * m_funnel.getAppliedOutput();
+    inputs.funnelCurrent = m_funnel.getOutputCurrent();
     if (bottomLimitSwitch.isPressed() && zeroed == false) {
       leftEncoder.setPosition(0);
       zeroed = true;

@@ -38,7 +38,7 @@ public class Elevator extends SubsystemBase {
     Logger.processInputs("Elevator", inputs);
 
     if (DriverStation.isDisabled()) {
-      stop();
+      io.stop();
     } else {
 
     }

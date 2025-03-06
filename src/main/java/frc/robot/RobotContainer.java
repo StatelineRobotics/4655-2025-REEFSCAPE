@@ -306,6 +306,10 @@ public class RobotContainer {
                 .wristVoltageControl(() -> auxController.getRightY() * -2.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(wrist.stopCommand());
+
+    auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
+
+    auxController.povDown().onTrue(mechanismControl.setState(State.climb));
   }
 
   public void logSubsystems() {

@@ -9,13 +9,14 @@ public interface ClimberIO {
 
     public double climberPOS = 0.0;
     public double funnelPOS = 0.0;
+    public double climberCurrent = 0.0;
   }
 
   default void updateInputs(ClimberIOInputs inputs) {}
 
-  default void setClimberPosition() {}
+  default void setClimberPosition(double position) {}
 
-  default void requestPull(double position) {}
+  default void requestPull() {}
 
   default void setFunnelPosition() {}
 
