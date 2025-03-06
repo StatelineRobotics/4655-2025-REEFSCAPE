@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.9475,
-        "y": 0.8464999999999998
+        "x": 6.0096311547312276,
+        "y": 1.2292434050724927
       },
       "isLocked": false,
       "linkedName": "Processor"
     },
     {
       "anchor": {
-        "x": 7.000819672131148,
-        "y": 1.9211577868852465
+        "x": 6.149692622950819,
+        "y": 2.700358606557377
       },
       "prevControl": {
-        "x": 6.000819672131148,
-        "y": 1.9211577868852465
+        "x": 6.133974041245691,
+        "y": 2.449302407128957
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -105.46121774044185
   },
   "reversed": false,
   "folder": "Center Auto",

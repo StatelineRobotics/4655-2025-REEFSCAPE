@@ -168,7 +168,7 @@ public class RobotContainer {
         break;
     }
 
-    mechanismControl = new MechanismControl(elevator, wrist, climber, lights);
+    mechanismControl = new MechanismControl(drive, elevator, wrist, climber, lights);
 
     configureNamedCommands();
 
@@ -195,6 +195,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    RobotModeTriggers.disabled().onTrue(Commands.runOnce(() -> drive.coast()));
   }
 
   /**

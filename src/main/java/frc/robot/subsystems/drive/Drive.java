@@ -272,6 +272,12 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  public void coast() {
+    for (int i = 0; i < 4; i++) {
+      modules[i].coastOut();
+    }
+  }
+
   /** Stops the drive. */
   public void stop() {
     runVelocity(new ChassisSpeeds());

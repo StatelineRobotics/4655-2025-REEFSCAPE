@@ -19,6 +19,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -72,6 +73,8 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
       new VelocityTorqueCurrentFOC(0.0);
   private final NeutralOut neutralOutReqest = new NeutralOut();
+
+  private final CoastOut coastOut = new CoastOut();
   // Timestamp inputs from Phoenix thread
   private final Queue<Double> timestampQueue;
 
@@ -278,5 +281,10 @@ public class ModuleIOTalonFX implements ModuleIO {
           case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
               rotation.getRotations());
         });
+  }
+
+  @Override
+  public void setCoastMode() {
+    driveTalon.setControl(coastOut);
   }
 }
