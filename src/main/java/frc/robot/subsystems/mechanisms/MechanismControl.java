@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.Lights;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.climber.Climber;
@@ -40,6 +41,7 @@ public class MechanismControl extends SubsystemBase {
 
   private State currentState = State.idle;
 
+  private final Drive driveSubsystem;
   private final Elevator elevatorSubsystem;
   private final Wrist wristSubsystem;
   private final Climber climber;
@@ -51,7 +53,12 @@ public class MechanismControl extends SubsystemBase {
   private boolean hasSetLEDS = false;
 
   public MechanismControl(
-      Elevator elevatorSubsystem, Wrist wristSubsystem, Climber climber, Lights lightSubsystem) {
+      Drive driveSubsystem,
+      Elevator elevatorSubsystem,
+      Wrist wristSubsystem,
+      Climber climber,
+      Lights lightSubsystem) {
+    this.driveSubsystem = driveSubsystem;
     this.elevatorSubsystem = elevatorSubsystem;
     this.wristSubsystem = wristSubsystem;
     this.climber = climber;
@@ -180,6 +187,7 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case climb -> {
+        driveSubsystem.coast();
         climber.requestPull();
         if (climber.climberStalled.getAsBoolean()) {
           climber.stop();

@@ -348,6 +348,12 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  public void coast() {
+    for (int i = 0; i < 4; i++) {
+      modules[i].coastOut();
+    }
+  }
+
   /** Stops the drive. */
   public void stop() {
     runVelocity(new ChassisSpeeds());
@@ -364,6 +370,17 @@ public class Drive extends SubsystemBase {
     }
     kinematics.resetHeadings(headings);
     stop();
+  }
+
+  public void setWheelsStraightAndCoast() {
+    Rotation2d[] headings = new Rotation2d[4];
+    Rotation2d target = getPose().getRotation().plus(Rotation2d.kCW_90deg);
+    for (int i = 0; i < 4; i++) {
+      headings[i] = target;
+    }
+    kinematics.resetHeadings(headings);
+    stop();
+    coast();
   }
 
   /** Returns a command to run a quasistatic test in the specified direction. */
