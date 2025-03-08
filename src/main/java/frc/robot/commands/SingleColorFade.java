@@ -41,7 +41,6 @@ public class SingleColorFade extends Command {
       time -= .02;
     }
 
-    System.out.println(Color.lerpRGB(noColor, targetColor, time));
     lights.setSolidColor(Color.lerpRGB(noColor, targetColor, time));
   }
 
