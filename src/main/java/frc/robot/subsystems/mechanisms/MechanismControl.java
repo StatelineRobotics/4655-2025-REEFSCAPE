@@ -36,7 +36,8 @@ public class MechanismControl extends SubsystemBase {
     store,
     coralPickupS2,
     coralPickupS3,
-    algeaStore
+    algeaStore,
+    algeaGround
   }
 
   private State currentState = State.idle;
@@ -95,7 +96,7 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(6);
-        elevatorSubsystem.reqestBeltVoltage(-12);
+        elevatorSubsystem.reqestBeltVoltage(-6);
         if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
           setDesiredState(State.coralPickupS3);
         }
@@ -103,7 +104,7 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case coralPickupS3 -> {
-        wristSubsystem.reqestIntakeVoltage(3);
+        wristSubsystem.reqestIntakeVoltage(2);
         if (wristSubsystem.detectsNote.getAsBoolean() == false) {
           wristSubsystem.stopIntake();
           elevatorSubsystem.reqestBeltVoltage(0);
@@ -198,6 +199,15 @@ public class MechanismControl extends SubsystemBase {
       case climberHome -> {
         climber.setClimberPosition(2);
         break;
+      }
+
+      case algeaGround -> {
+        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaGround);
+        wristSubsystem.requestWristPosition(WristConstants.algeaGround);
+        wristSubsystem.reqestIntakeVoltage(-6);
+        if (wristSubsystem.intakeStalled.getAsBoolean()) {
+          setDesiredState(State.algeaStore);
+        }
       }
     }
   }

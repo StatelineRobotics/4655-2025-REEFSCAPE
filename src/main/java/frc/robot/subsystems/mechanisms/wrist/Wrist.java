@@ -24,7 +24,7 @@ public class Wrist extends SubsystemBase {
               () ->
                   Math.round(inputs.rightAppliedCurrent) >= RollerConstants.currentLimit
                       || Math.round(inputs.leftAppliedCurrent) >= RollerConstants.currentLimit)
-          .debounce(.25, DebounceType.kFalling);
+          .debounce(.25, DebounceType.kBoth);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
 

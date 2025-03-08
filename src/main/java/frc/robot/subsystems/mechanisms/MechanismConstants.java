@@ -57,6 +57,7 @@ public class MechanismConstants {
     public static final double levelFour = 103.5;
     public static final double algeaL2 = 40;
     public static final double algeaL3 = 60;
+    public static final double algeaGround = 0.0;
   }
 
   public class WristConstants {
@@ -85,6 +86,7 @@ public class MechanismConstants {
     public static final double coralScoreAngle = 30.0;
     public static final double algeaIntakeAngle = 10.0;
     public static final double algeaScoreAngle = 2.0;
+    public static final double algeaGround = 30.0;
   }
 
   public class RollerConstants {
