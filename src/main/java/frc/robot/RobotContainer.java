@@ -58,6 +58,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
 import org.littletonrobotics.junction.Logger;
@@ -226,7 +227,7 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    // controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0 when B button is pressed
     controller
@@ -239,22 +240,23 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
-    // Auto aim command example
-    @SuppressWarnings("resource")
-    PIDController aimController = new PIDController(0.2, 0.0, 0.0);
-    aimController.enableContinuousInput(-Math.PI, Math.PI);
     controller
-        .b()
-        .whileTrue(
-            Commands.startRun(
-                () -> {
-                  aimController.reset();
-                },
-                () -> {
-                  // **drive.run(0.0, aimController.calculate
-                  //   vision.getTargetX(0).getRadians();
-                },
-                drive));
+        .rightTrigger()
+        .and(controller.leftTrigger())
+        .whileTrue(drive.getMiddleCoralDriveCommand());
+    controller
+        .leftTrigger()
+        .and(controller.rightTrigger().negate())
+        .whileTrue(drive.getLeftCoralDriveCommand());
+    controller
+        .rightTrigger()
+        .and(controller.leftTrigger().negate())
+        .whileTrue(drive.getRightCoralDriveCommand());
+    controller.leftBumper().whileTrue(drive.getProccesorDriveCommand());
+    controller.rightBumper().whileTrue(drive.getSourceDriveCommand());
+
+    controller.a().whileTrue(drive.getProccesorDriveCommand());
+    controller.x().whileTrue(drive.getSourceDriveCommand());
 
     controller
         .rightBumper()
