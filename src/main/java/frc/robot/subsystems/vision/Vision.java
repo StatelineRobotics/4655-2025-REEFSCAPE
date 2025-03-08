@@ -25,19 +25,20 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.vision.VisionIO.PoseObservationType;
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
+  private final PoseSupplier poseSupplier;
   private final VisionIO[] io;
   private final VisionIOInputsAutoLogged[] inputs;
   private final Alert[] disconnectedAlerts;
 
-  public Vision(VisionConsumer consumer, VisionIO... io) {
+  public Vision(VisionConsumer consumer, PoseSupplier poseSupplier, VisionIO... io) {
     this.consumer = consumer;
+    this.poseSupplier = poseSupplier;
     this.io = io;
 
     // Initialize inputs
@@ -110,7 +111,12 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() < 0.0
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
-                || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+                || observation.pose().getY() > aprilTagLayout.getFieldWidth()
+                || poseSupplier
+                        .getPose()
+                        .getTranslation()
+                        .getDistance(observation.pose().getTranslation().toTranslation2d())
+                    > maxDistance;
 
         // Add pose to log
         robotPoses.add(observation.pose());
@@ -130,10 +136,10 @@ public class Vision extends SubsystemBase {
             Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
         double linearStdDev = linearStdDevBaseline * stdDevFactor;
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
-        }
+        // if (observation.type() == PoseObservationType.MEGATAG_2) {
+        //   linearStdDev *= linearStdDevMegatag2Factor;
+        //   angularStdDev *= angularStdDevMegatag2Factor;
+        // }
         if (cameraIndex < cameraStdDevFactors.length) {
           linearStdDev *= cameraStdDevFactors[cameraIndex];
           angularStdDev *= cameraStdDevFactors[cameraIndex];
@@ -184,5 +190,10 @@ public class Vision extends SubsystemBase {
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs);
+  }
+
+  @FunctionalInterface
+  public static interface PoseSupplier {
+    public Pose2d getPose();
   }
 }

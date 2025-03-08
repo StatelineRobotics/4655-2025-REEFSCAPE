@@ -1,0 +1,89 @@
+{
+  "name": "4655_2025",
+  "rotations": [
+    {
+      "axis": "z",
+      "degrees": -90
+    },
+    {
+      "axis": "y",
+      "degrees": 180
+    }
+  ],
+  "position": [
+    0,
+    0,
+    0
+  ],
+  "cameras": [],
+  "components": [
+    {
+      "zeroedRotations": [
+        {
+          "axis": "z",
+          "degrees": -90
+        },
+        {
+          "axis": "y",
+          "degrees": 180
+        }
+      ],
+      "zeroedPosition": [
+        0.152400,
+        0.374650,
+        0.096203
+      ]
+    },
+    {
+      "zeroedRotations": [
+        {
+          "axis": "z",
+          "degrees": -90
+        },
+        {
+          "axis": "y",
+          "degrees": 180
+        }
+      ],
+      "zeroedPosition": [
+        0.152400,
+        0.23495,
+        0.172403
+      ]
+    },
+    {
+      "zeroedRotations": [
+        {
+          "axis": "z",
+          "degrees": -90
+        },
+        {
+          "axis": "y",
+          "degrees": 180
+        }
+      ],
+      "zeroedPosition": [
+        0.1270,
+        0.18415,
+        0.172403
+      ]
+    },
+    {
+      "zeroedRotations": [
+        {
+          "axis": "z",
+          "degrees": -90
+        },
+        {
+          "axis": "y",
+          "degrees": 180
+        }
+      ],
+      "zeroedPosition": [
+        0.1524,
+        0.15875,
+        0.172403
+      ]
+    }
+  ]
+}
