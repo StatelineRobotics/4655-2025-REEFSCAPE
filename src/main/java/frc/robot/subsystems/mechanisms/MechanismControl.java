@@ -53,7 +53,11 @@ public class MechanismControl extends SubsystemBase {
   private boolean hasSetLEDS = false;
 
   public MechanismControl(
-      Drive driveSubsystem, Elevator elevatorSubsystem, Wrist wristSubsystem, Climber climber, Lights lightSubsystem) {
+      Drive driveSubsystem,
+      Elevator elevatorSubsystem,
+      Wrist wristSubsystem,
+      Climber climber,
+      Lights lightSubsystem) {
     this.driveSubsystem = driveSubsystem;
     this.elevatorSubsystem = elevatorSubsystem;
     this.wristSubsystem = wristSubsystem;

@@ -111,12 +111,12 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() < 0.0
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
-                || observation.pose().getY() > aprilTagLayout.getFieldWidth()
-                || poseSupplier
-                        .getPose()
-                        .getTranslation()
-                        .getDistance(observation.pose().getTranslation().toTranslation2d())
-                    > maxDistance;
+                || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+        // || poseSupplier
+        //         .getPose()
+        //         .getTranslation()
+        //         .getDistance(observation.pose().getTranslation().toTranslation2d())
+        //     > maxDistance;
 
         // Add pose to log
         robotPoses.add(observation.pose());
@@ -125,7 +125,6 @@ public class Vision extends SubsystemBase {
         } else {
           robotPosesAccepted.add(observation.pose());
         }
-
         // Skip if rejected
         if (rejectPose) {
           continue;

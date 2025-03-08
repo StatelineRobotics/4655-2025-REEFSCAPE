@@ -52,6 +52,8 @@ public class VisionConstants {
         1.0 // Camera 1
       };
 
+  public static int[] tagsToIgnore = {};
+
   // Multipliers to apply for MegaTag 2 observations
   public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
   public static double angularStdDevMegatag2Factor =

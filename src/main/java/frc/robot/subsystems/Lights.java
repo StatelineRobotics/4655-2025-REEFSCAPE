@@ -10,14 +10,20 @@ import com.ctre.phoenix.led.CANdle.LEDStripType;
 import com.ctre.phoenix.led.CANdleConfiguration;
 import com.ctre.phoenix.led.SingleFadeAnimation;
 import com.ctre.phoenix.led.StrobeAnimation;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.SingleColorFade;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 
 public class Lights extends SubsystemBase {
   private static final CANdle candle = new CANdle(MechanismConstants.CANdleID);
   private static final CANdleConfiguration config = new CANdleConfiguration();
   private static final int numLEDS = 33 + 8;
+  private static final Color zeroColor = new Color(0, 0, 0);
+
+  private double time = 0.0;
 
   /** Creates a new Lights. */
   public Lights() {
@@ -40,7 +46,7 @@ public class Lights extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    SmartDashboard.putNumber("LIGHTS/TIME", time);
   }
 
   private double minValue(Color color) {
@@ -88,5 +94,18 @@ public class Lights extends SubsystemBase {
   public void setSolidColor(int r, int g, int b) {
     candle.clearAnimation(0);
     candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 0, numLEDS);
+    // System.out.println("set color");
+  }
+
+  public void setSolidColor(Color color) {
+    setSolidColor((int) (color.red * 255), (int) (color.green * 255), (int) (color.blue * 255));
+  }
+
+  // Speed 1 == full fade in 1 seconds
+  // if 0.02 sec per loop add 0.02
+  // add 0.02 * speed
+  public Command doubleFadeCommand(Color color1, Color color2, double speed) {
+    return ((new SingleColorFade(color1, this)).andThen(new SingleColorFade(color2, this)))
+        .ignoringDisable(true);
   }
 }

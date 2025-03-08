@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -196,7 +195,20 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
 
-    RobotModeTriggers.disabled().onTrue(Commands.runOnce(() -> drive.coast()));
+    // RobotModeTriggers.disabled()
+    //     .whileTrue(
+    //         (mechanismControl.setState(State.idle).ignoringDisable(true))
+    //             .andThen(
+    //                 (Commands.runOnce(() -> drive.coast()).ignoringDisable(true))
+    //                     .alongWith(
+    //                         lights.doubleFadeCommand(
+    //                             new Color(80, 7, 120), new Color(255, 209, 0), 0.5))))
+    //     .onFalse(mechanismControl.setState(State.idle));
+
+    // lights
+    // .doubleFadeCommand(new Color(80, 7, 120), new Color(255, 209, 0), 0.5)
+    // .repeatedly()
+    // .schedule();
   }
 
   /**
@@ -206,8 +218,6 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-
-    RobotModeTriggers.teleop().onTrue(mechanismControl.setState(State.idle));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -350,7 +360,6 @@ public class RobotContainer {
     NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
     NamedCommands.registerCommand(
         "waitUntilSetpoint", Commands.waitUntil(mechanismControl.atDualSetPoint));
-
   }
 
   /**
