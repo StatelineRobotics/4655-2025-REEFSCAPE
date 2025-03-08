@@ -94,7 +94,6 @@ public class Lights extends SubsystemBase {
   public void setSolidColor(int r, int g, int b) {
     candle.clearAnimation(0);
     candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 0, numLEDS);
-    // System.out.println("set color");
   }
 
   public void setSolidColor(Color color) {

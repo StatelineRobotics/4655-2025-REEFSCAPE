@@ -17,7 +17,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -57,7 +56,6 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
 import org.littletonrobotics.junction.Logger;
@@ -228,6 +226,12 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
+    controller
+        .x()
+        .whileTrue(
+            DriveCommands.pointTowardsReefCommand(
+                drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
+
     // Lock to 0 when A button is held
     controller
         .a()
@@ -266,9 +270,6 @@ public class RobotContainer {
         .whileTrue(drive.getRightCoralDriveCommand());
     controller.leftBumper().whileTrue(drive.getProccesorDriveCommand());
     controller.rightBumper().whileTrue(drive.getSourceDriveCommand());
-
-    controller.a().whileTrue(drive.getProccesorDriveCommand());
-    controller.x().whileTrue(drive.getSourceDriveCommand());
 
     controller
         .rightBumper()

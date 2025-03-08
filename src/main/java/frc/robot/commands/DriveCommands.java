@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveTarget;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -158,6 +159,27 @@ public class DriveCommands {
 
         // Reset PID controller when command starts
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
+  }
+
+  public static Command pointTowardsReefCommand(
+      Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
+    Pose2d targetCenter;
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      targetCenter = new Pose2d(DriveTarget.blueReefCenter, Rotation2d.kZero);
+    } else {
+      targetCenter = new Pose2d(DriveTarget.redReefCenter, Rotation2d.kZero);
+    }
+
+    return joystickDriveAtAngle(
+        drive,
+        xSupplier,
+        ySupplier,
+        () -> {
+          double angle =
+              drive.getPose().relativeTo(targetCenter).getTranslation().getAngle().getDegrees();
+          double newAngle = Math.round(angle / 60) * (60.0) + 180.0;
+          return Rotation2d.fromDegrees(newAngle);
+        });
   }
 
   public static Command driveToPoseCommand(

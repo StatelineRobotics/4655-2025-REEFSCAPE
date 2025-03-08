@@ -21,7 +21,7 @@ public class DriveTarget {
   private static final double reefOffset = 1.283;
   private static final double startOffset = 0.25;
 
-  private static final Translation2d blueReefCenter = new Translation2d(4.489, 4.026);
+  public static final Translation2d blueReefCenter = new Translation2d(4.489, 4.026);
 
   // Pose Keys are driver reletive but pose positions are field reletive
   private static final HashMap<Integer, HashMap<String, Pose2d>> blueReefEndTargets =
@@ -68,7 +68,7 @@ public class DriveTarget {
     new Pose2d(1.405, 6.634, Rotation2d.fromDegrees(126 - 180))
   };
 
-  private static final Translation2d redReefCenter = new Translation2d(13.059, 4.026);
+  public static final Translation2d redReefCenter = new Translation2d(13.059, 4.026);
   private static final HashMap<Integer, HashMap<String, Pose2d>> redReefEndTargets =
       new HashMap<Integer, HashMap<String, Pose2d>>();
 
@@ -157,9 +157,6 @@ public class DriveTarget {
     double closestDistance = getSquaredDistance(currentPose, tagPoses[0]);
     for (int i = 1; i < tagPoses.length; i++) {
       double distance = getSquaredDistance(currentPose, tagPoses[i]);
-      System.out.println(currentPose);
-      System.out.println(tagPoses[i]);
-      System.out.println(distance);
       if (distance < closestDistance) {
         closestIndex = i;
         closestDistance = distance;

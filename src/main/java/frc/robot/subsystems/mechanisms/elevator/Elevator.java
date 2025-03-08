@@ -23,7 +23,6 @@ public class Elevator extends SubsystemBase {
   public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
 
   public Elevator(ElevatorIO io) {
-    //  System.out.println("[Init] Creating Elevator");
     this.io = io;
     if (Constants.usePIDtuning) {
       SmartDashboard.putData("Elevator/lowerTestCommand", testLowerPosition());
