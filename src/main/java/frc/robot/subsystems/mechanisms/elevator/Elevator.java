@@ -57,7 +57,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void requestFunnelPOS(double POS) {
-    FunnelPosition = POS;
+    io.requestFunnelPOS(POS);
   }
 
   private void stop() {

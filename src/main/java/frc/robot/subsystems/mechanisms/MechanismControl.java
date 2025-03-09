@@ -37,7 +37,9 @@ public class MechanismControl extends SubsystemBase {
     coralPickupS2,
     coralPickupS3,
     algeaStore,
-    algeaGround
+    algeaGround,
+    storeDump,
+    storeDump2
   }
 
   private State currentState = State.idle;
@@ -180,25 +182,30 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case climberPrep -> {
-        elevatorSubsystem.requestFunnelPOS(124);
-        if (elevatorSubsystem.getFunnelPos() > 100) {
-          climber.setClimberPosition(-22.3);
+        elevatorSubsystem.requestFunnelPOS(105);
+        if (elevatorSubsystem.getFunnelPos() > 90) {
+          climber.setClimberPosition(-22);
         }
         break;
       }
 
       case climb -> {
-        driveSubsystem.coast();
+        driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.climberStalled.getAsBoolean()) {
+        if (climber.getElevatorPos() >= -0) {
           climber.stop();
+          setDesiredState(State.idle);
         }
         break;
       }
 
       case climberHome -> {
-        climber.setClimberPosition(2);
+        climber.setClimberPosition(0);
         break;
+      }
+
+      case storeDump -> {
+        climber.setClimberPosition(0);
       }
 
       case algeaGround -> {

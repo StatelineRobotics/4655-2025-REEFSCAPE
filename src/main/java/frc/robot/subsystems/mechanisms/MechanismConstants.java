@@ -49,19 +49,20 @@ public class MechanismConstants {
     // Elevator Constants
     public static final double intakeHeight = 0.0;
     public static final double storeAlgeaHeight = 11.0;
-    public static final double storeHeight = 11.0;
-    public static final double maxHeight = 103.5;
+    public static final double storeHeight = 0.0;
+    public static final double maxHeight = 104;
     public static final double levelOne = 30;
     public static final double levelTwo = 40;
     public static final double levelThree = 65;
-    public static final double levelFour = 103.5;
+    public static final double levelFour = 104;
     public static final double algeaL2 = 40;
-    public static final double algeaL3 = 60;
+    public static final double algeaL3 = 65;
     public static final double algeaGround = 0.0;
   }
 
   public class WristConstants {
     public static final double gearing = 25.0 / 1.0;
+    public static final double algeaGround = 30.0;
 
     // Closed Loop Constatns
     public static final double kp = 0.05;
@@ -82,11 +83,10 @@ public class MechanismConstants {
 
     public static final double intakeCoralAngle = 3.0;
     public static final double storeAlgeaAngle = 2.0;
-    public static final double storeAngle = 2.0;
+    public static final double storeAngle = 3.0;
     public static final double coralScoreAngle = 30.0;
-    public static final double algeaIntakeAngle = 10.0;
+    public static final double algeaIntakeAngle = 30.0;
     public static final double algeaScoreAngle = 2.0;
-    public static final double algeaGround = 30.0;
   }
 
   public class RollerConstants {
@@ -102,5 +102,6 @@ public class MechanismConstants {
     public static final double kg = 0.5;
     public static final double ks = 0.0;
     public static final double ka = 0.0;
+    public static final int climberCurrentLimit = 10;
   }
 }

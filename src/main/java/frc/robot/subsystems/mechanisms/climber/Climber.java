@@ -3,7 +3,7 @@ package frc.robot.subsystems.mechanisms.climber;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants.ClimberConstants;
 import org.littletonrobotics.junction.Logger;
 
 public class Climber extends SubsystemBase {
@@ -12,7 +12,7 @@ public class Climber extends SubsystemBase {
   private double climberPOS;
   private double funnelPOS;
   public Trigger climberStalled =
-      new Trigger(() -> Math.round(inputs.climberCurrent) >= RollerConstants.currentLimit)
+      new Trigger(() -> Math.round(inputs.climberCurrent) >= ClimberConstants.climberCurrentLimit)
           .debounce(.25, DebounceType.kFalling);
 
   public Climber(ClimberIO io) {
@@ -35,6 +35,10 @@ public class Climber extends SubsystemBase {
 
   public void setClimberPosition(double pos) {
     io.setClimberPosition(pos);
+  }
+
+  public double getElevatorPos() {
+    return inputs.climberPOS;
   }
 
   public void stop() {

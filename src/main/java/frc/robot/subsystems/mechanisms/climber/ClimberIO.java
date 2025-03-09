@@ -18,7 +18,5 @@ public interface ClimberIO {
 
   default void requestPull() {}
 
-  default void setFunnelPosition() {}
-
   default void stop() {}
 }

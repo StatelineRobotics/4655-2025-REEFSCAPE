@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
@@ -25,9 +26,9 @@ public class ClimberIOSparkMax implements ClimberIO {
   //     new ArmFeedforward(ClimberConstants.ks, ClimberConstants.kg, 0);
 
   public ClimberIOSparkMax() {
-    climberConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(0);
+    climberConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(0).inverted(false);
 
-    climberConfig.closedLoop.pidf(0.0002, 0, 0, 10);
+    climberConfig.closedLoop.pid(0.5, 0, 0);
 
     m_climber = new SparkFlex(MechanismConstants.climberId, MotorType.kBrushless);
     m_climber.configure(
@@ -39,7 +40,8 @@ public class ClimberIOSparkMax implements ClimberIO {
     climbController = m_climber.getClosedLoopController();
     climbEncoder = m_climber.getEncoder();
 
-    climberClosedLoopConfig = climberConfig.closedLoop;
+    climberClosedLoopConfig =
+        climberConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
     climberClosedLoopConfig.pid(0.002, 0, 0);
   }
 
@@ -51,11 +53,11 @@ public class ClimberIOSparkMax implements ClimberIO {
   }
 
   public void setClimberPosition(double pos) {
-    climbController.setReference(pos, SparkBase.ControlType.kMAXMotionPositionControl);
+    climbController.setReference(pos, SparkBase.ControlType.kPosition);
   }
 
   public void requestPull() {
-    m_climber.setVoltage(-6);
+    m_climber.setVoltage(12);
   }
 
   public void stop() {

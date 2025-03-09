@@ -17,6 +17,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -120,7 +121,9 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0),
                 new VisionIOPhotonVision(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2));
         elevator = new Elevator(new ElevatorIOSparkMax());
         wrist = new Wrist(new WristIOSparkMax());
         climber = new Climber(new ClimberIOSparkMax());
@@ -142,7 +145,9 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         wrist = new Wrist(new WristIOSim());
         climber = new Climber(new ClimberIO() {});
@@ -193,21 +198,6 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
-
-    // RobotModeTriggers.disabled()
-    //     .whileTrue(
-    //         (mechanismControl.setState(State.idle).ignoringDisable(true))
-    //             .andThen(
-    //                 (Commands.runOnce(() -> drive.coast()).ignoringDisable(true))
-    //                     .alongWith(
-    //                         lights.doubleFadeCommand(
-    //                             new Color(80, 7, 120), new Color(255, 209, 0), 0.5))))
-    //     .onFalse(mechanismControl.setState(State.idle));
-
-    // lights
-    // .doubleFadeCommand(new Color(80, 7, 120), new Color(255, 209, 0), 0.5)
-    // .repeatedly()
-    // .schedule();
   }
 
   /**
@@ -226,12 +216,6 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    controller
-        .x()
-        .whileTrue(
-            DriveCommands.pointTowardsReefCommand(
-                drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
-
     // Lock to 0 when A button is held
     controller
         .a()
@@ -243,7 +227,7 @@ public class RobotContainer {
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    // controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0 when B button is pressed
     controller
@@ -256,20 +240,22 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
+    // Auto aim command example
+    @SuppressWarnings("resource")
+    PIDController aimController = new PIDController(0.2, 0.0, 0.0);
+    aimController.enableContinuousInput(-Math.PI, Math.PI);
     controller
-        .rightTrigger()
-        .and(controller.leftTrigger())
-        .whileTrue(drive.getMiddleCoralDriveCommand());
-    controller
-        .leftTrigger()
-        .and(controller.rightTrigger().negate())
-        .whileTrue(drive.getLeftCoralDriveCommand());
-    controller
-        .rightTrigger()
-        .and(controller.leftTrigger().negate())
-        .whileTrue(drive.getRightCoralDriveCommand());
-    controller.leftBumper().whileTrue(drive.getProccesorDriveCommand());
-    controller.rightBumper().whileTrue(drive.getSourceDriveCommand());
+        .b()
+        .whileTrue(
+            Commands.startRun(
+                () -> {
+                  aimController.reset();
+                },
+                () -> {
+                  // **drive.run(0.0, aimController.calculate
+                  //   vision.getTargetX(0).getRadians();
+                },
+                drive));
 
     controller
         .rightBumper()
@@ -323,6 +309,11 @@ public class RobotContainer {
     auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
 
     auxController.povDown().onTrue(mechanismControl.setState(State.climb));
+    auxController.povRight().onTrue(mechanismControl.setState(State.climberHome));
+    auxController
+        .y()
+        .onTrue(mechanismControl.setState(State.algeaGround))
+        .onFalse(mechanismControl.setState(State.algeaStore));
   }
 
   public void logSubsystems() {
@@ -359,10 +350,9 @@ public class RobotContainer {
     NamedCommands.registerCommand("algaeL3", mechanismControl.setState(State.algeaPickupL3));
     NamedCommands.registerCommand("algeaL2", mechanismControl.setState(State.algaePickupL2));
     NamedCommands.registerCommand("store", mechanismControl.setState(State.store));
-    NamedCommands.registerCommand("algaeStore", mechanismControl.setState(State.algeaStore));
     NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
     NamedCommands.registerCommand(
-        "waitUntilSetpoint", Commands.waitUntil(mechanismControl.atDualSetPoint));
+        "waitUntilSetpoint", Commands.run(() -> {}).until(mechanismControl.atDualSetPoint));
   }
 
   /**

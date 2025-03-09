@@ -21,18 +21,21 @@ import edu.wpi.first.math.geometry.Transform3d;
 public class VisionConstants {
   // AprilTag layout
   public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "Right";
   public static String camera1Name = "Left";
+  public static String camera2Name = "Back";
 
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 =
-      new Transform3d(0.2, 0.0, 0.2, new Rotation3d(0.0, -0.4, 0.0));
+      new Transform3d(.22, -0.285, 0.494, new Rotation3d(0.0, -0.4, Math.toRadians(30)));
   public static Transform3d robotToCamera1 =
-      new Transform3d(-0.2, 0.0, 0.2, new Rotation3d(0.0, -0.4, 0.0));
+      new Transform3d(0.22, 0.285, 0.494, new Rotation3d(0.0, -0.4, Math.toRadians(-27)));
+  public static Transform3d robotToCamera2 =
+      new Transform3d(-0.017, 0.196, 0.918, new Rotation3d(0.0, -0.4, Math.toRadians(190)));
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.3;
@@ -41,8 +44,8 @@ public class VisionConstants {
 
   // Standard deviation baselines, for 1 meter distance and 1 tag
   // (Adjusted automatically based on distance and # of tags)
-  public static double linearStdDevBaseline = 0.02; // Meters
-  public static double angularStdDevBaseline = 0.06; // Radians
+  public static double linearStdDevBaseline = 0.04; // Meters
+  public static double angularStdDevBaseline = 0.1; // Radians
 
   // Standard deviation multipliers for each camera
   // (Adjust to trust some cameras more than others)
@@ -51,8 +54,6 @@ public class VisionConstants {
         1.0, // Camera 0
         1.0 // Camera 1
       };
-
-  public static int[] tagsToIgnore = {};
 
   // Multipliers to apply for MegaTag 2 observations
   public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
