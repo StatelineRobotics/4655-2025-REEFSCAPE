@@ -27,7 +27,7 @@ public class Lights extends SubsystemBase {
 
   /** Creates a new Lights. */
   public Lights() {
-    config.brightnessScalar = 1.0;
+    config.brightnessScalar = 0.5;
     config.disableWhenLOS = false;
     config.statusLedOffWhenActive = false;
     config.stripType = LEDStripType.GRBW;
@@ -40,7 +40,7 @@ public class Lights extends SubsystemBase {
   public void clearAllAnimations() {
     int max = candle.getMaxSimultaneousAnimationCount();
     for (int i = 0; i < max; i++) {
-      candle.clearAnimation(i);
+      candle.animate(null, i);
     }
   }
 
@@ -86,13 +86,11 @@ public class Lights extends SubsystemBase {
   public void setLEDstrip(Animation animation) {
     animation.setLedOffset(0);
     animation.setNumLed(numLEDS);
-    candle.clearAnimation(0);
-    candle.clearAnimation(1);
     candle.animate(animation, 0);
   }
 
   public void setSolidColor(int r, int g, int b) {
-    candle.clearAnimation(0);
+    candle.animate(null, 0);
     candle.setLEDs(r, g, b, Math.min(r, Math.min(g, b)), 0, numLEDS);
   }
 
@@ -103,8 +101,4 @@ public class Lights extends SubsystemBase {
   // Speed 1 == full fade in 1 seconds
   // if 0.02 sec per loop add 0.02
   // add 0.02 * speed
-  public Command doubleFadeCommand(Color color1, Color color2, double speed) {
-    return ((new SingleColorFade(color1, this)).andThen(new SingleColorFade(color2, this)))
-        .ignoringDisable(true);
-  }
 }

@@ -246,6 +246,7 @@ public class MechanismControl extends SubsystemBase {
 
   public void setDesiredState(State desiredState) {
     currentState = desiredState;
+    lightSubsystem.run(getLEDCommand(desiredState)).schedule();
   }
 
   private Command getLEDCommand(State desiredState) {
