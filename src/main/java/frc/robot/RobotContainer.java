@@ -217,8 +217,8 @@ public class RobotContainer {
             () -> -controller.getRightX()));
 
     lightSubsystem.setDefaultCommand(
-        new SingleColorFade(new Color(80, 7, 120), new Color(255, 209, 0)).ignoringDisable(true);
-    )
+        new SingleColorFade(new Color(80, 7, 120), new Color(255, 209, 0)).ignoringDisable(true)
+    );
 
     // Lock to 0 when A button is held
     controller
