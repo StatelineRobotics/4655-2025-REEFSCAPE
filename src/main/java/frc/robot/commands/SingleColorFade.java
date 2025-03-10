@@ -48,6 +48,11 @@ public class SingleColorFade extends Command {
   @Override
   public void end(boolean interrupted) {}
 
+  @Override
+  public boolean runsWhenDisabled() {
+    return true;
+  }
+
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
