@@ -39,7 +39,8 @@ public class MechanismControl extends SubsystemBase {
     algeaStore,
     algeaGround,
     storeDump,
-    storeDump2
+    storeDump2,
+    dump
   }
 
   private State currentState = State.idle;
@@ -200,6 +201,11 @@ public class MechanismControl extends SubsystemBase {
         break;
       }
 
+      case dump -> {
+        elevatorSubsystem.requestFunnelPOS(105);
+        climber.setPostion
+      }
+
       case climberHome -> {
         climber.setClimberPosition(0);
         break;
@@ -207,6 +213,7 @@ public class MechanismControl extends SubsystemBase {
 
       case storeDump -> {
         climber.setClimberPosition(0);
+        break;
       }
 
       case algeaGround -> {
@@ -216,6 +223,7 @@ public class MechanismControl extends SubsystemBase {
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
           setDesiredState(State.algeaStore);
         }
+        break;
       }
     }
   }
