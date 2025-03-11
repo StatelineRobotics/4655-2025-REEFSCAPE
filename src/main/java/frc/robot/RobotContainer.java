@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.SingleColorFade;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
@@ -60,7 +59,6 @@ import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
-import edu.wpi.first.wpilibj.util.Color;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -116,16 +114,21 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO()
+        // {});
         vision =
             new Vision(
                 drive::addVisionMeasurement,
                 drive::getPose,
+                // new VisionIOPhotonVision(
+                //     VisionConstants.camera0Name, VisionConstants.robotToCamera0)
                 new VisionIOPhotonVision(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0),
-                new VisionIOPhotonVision(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1),
-                new VisionIOPhotonVision(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1)
+                // new VisionIOPhotonVision(
+                //     VisionConstants.camera2Name, VisionConstants.robotToCamera2)
+                );
         elevator = new Elevator(new ElevatorIOSparkMax());
         wrist = new Wrist(new WristIOSparkMax());
         climber = new Climber(new ClimberIOSparkMax());
@@ -218,19 +221,20 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
-    lights.setDefaultCommand(
-        (new SingleColorFade(new Color(80, 7, 120), lights).andThen(new SingleColorFade(new Color(255, 209, 0), lights))).repeatedly()
-    );
+    // lights.setDefaultCommand(
+    //     (new SingleColorFade(new Color(80, 7, 120), lights)
+    //             .andThen(new SingleColorFade(new Color(255, 209, 0), lights)))
+    //         .repeatedly());
 
     // Lock to 0 when A button is held
     controller
         .a()
         .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
+            DriveCommands.joystickDriveRobot(
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+                () -> -controller.getRightX()));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));

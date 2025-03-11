@@ -91,7 +91,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPOS(WristConstants.intakeCoralAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.intakeHeight);
         if (elevatorSubsystem.isAtSetpoint() && wristSubsystem.isAtSetpoint()) {
-          setDesiredState(State.coralPickupS2);
+          setState(State.coralPickupS2).schedule();
         }
         break;
       }
@@ -100,7 +100,8 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.reqestIntakeVoltage(6);
         elevatorSubsystem.reqestBeltVoltage(-6);
         if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
-          setDesiredState(State.coralPickupS3);
+          setState(State.coralPickupS3).schedule();
+          ;
         }
         break;
       }
@@ -110,7 +111,7 @@ public class MechanismControl extends SubsystemBase {
         if (wristSubsystem.detectsNote.getAsBoolean() == false) {
           wristSubsystem.stopIntake();
           elevatorSubsystem.reqestBeltVoltage(0);
-          setDesiredState(State.store);
+          setState(State.store).schedule();
         }
       }
 
@@ -119,7 +120,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
         if (wristSubsystem.intakeStalled.getAsBoolean() == true) {
-          setDesiredState(State.algeaStore);
+          setState(State.algeaStore).schedule();
         } else {
           wristSubsystem.stopIntake();
         }
@@ -129,7 +130,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeAlgeaHeight);
         if (wristSubsystem.intakeStalled.getAsBoolean() == false) {
-          setDesiredState(State.store);
+          setState(State.store).schedule();
         }
       }
 
@@ -225,28 +226,21 @@ public class MechanismControl extends SubsystemBase {
     if (desiredState == State.idle) {
       return Commands.deferredProxy(
           () -> {
-            return Commands.runOnce(() -> setDesiredState(desiredState))
-                .alongWith(getLEDCommand(desiredState));
-            // .alongWith(
-            //     Commands.runOnce(
-            //         () -> lightSubsystem.singleStrobeAnimation(new Color(255, 0, 0))));
+            return Commands.runOnce(() -> setDesiredState(desiredState));
           });
     } else {
       return Commands.defer(
           () -> {
-            return Commands.runOnce(() -> setDesiredState(desiredState))
-                // .alongWith(
-                //     Commands.runOnce(
-                //         () -> lightSubsystem.singleStrobeAnimation(new Color(255, 0, 0))));
-                .alongWith(getLEDCommand(desiredState));
+            return Commands.runOnce(() -> setDesiredState(desiredState));
           },
-          Set.of(elevatorSubsystem, wristSubsystem, climber, lightSubsystem));
+          Set.of(elevatorSubsystem, wristSubsystem, climber));
     }
   }
 
   public void setDesiredState(State desiredState) {
     currentState = desiredState;
-    lightSubsystem.run(() -> getLEDCommand(desiredState)).schedule();
+    periodic();
+    getLEDCommand(desiredState).schedule();
   }
 
   private Command getLEDCommand(State desiredState) {
@@ -254,72 +248,54 @@ public class MechanismControl extends SubsystemBase {
     switch (desiredState) {
       case idle, home:
         // Solid purple
-        command =
-            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(0, 7, 120)))
-                .withName("Solid PURPLE");
+        command = lightSubsystem.solidAnimation(new Color(80, 7, 120), "Solid Purple");
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 
         // When intaking solid red
       case coralPickup:
-        command =
-            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-                .withName("Solid RED");
+        command = lightSubsystem.solidAnimation(new Color(255, 0, 0), "Solid Red");
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 
-        // When see coral, solid orange
+        // When see coral, strobe red
       case coralPickupS3:
-        command =
-            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(250, 130, 38)))
-                .withName("Solid ORANGE");
+        command = lightSubsystem.strobeAnimation(new Color(255, 0, 0), "Strobe Red");
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 
         // Move elevatlor store (red) when at store blue
       case store, algeaStore:
         command =
-            (Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-                    .andThen(Commands.waitUntil(atDualSetPoint))
-                    .andThen(
-                        Commands.runOnce(
-                            () -> lightSubsystem.singleColorAnimation(new Color(0, 125, 255)))))
-                .withName("Solid RED then Solid BLUE");
+            lightSubsystem
+                .solidAnimation(new Color(255, 0, 0), atDualSetPoint, "Solid Red")
+                .andThen(lightSubsystem.solidAnimation(new Color(0, 0, 255), "Solid Blue"));
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 
-        // Starts red when moving, strobes green when at set point
+        // Starts red when moving, soid green when at set point
       case levelOne, levelTwo, levelThree, levelFour:
         command =
-            (Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-                    .andThen(Commands.waitUntil(atDualSetPoint))
-                    .andThen(
-                        Commands.runOnce(
-                            () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)))))
-                .withName("Solid RED then Strobe GREEN");
+            lightSubsystem
+                .solidAnimation(new Color(255, 0, 0), atDualSetPoint, "Solid Red")
+                .andThen(lightSubsystem.solidAnimation(new Color(0, 255, 0), "Solid Green"));
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 
       case algeaPickupL3, algaePickupL2:
         command =
-            (Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 0, 0)))
-                    .andThen(Commands.waitUntil(atDualSetPoint))
-                    .andThen(
-                        Commands.runOnce(
-                            () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46))))
-                    .andThen(Commands.waitUntil(wristSubsystem.intakeStalled))
-                    .andThen(
-                        Commands.runOnce(
-                            () -> lightSubsystem.singleStrobeAnimation(new Color(157, 232, 46)))))
-                .withName("Solid RED then Solid GREEN then Strobe GREEN");
+            lightSubsystem
+                .solidAnimation(new Color(255, 0, 0), atDualSetPoint, "Solid Red")
+                .andThen(
+                    lightSubsystem.solidAnimation(
+                        new Color(0, 0, 255), wristSubsystem.intakeStalled, "Solid Green"))
+                .andThen(lightSubsystem.strobeAnimation(new Color(0, 255, 0), "Strobe Green"));
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 
         // default to yellow solid color
       default:
-        command =
-            Commands.runOnce(() -> lightSubsystem.singleColorAnimation(new Color(255, 209, 0)))
-                .withName("Solid YELLOW");
+        command = lightSubsystem.solidAnimation(new Color(255, 209, 0), "Solid YELLOW");
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
     }
