@@ -21,7 +21,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 public class VisionConstants {
   // AprilTag layout
   public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "Right";
@@ -31,11 +31,11 @@ public class VisionConstants {
   // Robot to camera transforms
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCamera0 =
-      new Transform3d(.22, -0.285, 0.494, new Rotation3d(0.0, -0.4, Math.toRadians(30)));
+      new Transform3d(.22, -0.285, 0.494, new Rotation3d(0.0, 0.0, Math.toRadians(30)));
   public static Transform3d robotToCamera1 =
-      new Transform3d(0.22, 0.285, 0.494, new Rotation3d(0.0, -0.4, Math.toRadians(-27)));
+      new Transform3d(0.22, 0.285, 0.494, new Rotation3d(0.0, 0.0, Math.toRadians(-30)));
   public static Transform3d robotToCamera2 =
-      new Transform3d(-0.017, 0.196, 0.918, new Rotation3d(0.0, -0.4, Math.toRadians(190)));
+      new Transform3d(-0.017, 0.196, 0.918, new Rotation3d(0.0, 0.0, Math.toRadians(190)));
 
   // Basic filtering thresholds
   public static double maxAmbiguity = 0.3;
@@ -52,7 +52,8 @@ public class VisionConstants {
   public static double[] cameraStdDevFactors =
       new double[] {
         1.0, // Camera 0
-        1.0 // Camera 1
+        1.0, // Camera 1
+        1.0 // Camera 2
       };
 
   // Multipliers to apply for MegaTag 2 observations

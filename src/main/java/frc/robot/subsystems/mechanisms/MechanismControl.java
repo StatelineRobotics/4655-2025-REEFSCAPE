@@ -14,6 +14,7 @@ import frc.robot.subsystems.mechanisms.climber.Climber;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -42,7 +43,7 @@ public class MechanismControl extends SubsystemBase {
     storeDump2
   }
 
-  private State currentState = State.idle;
+  public State currentState = State.idle;
 
   private final Drive driveSubsystem;
   private final Elevator elevatorSubsystem;
@@ -68,6 +69,18 @@ public class MechanismControl extends SubsystemBase {
     this.lightSubsystem = lightSubsystem;
     this.atDualSetPoint = new Trigger(wristSubsystem.atSetpoint.and(elevatorSubsystem.atSetpoint));
     SmartDashboard.getNumber("test", test);
+  }
+
+  @AutoLogOutput
+  public Trigger getElevatorUp() {
+    BooleanSupplier stateCondition =
+        () -> {
+          return currentState == State.levelOne
+              || currentState == State.levelTwo
+              || currentState == State.levelThree
+              || currentState == State.levelFour;
+        };
+    return atDualSetPoint.and(stateCondition);
   }
 
   public void periodic() {
@@ -98,7 +111,7 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(6);
-        elevatorSubsystem.reqestBeltVoltage(-6);
+        elevatorSubsystem.reqestBeltVoltage(-10);
         if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
           setState(State.coralPickupS3).schedule();
           ;
@@ -185,7 +198,7 @@ public class MechanismControl extends SubsystemBase {
       case climberPrep -> {
         elevatorSubsystem.requestFunnelPOS(105);
         if (elevatorSubsystem.getFunnelPos() > 90) {
-          climber.setClimberPosition(-22);
+          climber.setClimberPosition(0);
         }
         break;
       }
@@ -193,7 +206,7 @@ public class MechanismControl extends SubsystemBase {
       case climb -> {
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.getElevatorPos() >= -0) {
+        if (climber.getClimberPos() >= 10.0) {
           climber.stop();
           setDesiredState(State.idle);
         }

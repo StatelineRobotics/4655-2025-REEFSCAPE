@@ -30,14 +30,14 @@ public class Climber extends SubsystemBase {
   }
 
   public void reqestPosition(double position) {
-    io.setClimberPosition(position);
+    io.setClimberPosition(position / 2.0);
   }
 
   public void setClimberPosition(double pos) {
-    io.setClimberPosition(pos);
+    io.setClimberPosition(pos / 2.0);
   }
 
-  public double getElevatorPos() {
+  public double getClimberPos() {
     return inputs.climberPOS;
   }
 

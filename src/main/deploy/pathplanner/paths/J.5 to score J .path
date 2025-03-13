@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.13,
-        "y": 6.16
+        "x": 5.187220447284343,
+        "y": 5.439536741214057
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.843819857535223,
-        "y": 6.088153578591629
+        "x": 4.993655197495031,
+        "y": 5.271323825113921
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "J.5"
     },
     {
       "anchor": {
-        "x": 4.998872950819672,
-        "y": 5.241752049180327
+        "x": 5.03290734824281,
+        "y": 5.259504792332267
       },
       "prevControl": {
-        "x": 5.291704835608229,
-        "y": 5.4040058544864635
+        "x": 5.225403570881123,
+        "y": 5.419020322203127
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,22 +31,10 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "L4",
-      "waypointRelativePos": 0.7450142450142406,
-      "endWaypointRelativePos": null,
-      "command": {
-        "type": "named",
-        "data": {
-          "name": "L4"
-        }
-      }
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxAcceleration": 1.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -60,7 +48,7 @@
   "folder": "Left Auto",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -119.99999999999999
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }
