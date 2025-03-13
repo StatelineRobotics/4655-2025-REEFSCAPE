@@ -18,19 +18,20 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.SingleColorFade;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Lights;
 import frc.robot.subsystems.drive.Drive;
@@ -114,6 +115,10 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO()
+        // {});
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -145,9 +150,11 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose)
+                // new VisionIOPhotonVisionSim(
+                //     VisionConstants.camera2Name, VisionConstants.robotToCamera2,
+                // drive::getPose));
+                );
         elevator = new Elevator(new ElevatorIOSim());
         wrist = new Wrist(new WristIOSim());
         climber = new Climber(new ClimberIO() {});
@@ -207,6 +214,8 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
+    RobotModeTriggers.disabled()
+        .onTrue(mechanismControl.setState(State.idle).ignoringDisable(true));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -216,15 +225,20 @@ public class RobotContainer {
             () -> -controller.getLeftX(),
             () -> -controller.getRightX()));
 
+    lights.setDefaultCommand(
+        (new SingleColorFade(new Color(80, 7, 120), lights)
+                .andThen(new SingleColorFade(new Color(255, 209, 0), lights)))
+            .repeatedly());
+
     // Lock to 0 when A button is held
     controller
         .a()
         .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
+            DriveCommands.joystickDriveRobot(
                 drive,
                 () -> -controller.getLeftY(),
                 () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+                () -> -controller.getRightX()));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -232,14 +246,16 @@ public class RobotContainer {
     // Reset gyro to 0 when B button is pressed
     controller
         .y()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
+        .whileTrue(
+            DriveCommands.pointTowardsReefCommand(
+                drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
 
+    controller
+        .leftTrigger()
+        .whileTrue(drive.getLeftCoralDriveCommand(mechanismControl.getElevatorUp()));
+    controller
+        .rightTrigger()
+        .whileTrue(drive.getRightCoralDriveCommand(mechanismControl.getElevatorUp()));
     // Auto aim command example
     @SuppressWarnings("resource")
     PIDController aimController = new PIDController(0.2, 0.0, 0.0);
@@ -340,15 +356,21 @@ public class RobotContainer {
     NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour));
     NamedCommands.registerCommand(
         "score",
-        wrist
-            .runEnd(
+        Commands.runEnd(
                 () -> {
-                  wrist.intakeVoltageControl(() -> 12.0);
+                  wrist.reqestIntakeVoltage(12);
                 },
                 () -> wrist.stopIntake())
             .withTimeout(0.5));
+    NamedCommands.registerCommand(
+        "waitUntilInake",
+        Commands.waitUntil(
+            () -> {
+              return mechanismControl.currentState == State.idle
+                  || mechanismControl.currentState == State.store;
+            }));
     NamedCommands.registerCommand("algaeL3", mechanismControl.setState(State.algeaPickupL3));
-    NamedCommands.registerCommand("algeaL2", mechanismControl.setState(State.algaePickupL2));
+    NamedCommands.registerCommand("algaeL2", mechanismControl.setState(State.algaePickupL2));
     NamedCommands.registerCommand("store", mechanismControl.setState(State.store));
     NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
     NamedCommands.registerCommand(

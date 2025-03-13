@@ -47,7 +47,7 @@ public class MechanismConstants {
     public static final double allowedClosedLoopError = 0.5;
 
     // Elevator Constants
-    public static final double intakeHeight = 0.0;
+    public static final double intakeHeight = 0.5;
     public static final double storeAlgeaHeight = 11.0;
     public static final double storeHeight = 0.0;
     public static final double maxHeight = 104;
@@ -55,8 +55,8 @@ public class MechanismConstants {
     public static final double levelTwo = 40;
     public static final double levelThree = 65;
     public static final double levelFour = 104;
-    public static final double algeaL2 = 40;
-    public static final double algeaL3 = 65;
+    public static final double algeaL2 = 35;
+    public static final double algeaL3 = 60;
     public static final double algeaGround = 0.0;
   }
 

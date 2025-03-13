@@ -238,23 +238,23 @@ public class Drive extends SubsystemBase {
     };
   }
 
-  public Command getLeftCoralDriveCommand() {
+  public Command getLeftCoralDriveCommand(BooleanSupplier condition) {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "left");
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     return defer(pathfindingCommand)
-        .until(nearFinalTarget(getPose(), .25))
+        .until(() -> nearFinalTarget(getPose(), .25).getAsBoolean() && condition.getAsBoolean())
         .andThen(
             defer(
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
   }
 
-  public Command getRightCoralDriveCommand() {
+  public Command getRightCoralDriveCommand(BooleanSupplier condition) {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "right");
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     return defer(pathfindingCommand)
-        .until(nearFinalTarget(getPose(), .25))
+        .until(() -> nearFinalTarget(getPose(), .25).getAsBoolean() && condition.getAsBoolean())
         .andThen(
             defer(
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));

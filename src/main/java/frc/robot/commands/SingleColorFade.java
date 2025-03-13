@@ -19,6 +19,7 @@ public class SingleColorFade extends Command {
   public SingleColorFade(Color targetColor, Lights lights) {
     this.targetColor = targetColor;
     this.lights = lights;
+    addRequirements(lights);
     // Use addRequirements() here to declare subsystem dependencies.
   }
 
@@ -41,12 +42,17 @@ public class SingleColorFade extends Command {
       time -= .02;
     }
 
-    lights.setSolidColor(Color.lerpRGB(noColor, targetColor, time));
+    lights.setSolid(Color.lerpRGB(noColor, targetColor, time));
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {}
+
+  @Override
+  public boolean runsWhenDisabled() {
+    return true;
+  }
 
   // Returns true when the command should end.
   @Override
