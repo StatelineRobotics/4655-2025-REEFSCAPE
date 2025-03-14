@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.668237704918033,
-        "y": 2.904149590163935
+        "x": 5.05,
+        "y": 2.75
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.9575718282791437,
-        "y": 2.1675362323992653
+        "x": 5.268975409836066,
+        "y": 2.3549651639344256
       },
       "isLocked": false,
-      "linkedName": "branch_C"
+      "linkedName": "branch_E"
     },
     {
       "anchor": {
@@ -20,8 +20,8 @@
         "y": 0.7823258196721316
       },
       "prevControl": {
-        "x": 2.0349800011700174,
-        "y": 1.1872002229286573
+        "x": 2.282830394702915,
+        "y": 1.183401026609062
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": "Right Auto",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 119.99999999999999
   },
   "useDefaultConstraints": true
 }

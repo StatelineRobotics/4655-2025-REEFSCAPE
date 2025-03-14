@@ -7,6 +7,18 @@
         {
           "type": "path",
           "data": {
+            "pathName": "Score J to human "
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
             "pathName": "Human to K.5 "
           }
         }

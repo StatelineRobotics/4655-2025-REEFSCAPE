@@ -353,7 +353,7 @@ public class RobotContainer {
   }
 
   public void configureNamedCommands() {
-    NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour));
+    NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour).asProxy());
     NamedCommands.registerCommand(
         "score",
         Commands.runEnd(
@@ -361,20 +361,26 @@ public class RobotContainer {
                   wrist.reqestIntakeVoltage(12);
                 },
                 () -> wrist.stopIntake())
-            .withTimeout(0.5));
+            .withTimeout(0.5)
+            .asProxy());
     NamedCommands.registerCommand(
         "waitUntilInake",
         Commands.waitUntil(
-            () -> {
-              return mechanismControl.currentState == State.idle
-                  || mechanismControl.currentState == State.store;
-            }));
-    NamedCommands.registerCommand("algaeL3", mechanismControl.setState(State.algeaPickupL3));
-    NamedCommands.registerCommand("algaeL2", mechanismControl.setState(State.algaePickupL2));
-    NamedCommands.registerCommand("store", mechanismControl.setState(State.store));
-    NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup));
+                () -> {
+                  return mechanismControl.currentState != State.coralPickup
+                      && mechanismControl.currentState != State.coralPickupS2
+                      && mechanismControl.currentState != State.coralPickupS3;
+                })
+            .asProxy());
     NamedCommands.registerCommand(
-        "waitUntilSetpoint", Commands.run(() -> {}).until(mechanismControl.atDualSetPoint));
+        "algaeL3", mechanismControl.setState(State.algeaPickupL3).asProxy());
+    NamedCommands.registerCommand(
+        "algaeL2", mechanismControl.setState(State.algaePickupL2).asProxy());
+    NamedCommands.registerCommand("store", mechanismControl.setState(State.store).asProxy());
+    NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup).asProxy());
+    NamedCommands.registerCommand(
+        "waitUntilSetpoint",
+        Commands.run(() -> {}).until(mechanismControl.atDualSetPoint).asProxy());
   }
 
   /**

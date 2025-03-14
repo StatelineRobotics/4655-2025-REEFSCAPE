@@ -7,29 +7,23 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Start to score E."
+            "pathName": "Start to E.5"
           }
         },
         {
-          "type": "sequential",
+          "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "wait",
                 "data": {
-                  "name": "waitUntilSetpoint"
+                  "waitTime": 0.5
                 }
               },
               {
                 "type": "named",
                 "data": {
-                  "name": "score"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
+                  "name": "L4"
                 }
               }
             ]
@@ -38,62 +32,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Score E to Human."
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Human to score C."
+            "pathName": "E.5 to score E."
           }
         },
         {
           "type": "sequential",
           "data": {
             "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "waitUntilSetpoint"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "score"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "intake"
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Score C to Human."
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Human to Score D."
-          }
-        },
-        {
-          "type": "sequential",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "waitUntilSetpoint"
-                }
-              },
               {
                 "type": "named",
                 "data": {
