@@ -67,9 +67,9 @@
           }
         },
         {
-          "type": "wait",
+          "type": "named",
           "data": {
-            "waitTime": 0.1
+            "name": "waitUntilInake"
           }
         },
         {
@@ -89,7 +89,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.5
+                        "waitTime": 1.0
                       }
                     },
                     {
@@ -135,6 +135,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "waitUntilInake"
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
@@ -149,16 +155,9 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "parallel",
+                      "type": "wait",
                       "data": {
-                        "commands": [
-                          {
-                            "type": "wait",
-                            "data": {
-                              "waitTime": 2.0
-                            }
-                          }
-                        ]
+                        "waitTime": 1.0
                       }
                     },
                     {

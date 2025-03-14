@@ -115,7 +115,6 @@ public class MechanismControl extends SubsystemBase {
         elevatorSubsystem.reqestBeltVoltage(-10);
         if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
           setState(State.coralPickupS3).schedule();
-          ;
         }
         break;
       }
@@ -209,14 +208,9 @@ public class MechanismControl extends SubsystemBase {
         climber.requestPull();
         if (climber.getClimberPos() >= 10.0) {
           climber.stop();
-          setDesiredState(State.idle);
+          setState(State.idle);
         }
         break;
-      }
-
-      case dump -> {
-        elevatorSubsystem.requestFunnelPOS(105);
-        climber.setPostion
       }
 
       case climberHome -> {
@@ -234,7 +228,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPosition(WristConstants.algeaGround);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
-          setDesiredState(State.algeaStore);
+          setState(State.algeaStore);
         }
         break;
       }
