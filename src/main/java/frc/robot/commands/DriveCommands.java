@@ -194,18 +194,18 @@ public class DriveCommands {
 
   public static Command pointTowardsReefCommand(
       Drive drive, DoubleSupplier xSupplier, DoubleSupplier ySupplier) {
-    Pose2d targetCenter;
-    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
-      targetCenter = new Pose2d(DriveTarget.blueReefCenter, Rotation2d.kZero);
-    } else {
-      targetCenter = new Pose2d(DriveTarget.redReefCenter, Rotation2d.kZero);
-    }
 
     return joystickDriveAtAngle(
         drive,
         xSupplier,
         ySupplier,
         () -> {
+          Pose2d targetCenter;
+          if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+            targetCenter = new Pose2d(DriveTarget.blueReefCenter, Rotation2d.kZero);
+          } else {
+            targetCenter = new Pose2d(DriveTarget.redReefCenter, Rotation2d.kZero);
+          }
           double angle =
               drive.getPose().relativeTo(targetCenter).getTranslation().getAngle().getDegrees();
           double newAngle = Math.round(angle / 60) * (60.0) + 180.0;
