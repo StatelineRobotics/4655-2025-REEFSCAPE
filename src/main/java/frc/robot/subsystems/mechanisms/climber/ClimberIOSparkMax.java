@@ -57,10 +57,14 @@ public class ClimberIOSparkMax implements ClimberIO {
   }
 
   public void requestPull() {
-    m_climber.setVoltage(12);
+    m_climber.set(1.0);
   }
 
   public void stop() {
     m_climber.stopMotor();
+  }
+
+  public void voltageControl(double voltage) {
+    m_climber.setVoltage(voltage);
   }
 }

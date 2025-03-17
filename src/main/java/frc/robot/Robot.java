@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -132,6 +133,8 @@ public class Robot extends LoggedRobot {
     robotContainer.updateMechanism2ds();
 
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+
+    SmartDashboard.putNumber("Auto wait time", 0.0);
   }
 
   /** This function is called once when the robot is disabled. */
@@ -145,7 +148,9 @@ public class Robot extends LoggedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    autonomousCommand = robotContainer.getAutonomousCommand();
+    autonomousCommand =
+        Commands.waitSeconds(SmartDashboard.getNumber("Auto wait time", 0.0))
+            .andThen(robotContainer.getAutonomousCommand());
 
     // schedule the autonomous command (example)
     if (autonomousCommand != null) {

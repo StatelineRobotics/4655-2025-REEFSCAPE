@@ -55,14 +55,14 @@ public class MechanismConstants {
     public static final double levelTwo = 40;
     public static final double levelThree = 65;
     public static final double levelFour = 104;
-    public static final double algeaL2 = 35;
+    public static final double algeaL2 = 40;
     public static final double algeaL3 = 60;
     public static final double algeaGround = 0.0;
   }
 
   public class WristConstants {
     public static final double gearing = 25.0 / 1.0;
-    public static final double algeaGround = 30.0;
+    public static final double algeaGround = 20.0;
 
     // Closed Loop Constatns
     public static final double kp = 0.05;
@@ -85,7 +85,7 @@ public class MechanismConstants {
     public static final double storeAlgeaAngle = 2.0;
     public static final double storeAngle = 3.0;
     public static final double coralScoreAngle = 30.0;
-    public static final double algeaIntakeAngle = 30.0;
+    public static final double algeaIntakeAngle = 2.0;
     public static final double algeaScoreAngle = 2.0;
   }
 

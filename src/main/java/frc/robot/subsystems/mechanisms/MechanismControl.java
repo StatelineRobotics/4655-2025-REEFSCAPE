@@ -112,7 +112,7 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(6);
-        elevatorSubsystem.reqestBeltVoltage(-10);
+        elevatorSubsystem.reqestBeltVoltage(-12);
         if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
           setState(State.coralPickupS3).schedule();
         }
@@ -120,9 +120,9 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case coralPickupS3 -> {
-        wristSubsystem.reqestIntakeVoltage(2);
+        wristSubsystem.reqestIntakeVoltage(4.75);
         if (wristSubsystem.detectsNote.getAsBoolean() == false) {
-          wristSubsystem.stopIntake();
+          wristSubsystem.reqestIntakeVoltage(-1);
           elevatorSubsystem.reqestBeltVoltage(0);
           setState(State.store).schedule();
         }
@@ -179,7 +179,7 @@ public class MechanismControl extends SubsystemBase {
 
       case algaePickupL2 -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL2);
-        wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
+        wristSubsystem.requestWristPOS(WristConstants.algeaIntakeAngle);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
           wristSubsystem.reqestIntakeVoltage(-6);
@@ -188,7 +188,7 @@ public class MechanismControl extends SubsystemBase {
 
       case algeaPickupL3 -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL3);
-        wristSubsystem.requestWristPosition(WristConstants.algeaIntakeAngle);
+        wristSubsystem.requestWristPOS(WristConstants.algeaIntakeAngle);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
           wristSubsystem.reqestIntakeVoltage(-6);
@@ -225,7 +225,7 @@ public class MechanismControl extends SubsystemBase {
 
       case algeaGround -> {
         elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaGround);
-        wristSubsystem.requestWristPosition(WristConstants.algeaGround);
+        wristSubsystem.requestWristPOS(WristConstants.algeaGround);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
           setState(State.algeaStore);

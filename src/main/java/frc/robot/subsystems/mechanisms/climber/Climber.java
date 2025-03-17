@@ -4,6 +4,7 @@ import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ClimberConstants;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Climber extends SubsystemBase {
@@ -23,6 +24,10 @@ public class Climber extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Climber", inputs);
+  }
+
+  public void requestClimberVoltage(Supplier<Double> voltage) {
+    io.voltageControl(12 * voltage.get());
   }
 
   public void requestPull() {
