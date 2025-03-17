@@ -12,6 +12,8 @@ public interface ClimberIO {
     public double climberCurrent = 0.0;
   }
 
+  default void voltageControl(double voltage) {}
+
   default void updateInputs(ClimberIOInputs inputs) {}
 
   default void setClimberPosition(double position) {}

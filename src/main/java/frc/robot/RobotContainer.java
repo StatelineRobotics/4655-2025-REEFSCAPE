@@ -381,6 +381,10 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "waitUntilSetpoint",
         Commands.run(() -> {}).until(mechanismControl.atDualSetPoint).asProxy());
+
+    NamedCommands.registerCommand("waitAlgea", Commands.waitUntil(wrist.intakeStalled).asProxy());
+    NamedCommands.registerCommand(
+        "algaeStore", mechanismControl.setState(State.algeaStore).asProxy());
   }
 
   /**

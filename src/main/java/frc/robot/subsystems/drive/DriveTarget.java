@@ -18,7 +18,7 @@ import java.util.HashMap;
  * Class that returns the pose of the closest scoring position given current position and offset.
  */
 public class DriveTarget {
-  private static final double reefOffset = 1.283;
+  private static final double reefOffset = 1.281;
   private static final double startOffset = 0.25;
 
   public static final Translation2d blueReefCenter = new Translation2d(4.489, 4.026);

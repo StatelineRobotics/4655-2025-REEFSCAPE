@@ -5,13 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "sequential",
+          "type": "parallel",
           "data": {
             "commands": [
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Start to score G"
+                  "pathName": "Start to G.5"
                 }
               },
               {
@@ -19,51 +19,75 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
+                      "type": "wait",
                       "data": {
-                        "name": "waitUntilSetpoint"
+                        "waitTime": 0.0
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "score"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "algaeL3"
+                        "name": "L4"
                       }
                     }
                   ]
                 }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Branch G to Back Algae"
-                }
-              },
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": [
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "waitUntilSetpoint"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Back Algae to Algae Pickup 1"
-                }
-              },
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitUntilSetpoint"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "G.5 to score G"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "score"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "algaeL2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Branch G to Back Algae"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitUntilSetpoint"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Back Algae to Algae Pickup 1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitAlgea"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
               {
                 "type": "path",
                 "data": {
@@ -75,32 +99,64 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
+                      "type": "wait",
                       "data": {
-                        "name": "waitUntilSetpoint"
+                        "waitTime": 0.15
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "score"
-                      }
-                    },
-                    {
-                      "type": "named",
-                      "data": {
-                        "name": "algaeL2"
+                        "name": "algaeStore"
                       }
                     }
                   ]
                 }
-              },
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitUntilSetpoint"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "score"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
               {
                 "type": "path",
                 "data": {
                   "pathName": "Processor to Algae Pickup 2"
                 }
               },
+              {
+                "type": "named",
+                "data": {
+                  "name": "algaeL3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitAlgea"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
               {
                 "type": "path",
                 "data": {
@@ -112,21 +168,33 @@
                 "data": {
                   "commands": [
                     {
-                      "type": "named",
+                      "type": "wait",
                       "data": {
-                        "name": "waitUntilSetpoint"
+                        "waitTime": 0.15
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "score"
+                        "name": "algaeStore"
                       }
                     }
                   ]
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitUntilSetpoint"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "score"
           }
         }
       ]

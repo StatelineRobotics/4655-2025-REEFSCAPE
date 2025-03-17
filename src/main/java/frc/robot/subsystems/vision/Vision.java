@@ -20,10 +20,12 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.LinkedList;
@@ -137,6 +139,20 @@ public class Vision extends SubsystemBase {
             Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
         double linearStdDev = linearStdDevBaseline * stdDevFactor;
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
+
+        if (DriverStation.isEnabled()) {
+          Rotation2d realPoseAngle = poseSupplier.getPose().getRotation();
+          Rotation2d observationAngle = observation.pose().getRotation().toRotation2d();
+          double differnce = realPoseAngle.minus(observationAngle).getRadians();
+
+          Translation2d realPos = poseSupplier.getPose().getTranslation();
+          Translation2d observPos = observation.pose().getTranslation().toTranslation2d();
+          double distance = realPos.getDistance(observPos);
+
+          linearStdDev *= (distance * 100);
+          angularStdDev = angularStdDev * (differnce * 50);
+        }
+
         // if (observation.type() == PoseObservationType.MEGATAG_2) {
         //   linearStdDev *= linearStdDevMegatag2Factor;
         //   angularStdDev *= angularStdDevMegatag2Factor;

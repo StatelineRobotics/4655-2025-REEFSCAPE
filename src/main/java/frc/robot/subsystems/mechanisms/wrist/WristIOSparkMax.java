@@ -54,7 +54,7 @@ public class WristIOSparkMax implements WristIO {
 
   public WristIOSparkMax() {
     mleftConfig
-        .idleMode(IdleMode.kCoast)
+        .idleMode(IdleMode.kBrake)
         .smartCurrentLimit(RollerConstants.currentLimit)
         .inverted(false);
 

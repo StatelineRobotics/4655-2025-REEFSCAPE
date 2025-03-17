@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 4.993655197495031,
-        "y": 5.271323825113921
+        "x": 4.977721911041988,
+        "y": 5.231427801792277
       },
       "isLocked": false,
       "linkedName": "J.5"
     },
     {
       "anchor": {
-        "x": 5.05,
-        "y": 5.24
+        "x": 5.022848360655738,
+        "y": 5.265727459016393
       },
       "prevControl": {
-        "x": 5.242496222638312,
-        "y": 5.39951552987086
+        "x": 5.254203231503452,
+        "y": 5.4929207292106605
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,7 +34,7 @@
   "eventMarkers": [],
   "globalConstraints": {
     "maxVelocity": 3.0,
-    "maxAcceleration": 1.0,
+    "maxAcceleration": 1.5,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,

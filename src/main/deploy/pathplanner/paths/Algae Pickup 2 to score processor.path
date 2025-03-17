@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 5.9818647540983605,
-        "y": 0.5425717213114762
+        "x": 6.005840163934426,
+        "y": 0.746362704918032
       },
       "prevControl": {
-        "x": 5.945901639344262,
-        "y": 1.4296618852459004
+        "x": 5.969877049180328,
+        "y": 1.6334528688524554
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,17 +31,10 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [
-    {
-      "name": "algaeStore",
-      "waypointRelativePos": 0.25,
-      "endWaypointRelativePos": null,
-      "command": null
-    }
-  ],
+  "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
+    "maxVelocity": 4.0,
+    "maxAcceleration": 4.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
