@@ -317,10 +317,16 @@ public class RobotContainer {
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
         .whileTrue(
-            wrist
-                .wristVoltageControl(() -> auxController.getRightY() * -2.0)
+            climber
+                .voltageCommand(() -> auxController.getRightY() * 12.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(wrist.stopCommand());
+
+    auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
+    auxController
+        .povLeft()
+        .onTrue(mechanismControl.setState(State.reverse))
+        .onFalse(mechanismControl.setState(State.coralPickup));
 
     auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
 

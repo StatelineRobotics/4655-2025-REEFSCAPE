@@ -1,6 +1,8 @@
 package frc.robot.subsystems.mechanisms.climber;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ClimberConstants;
@@ -27,7 +29,11 @@ public class Climber extends SubsystemBase {
   }
 
   public void requestClimberVoltage(Supplier<Double> voltage) {
-    io.voltageControl(12 * voltage.get());
+    io.voltageControl(voltage.get());
+  }
+
+  public Command voltageCommand(Supplier<Double> voltage) {
+    return Commands.run(() -> requestClimberVoltage(voltage));
   }
 
   public void requestPull() {

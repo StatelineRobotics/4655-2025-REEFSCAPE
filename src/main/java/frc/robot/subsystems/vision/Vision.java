@@ -140,7 +140,7 @@ public class Vision extends SubsystemBase {
         double linearStdDev = linearStdDevBaseline * stdDevFactor;
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
 
-        if (DriverStation.isEnabled()) {
+        if (DriverStation.isAutonomousEnabled()) {
           Rotation2d realPoseAngle = poseSupplier.getPose().getRotation();
           Rotation2d observationAngle = observation.pose().getRotation().toRotation2d();
           double differnce = realPoseAngle.minus(observationAngle).getRadians();
@@ -150,7 +150,20 @@ public class Vision extends SubsystemBase {
           double distance = realPos.getDistance(observPos);
 
           linearStdDev *= (distance * 100);
-          angularStdDev = angularStdDev * (differnce * 50);
+          angularStdDev = angularStdDev * (differnce * 25);
+        }
+
+        if (DriverStation.isTeleopEnabled()) {
+          Rotation2d realPoseAngle = poseSupplier.getPose().getRotation();
+          Rotation2d observationAngle = observation.pose().getRotation().toRotation2d();
+          double differnce = realPoseAngle.minus(observationAngle).getRadians();
+
+          Translation2d realPos = poseSupplier.getPose().getTranslation();
+          Translation2d observPos = observation.pose().getTranslation().toTranslation2d();
+          double distance = realPos.getDistance(observPos);
+
+          linearStdDev *= (distance * 10);
+          angularStdDev = angularStdDev * (differnce * 5);
         }
 
         // if (observation.type() == PoseObservationType.MEGATAG_2) {
