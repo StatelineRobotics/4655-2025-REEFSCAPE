@@ -3,6 +3,7 @@ package frc.robot.subsystems.mechanisms.elevator;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -19,6 +20,30 @@ public class Elevator extends SubsystemBase {
   private double ElevatorPosition = 0.0;
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
+
+  SysIdRoutine routine = new SysIdRoutine(
+    new SysIdRoutine.Config(),
+    new SysIdRoutine.voltageControl(this::voltageDrive, null, this)
+  );
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return routine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return routine.dynamic(direction);
+  }
+
+  public Command sysIdRoutine(sysIdQuasistatic) {
+    return (sysIdQuasistatic(SysIdRoutine.Direction,kForward).until(() -> inputs.elevatorPos > .5))
+          .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+          .andThen(sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
+          .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+          .andThen(sysIdDynamic(SysIdRoutine.Direction,kForward).until(() -> inputs.elevatorPos > .5))
+          .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+          .andThen(sysIdDynamic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
+          .andThen(() -> voltageControl(0.0));
+  }
 
   public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
 

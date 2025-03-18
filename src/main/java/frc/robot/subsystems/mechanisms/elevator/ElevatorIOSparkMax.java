@@ -170,7 +170,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
    * @param voltage Voltage to drive motors at
    */
   public void voltageControl(double voltage) {
-    voltage = voltage + feedforward.calculate(leftEncoder.getVelocity());
     // clamp to -12, 12 volts
     voltage = Math.max(-12.0, Math.min(voltage, 12.0));
     leftElevatorController.setReference(voltage, ControlType.kVoltage);
