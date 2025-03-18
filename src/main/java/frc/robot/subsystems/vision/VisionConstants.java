@@ -53,7 +53,7 @@ public class VisionConstants {
       new double[] {
         1.0, // Camera 0
         1.0, // Camera 1
-        1.0 // Camera 2
+        10.0 // Camera 2
       };
 
   public static int[] tagsToIgnore = {};

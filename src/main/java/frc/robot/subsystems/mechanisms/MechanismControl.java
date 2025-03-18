@@ -41,7 +41,8 @@ public class MechanismControl extends SubsystemBase {
     algeaGround,
     storeDump,
     storeDump2,
-    dump
+    dump,
+    reverse
   }
 
   public State currentState = State.idle;
@@ -128,6 +129,10 @@ public class MechanismControl extends SubsystemBase {
         }
       }
 
+      case reverse -> {
+        elevatorSubsystem.reqestBeltVoltage(12);
+      }
+
         // Idealy this should be the correct height to score algea into processor
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
@@ -206,7 +211,7 @@ public class MechanismControl extends SubsystemBase {
       case climb -> {
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.getClimberPos() >= 10.0) {
+        if (climber.getClimberPos() >= 11.0) {
           climber.stop();
           setState(State.idle);
         }
