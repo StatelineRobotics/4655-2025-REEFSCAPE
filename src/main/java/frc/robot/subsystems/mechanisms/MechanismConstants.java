@@ -19,11 +19,8 @@ public class MechanismConstants {
     public static final double elevatorGearing = 25.0;
     public static final double elevatorDrumDiam = 0.044704;
     public static final double elevatorDrumRad = elevatorDrumDiam / 2;
-    public static final double conversion_MS_RPM =
-        (60.0 * elevatorGearing) / (Math.PI * elevatorDrumDiam);
-    public static final double conversion_RPM_MS = 1.0 / conversion_MS_RPM;
-    public static final double conversion_M_Rot = (elevatorGearing) / (Math.PI * elevatorDrumDiam);
-    public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
+    public static final double positionConversion = (Math.PI * elevatorDrumDiam) / elevatorGearing;
+    public static final double velocityConversion = positionConversion / 60.0;
 
     // Closed Loop Constant
     public static final double kp = 0.06;
@@ -32,32 +29,34 @@ public class MechanismConstants {
     public static final double kg = 0.35;
     public static final double ks = 0.0;
 
-    public static final double simKp = .04;
+    public static final double simKp = 7.0;
     public static final double simKi = 0.0;
     public static final double simKd = 0.0;
-    public static final double simKg = 0.1375;
+    public static final double simKg = 0.275;
     public static final double simKs = 0.0;
+    public static final double simKv = 27.0; // V*s/m
+    public static final double simKa = 1.0; // V*s^2/m
 
     public static final double maxAccel = 10000.0;
     public static final double maxVelo = 4000.0;
 
-    public static final double simMaxAccel = 20000;
-    public static final double simMaxVelo = 5000;
+    public static final double simMaxAccel = 12.0; // m/s max: 17.14
+    public static final double simMaxVelo = 0.4; // m/s^2 max: .8
 
-    public static final double allowedClosedLoopError = 0.5;
+    public static final double allowedClosedLoopError = 0.5 * positionConversion;
 
     // Elevator Constants
-    public static final double intakeHeight = 0.5;
-    public static final double storeAlgeaHeight = 11.0;
-    public static final double storeHeight = 0.0;
-    public static final double maxHeight = 105.5;
-    public static final double levelOne = 30;
-    public static final double levelTwo = 40;
-    public static final double levelThree = 65;
-    public static final double levelFour = 105;
-    public static final double algeaL2 = 40;
-    public static final double algeaL3 = 60;
-    public static final double algeaGround = 0.0;
+    public static final double intakeHeight = 0.5 * positionConversion;
+    public static final double storeAlgeaHeight = 11.0 * positionConversion;
+    public static final double storeHeight = 0.0 * positionConversion;
+    public static final double maxHeight = 105.5 * positionConversion;
+    public static final double levelOne = 30 * positionConversion;
+    public static final double levelTwo = 40 * positionConversion;
+    public static final double levelThree = 65 * positionConversion;
+    public static final double levelFour = 105 * positionConversion;
+    public static final double algeaL2 = 40 * positionConversion;
+    public static final double algeaL3 = 60 * positionConversion;
+    public static final double algeaGround = 0.0 * positionConversion;
   }
 
   public class WristConstants {

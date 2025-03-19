@@ -57,6 +57,7 @@ public class MechanismControl extends SubsystemBase {
 
   private double test = 0.0;
   private boolean hasSetLEDS = false;
+  private boolean hasSetElevatorPosition = false;
 
   public MechanismControl(
       Drive driveSubsystem,
@@ -96,15 +97,25 @@ public class MechanismControl extends SubsystemBase {
 
       case home -> {
         climber.setClimberPosition(test);
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.intakeHeight);
         wristSubsystem.requestWristPOS(0);
         wristSubsystem.stopIntake();
+
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.intakeHeight).schedule();
+        }
+
         break;
       }
 
       case coralPickup -> {
         wristSubsystem.requestWristPOS(WristConstants.intakeCoralAngle);
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.intakeHeight);
+
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.intakeHeight).schedule();
+        }
+
         if (elevatorSubsystem.isAtSetpoint() && wristSubsystem.isAtSetpoint()) {
           setState(State.coralPickupS2).schedule();
         }
@@ -136,7 +147,12 @@ public class MechanismControl extends SubsystemBase {
         // Idealy this should be the correct height to score algea into processor
       case store -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeHeight);
+
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.storeHeight).schedule();
+        }
+
         if (wristSubsystem.intakeStalled.getAsBoolean() == true) {
           setState(State.algeaStore).schedule();
         } else {
@@ -146,7 +162,12 @@ public class MechanismControl extends SubsystemBase {
 
       case algeaStore -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.storeAlgeaHeight);
+
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.storeAlgeaHeight).schedule();
+        }
+
         if (wristSubsystem.intakeStalled.getAsBoolean() == false) {
           setState(State.store).schedule();
         }
@@ -159,31 +180,51 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case levelOne -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelOne);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.levelOne).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.storeAngle);
         break;
       }
 
       case levelTwo -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelTwo);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.levelTwo).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
         break;
       }
 
       case levelThree -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelThree);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.levelThree).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
         break;
       }
 
       case levelFour -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.levelFour);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.levelFour).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
         break;
       }
 
       case algaePickupL2 -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL2);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.algeaL2).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.algeaIntakeAngle);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
@@ -192,7 +233,11 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case algeaPickupL3 -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaL3);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.algeaL3).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.algeaIntakeAngle);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
@@ -229,7 +274,11 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case algeaGround -> {
-        elevatorSubsystem.requestElevatorPosition(ElevatorConstants.algeaGround);
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.goToPositionCommand(ElevatorConstants.storeAlgeaHeight).schedule();
+        }
+
         wristSubsystem.requestWristPOS(WristConstants.algeaGround);
         wristSubsystem.reqestIntakeVoltage(-6);
         if (wristSubsystem.intakeStalled.getAsBoolean()) {
@@ -258,6 +307,7 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public void setDesiredState(State desiredState) {
+    hasSetElevatorPosition = false;
     currentState = desiredState;
     periodic();
     getLEDCommand(desiredState).schedule();

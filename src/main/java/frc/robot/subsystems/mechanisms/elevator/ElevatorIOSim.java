@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class ElevatorIOSim extends ElevatorIOSparkMax {
@@ -27,7 +28,7 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
       new ElevatorSim(
           DCMotor.getNEO(2),
           ElevatorConstants.elevatorGearing,
-          6.80389,
+          27.2155,
           ElevatorConstants.elevatorDrumRad,
           0.0,
           Units.inchesToMeters(24.0),
@@ -81,8 +82,12 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
     elevatorSim.setInputVoltage(m_leftElevator.getBusVoltage() * m_leftElevator.getAppliedOutput());
     elevatorSim.update(.02);
 
-    motorSim.iterate(
-        elevatorSim.getVelocityMetersPerSecond() * ElevatorConstants.conversion_MS_RPM, 12, 0.02);
+    motorSim.iterate(elevatorSim.getVelocityMetersPerSecond(), 12, 0.02);
+    motorSim.setPosition(elevatorSim.getPositionMeters());
+
+    Logger.recordOutput("Elevator/simHeight", elevatorSim.getPositionMeters());
+
+    bottomLimitSwitchSim.setPressed(elevatorSim.wouldHitLowerLimit(inputs.elevatorPos));
 
     super.updateInputs(inputs);
   }

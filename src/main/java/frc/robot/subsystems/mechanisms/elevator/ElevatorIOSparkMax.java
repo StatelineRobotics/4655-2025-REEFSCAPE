@@ -81,6 +81,9 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
     // Adjust left motor encoder config
     EncoderConfig encoderConfig = mLeftConfig.encoder;
+    encoderConfig
+        .positionConversionFactor(ElevatorConstants.positionConversion)
+        .velocityConversionFactor(ElevatorConstants.velocityConversion);
 
     // Adjust left motor closed loop (pid controller) config
     ClosedLoopConfig closedLoopConfig = mLeftConfig.closedLoop;
@@ -132,6 +135,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     inputs.funnelPos = funnelEncoder.getPosition();
     inputs.funnelVoltage = m_funnel.getBusVoltage() * m_funnel.getAppliedOutput();
     inputs.funnelCurrent = m_funnel.getOutputCurrent();
+    inputs.isAtBottom = bottomLimitSwitch.isPressed();
     if (bottomLimitSwitch.isPressed() && zeroed == false) {
       leftEncoder.setPosition(0);
       zeroed = true;
@@ -144,13 +148,13 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     }
   }
 
-  public void requestElevatorPosition(double targetPostion) {
+  public void requestElevatorPosition(double targetPostion, double feedforward) {
     if (zeroed) {
       leftElevatorController.setReference(
           targetPostion,
-          ControlType.kMAXMotionPositionControl,
+          ControlType.kPosition,
           ClosedLoopSlot.kSlot0,
-          feedforward.calculate(leftEncoder.getVelocity()),
+          feedforward,
           ArbFFUnits.kVoltage);
     } else {
       leftElevatorController.setReference(-1, ControlType.kVoltage);
@@ -233,7 +237,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SmartDashboard.putNumber("Elevator/maxAccel", closedLoop.maxMotion.getMaxAcceleration());
     SmartDashboard.putNumber(
         "Elevator/allowError", closedLoop.maxMotion.getAllowedClosedLoopError());
-    SmartDashboard.putNumber("Elevator/lowerSetpoint", 0.0);
-    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.0);
+    SmartDashboard.putNumber("Elevator/lowerSetpoint", 0.05);
+    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.5);
   }
 }

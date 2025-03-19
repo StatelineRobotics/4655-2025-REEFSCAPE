@@ -1,14 +1,21 @@
 package frc.robot.subsystems.mechanisms.elevator;
 
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -20,13 +27,36 @@ public class Elevator extends SubsystemBase {
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
 
-  public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
+  double lastSpeed = 0;
+  double lastTime = Timer.getFPGATimestamp();
+
+  private final ElevatorFeedforward feedforward;
+
+  ProfiledPIDController profiledPIDController =
+      new ProfiledPIDController(
+          ElevatorConstants.simKp,
+          ElevatorConstants.ki,
+          ElevatorConstants.kd,
+          new Constraints(ElevatorConstants.simMaxVelo, ElevatorConstants.simMaxAccel));
+
+  @AutoLogOutput public Trigger atSetpoint = new Trigger(() -> profiledPIDController.atGoal());
 
   public Elevator(ElevatorIO io) {
     this.io = io;
     if (Constants.usePIDtuning) {
       SmartDashboard.putData("Elevator/lowerTestCommand", testLowerPosition());
       SmartDashboard.putData("Elevator/upperTestCommand", testUpperPosition());
+    }
+
+    if (Robot.isSimulation()) {
+      feedforward =
+          new ElevatorFeedforward(
+              ElevatorConstants.simKs,
+              ElevatorConstants.simKg,
+              ElevatorConstants.simKv,
+              ElevatorConstants.simKa);
+    } else {
+      feedforward = new ElevatorFeedforward(0, 0, 0);
     }
   }
 
@@ -41,11 +71,6 @@ public class Elevator extends SubsystemBase {
     } else {
 
     }
-  }
-
-  public void requestElevatorPosition(double elevatorPosition) {
-    inputs.setPoint = elevatorPosition;
-    io.requestElevatorPosition(elevatorPosition);
   }
 
   public void requestBeltRPM(double RPM) {
@@ -68,23 +93,9 @@ public class Elevator extends SubsystemBase {
     io.voltageControl(voltage);
   }
 
-  private void positionControl(double targetPostion) {
-    inputs.setPoint = targetPostion;
-    io.requestElevatorPosition(targetPostion);
-  }
-
-  public Command testPositionControl() {
-    return this.runOnce(
-        () -> {
-          positionControl(39);
-        });
-  }
-
-  public Command homeCommand() {
-    return this.run(
-        () -> {
-          positionControl(0.0);
-        });
+  private void positionControl(double targetPostion, double feedforward) {
+    inputs.setpoint = targetPostion;
+    io.requestElevatorPosition(targetPostion, feedforward);
   }
 
   public Command manualRunCommand(DoubleSupplier controllerInput) {
@@ -102,26 +113,51 @@ public class Elevator extends SubsystemBase {
   public Command holdPosition() {
     return this.run(
         () -> {
-          voltageControl(0.0);
+          voltageControl(ElevatorConstants.simKg);
         });
   }
 
   public Command testLowerPosition() {
-    return this.defer(
-        () ->
-            Commands.runOnce(
-                () -> positionControl(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.0))));
+    return defer(
+        () -> goToPositionCommand(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.0)));
   }
 
   public Command testUpperPosition() {
-    return this.defer(
-        () ->
-            Commands.runOnce(
-                () -> positionControl(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.0))));
+    return defer(
+        () -> goToPositionCommand(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.0)));
+  }
+
+  public Command goToPositionCommand(double targetPostion) {
+    return Commands.defer(
+            () ->
+                startRun(
+                    () -> {
+                      inputs.finalSetpoint = targetPostion;
+                      profiledPIDController.setGoal(targetPostion);
+                    },
+                    () -> {
+                      profiledPIDController.calculate(inputs.elevatorPos);
+                      State target = profiledPIDController.getSetpoint();
+                      double acceleration =
+                          (profiledPIDController.getSetpoint().velocity - lastSpeed)
+                              / (Timer.getFPGATimestamp() - lastTime);
+                      inputs.veolocitySetpoint = target.velocity;
+                      inputs.motionSetpoint = target.position;
+                      inputs.finalSetpoint = profiledPIDController.getGoal().position;
+                      positionControl(
+                          target.position, feedforward.calculate(target.velocity, acceleration));
+                      lastSpeed = target.velocity;
+                      lastTime = Timer.getFPGATimestamp();
+                    }),
+            Set.of(this))
+        .until(atSetpoint)
+        .withName("Elevator to " + targetPostion + " m high")
+        .andThen(this::holdPosition);
   }
 
   public boolean isAtSetpoint() {
-    if (Math.abs(inputs.elevatorPos - inputs.setPoint) < ElevatorConstants.allowedClosedLoopError) {
+    if (Math.abs(inputs.elevatorPos - inputs.finalSetpoint)
+        < ElevatorConstants.allowedClosedLoopError) {
       return true;
     }
     return false;
@@ -133,23 +169,27 @@ public class Elevator extends SubsystemBase {
 
   @AutoLogOutput
   public double getCarrageHeight() {
-    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 3.0;
+    return inputs.elevatorPos * 3.0;
   }
 
   @AutoLogOutput
   public double get2ndStageHeight() {
-    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M * 2.0
-        - Units.inchesToMeters(1.0);
+    return (inputs.elevatorPos * 2.0) - Units.inchesToMeters(1.0);
   }
 
   @AutoLogOutput
   public double get1stStageHeight() {
-    return inputs.elevatorPos * ElevatorConstants.conversion_Rot_M - Units.inchesToMeters(2.0);
+    return inputs.elevatorPos - Units.inchesToMeters(2.0);
   }
 
   @AutoLogOutput
   public double getCarrageVelocity() {
-    return inputs.elevatorVelo * ElevatorConstants.conversion_RPM_MS * 4.0;
+    return inputs.elevatorVelo * 3.0;
+  }
+
+  @AutoLogOutput
+  public double getVelocity() {
+    return inputs.elevatorVelo;
   }
 
   @AutoLogOutput

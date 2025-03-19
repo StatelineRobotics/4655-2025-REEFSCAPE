@@ -16,8 +16,13 @@ public interface ElevatorIO {
     public double dutyCycle = 0.0;
     public double appliedVolts = 0.0;
     public double appliedCurrent = 0.0;
-    public double setPoint = 0.0;
+    public double finalSetpoint = 0.0;
+    public double motionSetpoint = 0.0;
+    public double veolocitySetpoint = 0.0;
+    public double setpoint = 0.0;
     public double funnelCurrent = 0.0;
+
+    public boolean isAtBottom = false;
   }
 
   default void updateInputs(ElevatorIOInputs inputs) {}
@@ -26,7 +31,7 @@ public interface ElevatorIO {
 
   default void voltageControl(double voltage) {}
 
-  default void requestElevatorPosition(double target) {}
+  default void requestElevatorPosition(double targetPostion, double feedforward) {}
 
   default void requestBeltRPM() {}
 
