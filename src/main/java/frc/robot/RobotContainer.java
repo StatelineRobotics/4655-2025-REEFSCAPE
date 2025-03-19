@@ -329,6 +329,7 @@ public class RobotContainer {
         .onFalse(mechanismControl.setState(State.coralPickup));
 
     auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
+    auxController.a().whileTrue(elevator.sysIdRoutine());
 
     auxController.povDown().onTrue(mechanismControl.setState(State.climb));
     auxController.povRight().onTrue(mechanismControl.setState(State.climberHome));

@@ -5,18 +5,28 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Time;
+import edu.wpi.first.units.measure.Velocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volt;
+import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.VoltsPerMeterPerSecond;
+
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -29,11 +39,14 @@ public class Elevator extends SubsystemBase {
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
 
-  SysIdRoutine routine = new SysIdRoutine(
-    new SysIdRoutine.Config(null, null, null, // Use default config
-                    (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
-    new Mechanism((voltage) -> voltageControl(voltage.magnitude()), null, this)
-  );
+  SysIdRoutine routine =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              Volts.of(0.5).per(Second),
+              Volts.of(6),
+              Seconds.of(20), // Use default config
+              (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
+          new Mechanism((voltage) -> voltageControl(voltage.magnitude()), null, this));
 
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return routine.quasistatic(direction);
@@ -45,13 +58,14 @@ public class Elevator extends SubsystemBase {
 
   public Command sysIdRoutine() {
     return (sysIdQuasistatic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .5))
-          .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
-          .andThen(sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
-          .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
-          .andThen(sysIdDynamic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .5))
-          .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
-          .andThen(sysIdDynamic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
-          .andThen(() -> voltageControl(0.0));
+        .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+        .andThen(
+            sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
+        .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+        .andThen(sysIdDynamic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .5))
+        .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+        .andThen(sysIdDynamic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
+        .andThen(() -> voltageControl(0.0));
   }
 
   double lastSpeed = 0;
