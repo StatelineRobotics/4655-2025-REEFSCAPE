@@ -42,7 +42,7 @@ public class VisionConstants {
     }
   }
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout = defautltLayout;
+  public static AprilTagFieldLayout aprilTagLayout = defaultLayout;
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "Right";
