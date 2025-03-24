@@ -12,7 +12,6 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
@@ -42,13 +41,6 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
   private SparkLimitSwitchSim bottomLimitSwitchSim = motorSim.getReverseLimitSwitchSim();
   private SparkMaxConfig simConfig = new SparkMaxConfig();
 
-  private Trigger hitBottom =
-      new Trigger(() -> elevatorSim.hasHitLowerLimit())
-          .onTrue(
-              Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(true)).ignoringDisable(true))
-          .onFalse(
-              Commands.runOnce(() -> bottomLimitSwitchSim.setPressed(false)).ignoringDisable(true));
-
   public ElevatorIOSim() {
     super();
 
@@ -61,16 +53,9 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(false);
 
-    closedLoopConfig
-        .maxMotion
-        .maxAcceleration(ElevatorConstants.simMaxAccel)
-        .maxVelocity(ElevatorConstants.simMaxAccel);
-
     // Configure both motors
     m_leftElevator.configure(
         simConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-
-    feedforward = new ElevatorFeedforward(ElevatorConstants.simKs, ElevatorConstants.simKg, 0);
 
     if (Constants.usePIDtuning) {
       super.setUpPIDTuning();
@@ -83,9 +68,10 @@ public class ElevatorIOSim extends ElevatorIOSparkMax {
     elevatorSim.update(.02);
 
     motorSim.iterate(elevatorSim.getVelocityMetersPerSecond(), 12, 0.02);
-    motorSim.setPosition(elevatorSim.getPositionMeters());
+    // motorSim.setPosition(elevatorSim.getPositionMeters());
 
     Logger.recordOutput("Elevator/simHeight", elevatorSim.getPositionMeters());
+    Logger.recordOutput("Elevator/simVelo", elevatorSim.getVelocityMetersPerSecond());
 
     bottomLimitSwitchSim.setPressed(elevatorSim.wouldHitLowerLimit(inputs.elevatorPos));
 

@@ -19,29 +19,30 @@ public class MechanismConstants {
     public static final double elevatorGearing = 25.0;
     public static final double elevatorDrumDiam = 0.044704;
     public static final double elevatorDrumRad = elevatorDrumDiam / 2;
-    public static final double positionConversion = (Math.PI * elevatorDrumDiam) / elevatorGearing;
-    public static final double velocityConversion = positionConversion / 60.0;
+    public static final double positionConversion =
+        (Math.PI * elevatorDrumDiam) / elevatorGearing; // revolutions -> meters
+    public static final double velocityConversion = positionConversion / 60.0; // rpm -> m/s
 
     // Closed Loop Constant
     public static final double kp = 0.06;
     public static final double ki = 0.0;
     public static final double kd = 0.02;
-    public static final double kg = 0.35;
-    public static final double ks = 0.0;
+    // public static final double kg = 0.35;
+    // public static final double ks = 0.0;
 
-    public static final double simKp = 7.0;
+    public static final double simKp = 0.0;
     public static final double simKi = 0.0;
     public static final double simKd = 0.0;
-    public static final double simKg = 0.275;
+    public static final double simKg = 0.55243;
     public static final double simKs = 0.0;
-    public static final double simKv = 27.0; // V*s/m
-    public static final double simKa = 1.0; // V*s^2/m
+    public static final double simKv = 22.225; // V*s/m
+    public static final double simKa = 1.44; // V*s^2/m
 
-    public static final double maxAccel = 10000.0;
-    public static final double maxVelo = 4000.0;
+    public static final double maxAccel = 0.2; // m/s max: 17.14
+    public static final double maxVelo = 0.1; // m/s^2 max: .8
 
-    public static final double simMaxAccel = 12.0; // m/s max: 17.14
-    public static final double simMaxVelo = 0.4; // m/s^2 max: .8
+    public static final double simMaxAccel = 0.2; // m/s max: 17.14
+    public static final double simMaxVelo = 0.1; // m/s^2 max: .8
 
     public static final double allowedClosedLoopError = 0.5 * positionConversion;
 

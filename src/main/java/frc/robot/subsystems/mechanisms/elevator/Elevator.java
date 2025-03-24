@@ -1,18 +1,18 @@
 package frc.robot.subsystems.mechanisms.elevator;
 
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.Time;
-import edu.wpi.first.units.measure.Velocity;
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -20,14 +20,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
-
-import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.units.Units.Volt;
-import static edu.wpi.first.units.Units.Volts;
-import static edu.wpi.first.units.Units.VoltsPerMeterPerSecond;
-
-import java.util.Set;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -38,6 +30,14 @@ public class Elevator extends SubsystemBase {
   private double ElevatorPosition = 0.0;
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
+
+  private TrapezoidProfile profile =
+      new TrapezoidProfile(
+          new Constraints(ElevatorConstants.simMaxVelo, ElevatorConstants.simMaxVelo));
+  private TrapezoidProfile.State startingState = new State();
+  private TrapezoidProfile.State endState = new State();
+  private static Timer timer = new Timer();
+  private static double lastTime = timer.get();
 
   SysIdRoutine routine =
       new SysIdRoutine(
@@ -68,19 +68,9 @@ public class Elevator extends SubsystemBase {
         .andThen(() -> voltageControl(0.0));
   }
 
-  double lastSpeed = 0;
-  double lastTime = Timer.getFPGATimestamp();
-
   private final ElevatorFeedforward feedforward;
 
-  ProfiledPIDController profiledPIDController =
-      new ProfiledPIDController(
-          ElevatorConstants.simKp,
-          ElevatorConstants.ki,
-          ElevatorConstants.kd,
-          new Constraints(ElevatorConstants.simMaxVelo, ElevatorConstants.simMaxAccel));
-
-  @AutoLogOutput public Trigger atSetpoint = new Trigger(() -> profiledPIDController.atGoal());
+  @AutoLogOutput public Trigger atSetpoint = new Trigger(() -> false);
 
   public Elevator(ElevatorIO io) {
     this.io = io;
@@ -159,41 +149,39 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command testLowerPosition() {
-    return defer(
-        () -> goToPositionCommand(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.0)));
+    return goToPositionCommand(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.0));
   }
 
   public Command testUpperPosition() {
-    return defer(
-        () -> goToPositionCommand(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.0)));
+    return goToPositionCommand(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.0));
   }
 
   public Command goToPositionCommand(double targetPostion) {
-    return Commands.defer(
-            () ->
-                startRun(
-                    () -> {
-                      inputs.finalSetpoint = targetPostion;
-                      profiledPIDController.setGoal(targetPostion);
-                    },
-                    () -> {
-                      profiledPIDController.calculate(inputs.elevatorPos);
-                      State target = profiledPIDController.getSetpoint();
-                      double acceleration =
-                          (profiledPIDController.getSetpoint().velocity - lastSpeed)
-                              / (Timer.getFPGATimestamp() - lastTime);
-                      inputs.veolocitySetpoint = target.velocity;
-                      inputs.motionSetpoint = target.position;
-                      inputs.finalSetpoint = profiledPIDController.getGoal().position;
-                      positionControl(
-                          target.position, feedforward.calculate(target.velocity, acceleration));
-                      lastSpeed = target.velocity;
-                      lastTime = Timer.getFPGATimestamp();
-                    }),
-            Set.of(this))
-        .until(atSetpoint)
-        .withName("Elevator to " + targetPostion + " m high")
-        .andThen(this::holdPosition);
+    return startRun(
+        () -> {
+          inputs.finalSetpoint = targetPostion;
+          startingState = new State(inputs.elevatorPos, inputs.elevatorVelo);
+          endState = new State(targetPostion, 0.0);
+          timer.restart();
+        },
+        () -> {
+          double currentTime = timer.get();
+          Logger.recordOutput("time", currentTime);
+          // TrapezoidProfile.State currentState = new State(inputs.elevatorPos,
+          // inputs.elevatorVelo);
+          State currentTarget = profile.calculate(currentTime, startingState, endState);
+          State nextState = profile.calculate(currentTime + 0.02, startingState, endState);
+          double voltageFeed =
+              feedforward.calculateWithVelocities(currentTarget.velocity, nextState.velocity);
+          positionControl(currentTarget.position, voltageFeed);
+          inputs.veolocitySetpoint = currentTarget.velocity;
+          inputs.motionSetpoint = currentTarget.position;
+          lastTime = currentTime;
+        });
+  }
+
+  public Command goToAnyPositionCommand(double targetPostion) {
+    return defer(() -> goToAnyPositionCommand(targetPostion));
   }
 
   public boolean isAtSetpoint() {
