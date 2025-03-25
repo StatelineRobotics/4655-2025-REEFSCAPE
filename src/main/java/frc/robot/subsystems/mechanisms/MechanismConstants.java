@@ -26,7 +26,7 @@ public class MechanismConstants {
     public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
 
     // Closed Loop Constant
-    public static final double kp = 0.06;
+    public static final double kp = 0.065;
     public static final double ki = 0.0;
     public static final double kd = 0.02;
     public static final double kg = 0.35;
@@ -44,17 +44,17 @@ public class MechanismConstants {
     public static final double simMaxAccel = 20000;
     public static final double simMaxVelo = 5000;
 
-    public static final double allowedClosedLoopError = 0.5;
+    public static final double allowedClosedLoopError = 0.55;
 
     // Elevator Constants
     public static final double intakeHeight = 0.5;
-    public static final double storeAlgeaHeight = 11.0;
+    public static final double storeAlgeaHeight = 12.0;
     public static final double storeHeight = 0.0;
     public static final double maxHeight = 105.5;
     public static final double levelOne = 30;
     public static final double levelTwo = 40;
     public static final double levelThree = 65;
-    public static final double levelFour = 105;
+    public static final double levelFour = 104.5;
     public static final double algeaL2 = 40;
     public static final double algeaL3 = 60;
     public static final double algeaGround = 0.0;

@@ -113,7 +113,7 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(6);
-        elevatorSubsystem.reqestBeltVoltage(-12);
+        elevatorSubsystem.reqestBeltVoltage(-8);
         if (wristSubsystem.detectsNoteDebounced.getAsBoolean() == true) {
           setState(State.coralPickupS3).schedule();
         }
@@ -211,9 +211,9 @@ public class MechanismControl extends SubsystemBase {
       case climb -> {
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.getClimberPos() >= 11.0) {
+        if (climber.getClimberPos() >= 10.75) {
           climber.stop();
-          setState(State.idle);
+          setState(State.idle).schedule();
         }
         break;
       }
@@ -286,10 +286,7 @@ public class MechanismControl extends SubsystemBase {
 
         // Move elevatlor store (red) when at store blue
       case store, algeaStore:
-        command =
-            lightSubsystem
-                .solidAnimation(new Color(255, 0, 0), atDualSetPoint, "Solid Red")
-                .andThen(lightSubsystem.solidAnimation(new Color(0, 0, 255), "Solid Blue"));
+        command = lightSubsystem.strobeAnimation(new Color(0, 255, 0), "strobeGreen");
         Logger.recordOutput("MechanismControl/latestLED", command.getName());
         return command;
 

@@ -18,6 +18,7 @@ import static frc.robot.util.PhoenixUtil.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.NeutralOut;
@@ -97,6 +98,7 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnEncoderConnectedDebounce = new Debouncer(0.5);
+  private TalonFXConfiguration driveConfig;
 
   public ModuleIOTalonFX(
       SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
@@ -107,7 +109,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     cancoder = new CANcoder(constants.EncoderId, TunerConstants.DrivetrainConstants.CANBusName);
 
     // Configure drive motor
-    var driveConfig = constants.DriveMotorInitialConfigs;
+    driveConfig = constants.DriveMotorInitialConfigs;
     driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     driveConfig.Slot0 = constants.DriveMotorGains;
     driveConfig.Feedback.SensorToMechanismRatio = constants.DriveMotorGearRatio;
@@ -281,6 +283,22 @@ public class ModuleIOTalonFX implements ModuleIO {
           case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
               rotation.getRotations());
         });
+  }
+
+  public void configCoastMode() {
+    driveTalon
+        .getConfigurator()
+        .apply(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Coast));
+  }
+
+  public void setDriveCoastMode() {
+    driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    driveTalon.getConfigurator().apply(driveConfig);
+  }
+
+  public void configBreakMode() {
+    driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    driveTalon.getConfigurator().apply(driveConfig);
   }
 
   @Override

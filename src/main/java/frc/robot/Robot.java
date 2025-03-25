@@ -111,6 +111,9 @@ public class Robot extends LoggedRobot {
     robotContainer = new RobotContainer();
 
     PathfindingCommand.warmupCommand().schedule();
+
+    WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+    SmartDashboard.putNumber("Auto wait time", 0.0);
   }
 
   /** This function is called periodically during all modes. */
@@ -131,10 +134,6 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("commandSchedualer", CommandScheduler.getInstance());
     robotContainer.logSubsystems();
     robotContainer.updateMechanism2ds();
-
-    WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
-
-    SmartDashboard.putNumber("Auto wait time", 0.0);
   }
 
   /** This function is called once when the robot is disabled. */
