@@ -13,36 +13,15 @@
 
 package frc.robot.subsystems.vision;
 
-import edu.wpi.first.wpilibj.Filesystem;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 
 public class VisionConstants {
-
-  private static File deployDirectory = Filesystem.getDeployDirectory();
-  private static File alternateJSON = new File(deployDirectory, "alternateTagLayout.json");
-
-  public static AprilTagFieldLayout alternateTagLayout = AprilTagFieldLayout.loadField(alternateJSON);
-    public static AprilTagFieldLayout defaultLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-
-  static {
-    try {
-        deployDirectory = Filesystem.getDeployDirectory();
-        alternateJSON = new File(deployDirectory, "alternateTagLayout.json");
-        alternateTagLayout = AprilTagFieldLayout.loadField(alternateJSON);
-
-    } catch (IOException e) {
-        System.out.println("Error, could not load alternate layout revert to default layout");
-        alternateTagLayout = defaultLayout;
-    }
-  }
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout = defautltLayout;
+  public static AprilTagFieldLayout aprilTagLayout =
+      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "Right";
