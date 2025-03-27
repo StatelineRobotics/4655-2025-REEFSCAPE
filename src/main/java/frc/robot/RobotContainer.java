@@ -329,11 +329,19 @@ public class RobotContainer {
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(elevator.holdPosition());
 
+    // auxController
+    //     .axisMagnitudeGreaterThan(5, 0.1)
+    //     .whileTrue(
+    //         climber
+    //             .voltageCommand(() -> auxController.getRightY() * 12.0)
+    //             .alongWith(mechanismControl.setState(State.idle).repeatedly()))
+    //     .whileFalse(wrist.stopCommand());
+
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
         .whileTrue(
-            climber
-                .voltageCommand(() -> auxController.getRightY() * 12.0)
+            wrist
+                .wristVoltageControl(() -> auxController.getRightY() * 12.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .onFalse(Commands.runOnce(() -> climber.stop()));
 
@@ -344,6 +352,7 @@ public class RobotContainer {
         .onFalse(mechanismControl.setState(State.idle));
 
     auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
+    auxController.a().whileTrue(elevator.sysIdRoutine());
 
     auxController.povDown().onTrue(mechanismControl.setState(State.climb));
 

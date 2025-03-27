@@ -16,12 +16,10 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
 import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.MAXMotionConfig;
-import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
@@ -43,9 +41,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   private SparkMaxConfig mRightConfig = new SparkMaxConfig();
   private SparkMaxConfig mFunnelConfig = new SparkMaxConfig();
 
-  protected ElevatorFeedforward feedforward =
-      new ElevatorFeedforward(ElevatorConstants.ks, ElevatorConstants.kg, 0.0);
-
   public ElevatorIOSparkMax() {
 
     mFunnelConfig.inverted(true).smartCurrentLimit(10).idleMode(IdleMode.kBrake);
@@ -60,7 +55,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     mFunnelConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-        .pid(0.007, 0, 0.002)
+        .pid(ElevatorConstants.kp, ElevatorConstants.ki, ElevatorConstants.kd)
         .positionWrappingEnabled(false);
 
     // base config for all motors
@@ -81,6 +76,9 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
     // Adjust left motor encoder config
     EncoderConfig encoderConfig = mLeftConfig.encoder;
+    encoderConfig
+        .positionConversionFactor(ElevatorConstants.positionConversion)
+        .velocityConversionFactor(ElevatorConstants.velocityConversion);
 
     // Adjust left motor closed loop (pid controller) config
     ClosedLoopConfig closedLoopConfig = mLeftConfig.closedLoop;
@@ -88,14 +86,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
         .pid(ElevatorConstants.kp, ElevatorConstants.ki, ElevatorConstants.kd)
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .positionWrappingEnabled(false);
-
-    // Adjust left motor max motion position specific config
-    MAXMotionConfig maxMotionConfig = mLeftConfig.closedLoop.maxMotion;
-    maxMotionConfig
-        .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal)
-        .allowedClosedLoopError(ElevatorConstants.allowedClosedLoopError)
-        .maxAcceleration(ElevatorConstants.maxAccel)
-        .maxVelocity(ElevatorConstants.maxVelo);
 
     SoftLimitConfig softLimitConfig = mLeftConfig.softLimit;
     softLimitConfig.forwardSoftLimit(ElevatorConstants.maxHeight).forwardSoftLimitEnabled(true);
@@ -132,6 +122,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     inputs.funnelPos = funnelEncoder.getPosition();
     inputs.funnelVoltage = m_funnel.getBusVoltage() * m_funnel.getAppliedOutput();
     inputs.funnelCurrent = m_funnel.getOutputCurrent();
+    inputs.isAtBottom = bottomLimitSwitch.isPressed();
     if (bottomLimitSwitch.isPressed() && zeroed == false) {
       leftEncoder.setPosition(0);
       zeroed = true;
@@ -144,16 +135,14 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     }
   }
 
-  public void requestElevatorPosition(double targetPostion) {
+  public void requestElevatorPosition(double targetPostion, double feedforward) {
     if (zeroed) {
       leftElevatorController.setReference(
           targetPostion,
-          ControlType.kMAXMotionPositionControl,
+          ControlType.kPosition,
           ClosedLoopSlot.kSlot0,
-          feedforward.calculate(leftEncoder.getVelocity()),
+          feedforward,
           ArbFFUnits.kVoltage);
-    } else {
-      leftElevatorController.setReference(-1, ControlType.kVoltage);
     }
   }
 
@@ -170,7 +159,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
    * @param voltage Voltage to drive motors at
    */
   public void voltageControl(double voltage) {
-    voltage = voltage + feedforward.calculate(leftEncoder.getVelocity());
     // clamp to -12, 12 volts
     voltage = Math.max(-12.0, Math.min(voltage, 12.0));
     leftElevatorController.setReference(voltage, ControlType.kVoltage);
@@ -201,12 +189,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     if (SmartDashboard.getNumber("Elevator/kd", 0.0) != closedLoop.getD()) {
       CLconfig.d(SmartDashboard.getNumber("Elevator/kd", 0.0));
     }
-    if (SmartDashboard.getNumber("Elevator/kg", 0.0) != feedforward.getKg()) {
-      // feedforward.(SmartDashboard.getNumber("Elevator/kg",0.0));
-    }
-    if (SmartDashboard.getNumber("Elevator/ks", 0.0) != feedforward.getKs()) {
-      // CLconfig.i(SmartDashboard.getNumber("Elevator/ki",0.0));
-    }
     if (SmartDashboard.getNumber("Elevator/maxVelo", 0.0) != maxMotion.getMaxVelocity()) {
       mmConfig.maxVelocity(SmartDashboard.getNumber("Elevator/maxVelo", 0.0));
     }
@@ -227,13 +209,11 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SmartDashboard.putNumber("Elevator/kp", closedLoop.getP());
     SmartDashboard.putNumber("Elevator/ki", closedLoop.getI());
     SmartDashboard.putNumber("Elevator/kd", closedLoop.getD());
-    SmartDashboard.putNumber("Elevator/kg", feedforward.getKg());
-    SmartDashboard.putNumber("Elevator/ks", feedforward.getKs());
     SmartDashboard.putNumber("Elevator/maxVelo", closedLoop.maxMotion.getMaxVelocity());
     SmartDashboard.putNumber("Elevator/maxAccel", closedLoop.maxMotion.getMaxAcceleration());
     SmartDashboard.putNumber(
         "Elevator/allowError", closedLoop.maxMotion.getAllowedClosedLoopError());
-    SmartDashboard.putNumber("Elevator/lowerSetpoint", 0.0);
-    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.0);
+    SmartDashboard.putNumber("Elevator/lowerSetpoint", 0.05);
+    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.45);
   }
 }
