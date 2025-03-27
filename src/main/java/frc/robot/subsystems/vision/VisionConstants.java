@@ -34,7 +34,7 @@ public class VisionConstants {
     try {
         deployDirectory = Filesystem.getDeployDirectory();
         alternateJSON = new File(deployDirectory, "alternateTagLayout.json");
-        alternateTagLayout = AprilTagFieldLayout.loadField(alternateJSON.toPath().toAbsolutePath());
+        alternateTagLayout = AprilTagFieldLayout.loadField(alternateJSON.toPath());
 
     } catch (IOException e) {
         System.out.println("Error, could not load alternate layout revert to default layout");
