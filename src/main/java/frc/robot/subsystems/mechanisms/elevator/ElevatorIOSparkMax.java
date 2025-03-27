@@ -55,7 +55,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     mFunnelConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-        .pid(0.007, 0, 0.002)
+        .pid(ElevatorConstants.kp, ElevatorConstants.ki, ElevatorConstants.kd)
         .positionWrappingEnabled(false);
 
     // base config for all motors
@@ -214,6 +214,6 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     SmartDashboard.putNumber(
         "Elevator/allowError", closedLoop.maxMotion.getAllowedClosedLoopError());
     SmartDashboard.putNumber("Elevator/lowerSetpoint", 0.05);
-    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.5);
+    SmartDashboard.putNumber("Elevator/upperSetpoint", 0.45);
   }
 }

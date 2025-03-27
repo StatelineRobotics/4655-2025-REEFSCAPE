@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
-import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 import java.util.function.DoubleSupplier;
@@ -32,8 +31,7 @@ public class Elevator extends SubsystemBase {
   private double beltRPM = 0.0;
 
   private TrapezoidProfile profile =
-      new TrapezoidProfile(
-          new Constraints(ElevatorConstants.simMaxVelo, ElevatorConstants.simMaxVelo));
+      new TrapezoidProfile(new Constraints(ElevatorConstants.maxVelo, ElevatorConstants.maxAccel));
   private TrapezoidProfile.State startingState = new State();
   private TrapezoidProfile.State endState = new State();
   private static Timer timer = new Timer();
@@ -43,7 +41,7 @@ public class Elevator extends SubsystemBase {
       new SysIdRoutine(
           new SysIdRoutine.Config(
               Volts.of(0.5).per(Second),
-              Volts.of(6),
+              Volts.of(3),
               Seconds.of(20), // Use default config
               (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
           new Mechanism((voltage) -> voltageControl(voltage.magnitude()), null, this));
@@ -57,14 +55,16 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command sysIdRoutine() {
-    return (sysIdQuasistatic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .5))
-        .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
+    return (sysIdQuasistatic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .45))
+        .andThen(run(() -> voltageControl(0.0)).withTimeout(0.0))
         .andThen(
-            sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
-        .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
-        .andThen(sysIdDynamic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .5))
-        .andThen(run(() -> voltageControl(0.0)).withTimeout(1.0))
-        .andThen(sysIdDynamic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .1))
+            sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .15))
+        .andThen(run(() -> voltageControl(0.0)).withTimeout(0.0))
+        .andThen(
+            sysIdDynamic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .45))
+        .andThen(run(() -> voltageControl(0.0)).withTimeout(0.0))
+        .andThen(
+            sysIdDynamic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .15))
         .andThen(() -> voltageControl(0.0));
   }
 
@@ -74,7 +74,7 @@ public class Elevator extends SubsystemBase {
 
   public Elevator(ElevatorIO io) {
     this.io = io;
-    if (Constants.usePIDtuning) {
+    if (true) {
       SmartDashboard.putData("Elevator/lowerTestCommand", testLowerPosition());
       SmartDashboard.putData("Elevator/upperTestCommand", testUpperPosition());
     }
@@ -87,8 +87,14 @@ public class Elevator extends SubsystemBase {
               ElevatorConstants.simKv,
               ElevatorConstants.simKa);
     } else {
-      feedforward = new ElevatorFeedforward(0, 0, 0);
+      feedforward =
+          new ElevatorFeedforward(
+              ElevatorConstants.ks,
+              ElevatorConstants.kg,
+              ElevatorConstants.kv,
+              ElevatorConstants.ka);
     }
+    SmartDashboard.putData("sysID", sysIdRoutine());
   }
 
   @Override
@@ -132,7 +138,7 @@ public class Elevator extends SubsystemBase {
   public Command manualRunCommand(DoubleSupplier controllerInput) {
     return this.run(
             () -> {
-              voltageControl(controllerInput.getAsDouble() * -6.0);
+              voltageControl(controllerInput.getAsDouble() * -6.0 + 1.0);
             })
         .withName("Maual Run Command");
   }
@@ -144,16 +150,16 @@ public class Elevator extends SubsystemBase {
   public Command holdPosition() {
     return this.run(
         () -> {
-          voltageControl(ElevatorConstants.simKg);
+          voltageControl(1.0);
         });
   }
 
   public Command testLowerPosition() {
-    return goToPositionCommand(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.0));
+    return goToPositionCommand(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.05));
   }
 
   public Command testUpperPosition() {
-    return goToPositionCommand(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.0));
+    return goToPositionCommand(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.45));
   }
 
   public Command goToPositionCommand(double targetPostion) {
@@ -224,5 +230,45 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput
   public double getFunnelPos() {
     return inputs.funnelPos;
+  }
+
+  public Command getL1Command() {
+    return goToPositionCommand(ElevatorConstants.levelOne);
+  }
+
+  public Command getL2Command() {
+    return goToPositionCommand(ElevatorConstants.levelTwo);
+  }
+
+  public Command getL3Command() {
+    return goToPositionCommand(ElevatorConstants.levelThree);
+  }
+
+  public Command getL4Command() {
+    return goToPositionCommand(ElevatorConstants.levelFour);
+  }
+
+  public Command getAlgaeL2Command() {
+    return goToPositionCommand(ElevatorConstants.algeaL2);
+  }
+
+  public Command getAlgaeL3Command() {
+    return goToPositionCommand(ElevatorConstants.algeaL3);
+  }
+
+  public Command getIntakeCommand() {
+    return goToPositionCommand(ElevatorConstants.intakeHeight);
+  }
+
+  public Command getAlgaeIntakeCommand() {
+    return goToPositionCommand(ElevatorConstants.algeaGround);
+  }
+
+  public Command getCoralStoreCommand() {
+    return goToPositionCommand(ElevatorConstants.storeHeight);
+  }
+
+  public Command getAlgaeStoreCommand() {
+    return goToPositionCommand(ElevatorConstants.storeAlgeaHeight);
   }
 }
