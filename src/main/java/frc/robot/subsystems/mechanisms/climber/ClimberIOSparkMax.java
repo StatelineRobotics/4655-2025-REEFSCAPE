@@ -26,7 +26,7 @@ public class ClimberIOSparkMax implements ClimberIO {
   //     new ArmFeedforward(ClimberConstants.ks, ClimberConstants.kg, 0);
 
   public ClimberIOSparkMax() {
-    climberConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(0).inverted(false);
+    climberConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(80).inverted(false);
 
     climberConfig.closedLoop.pid(0.5, 0, 0);
 
