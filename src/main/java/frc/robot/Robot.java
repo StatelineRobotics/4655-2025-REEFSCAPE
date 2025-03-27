@@ -33,6 +33,7 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+import org.littletonrobotics.urcl.URCL;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -88,6 +89,9 @@ public class Robot extends LoggedRobot {
         break;
     }
 
+    // URCL Logging
+    Logger.registerURCL(URCL.startExternal());
+
     // Start AdvantageKit logger
     Logger.start();
 
@@ -112,6 +116,9 @@ public class Robot extends LoggedRobot {
     robotContainer = new RobotContainer();
 
     PathfindingCommand.warmupCommand().schedule();
+
+    WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
+    SmartDashboard.putNumber("Auto wait time", 0.0);
   }
 
   /** This function is called periodically during all modes. */
@@ -132,10 +139,6 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData("commandSchedualer", CommandScheduler.getInstance());
     robotContainer.logSubsystems();
     robotContainer.updateMechanism2ds();
-
-    WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
-
-    SmartDashboard.putNumber("Auto wait time", 0.0);
   }
 
   /** This function is called once when the robot is disabled. */

@@ -159,4 +159,12 @@ public class Module {
   public double getFFCharacterizationVelocity() {
     return Units.radiansToRotations(inputs.driveVelocityRadPerSec);
   }
+
+  public void configCoastMode() {
+    io.configCoastMode();
+  }
+
+  public void configBreakMode() {
+    io.configBreakMode();
+  }
 }

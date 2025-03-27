@@ -149,7 +149,7 @@ public class Vision extends SubsystemBase {
           Translation2d observPos = observation.pose().getTranslation().toTranslation2d();
           double distance = realPos.getDistance(observPos);
 
-          linearStdDev *= (distance * 100);
+          linearStdDev *= (distance * 25);
           angularStdDev = angularStdDev * (differnce * 25);
         }
 
@@ -162,7 +162,7 @@ public class Vision extends SubsystemBase {
           Translation2d observPos = observation.pose().getTranslation().toTranslation2d();
           double distance = realPos.getDistance(observPos);
 
-          linearStdDev *= (distance * 10);
+          linearStdDev *= (distance * 1);
           angularStdDev = angularStdDev * (differnce * 5);
         }
 

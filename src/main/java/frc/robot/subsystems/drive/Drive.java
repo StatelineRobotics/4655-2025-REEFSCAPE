@@ -45,6 +45,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -110,6 +112,8 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+
+  private final Field2d field2d = new Field2d();
 
   private static final PathConstraints teleopPathConstraints =
       new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
@@ -225,6 +229,10 @@ public class Drive extends SubsystemBase {
 
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
+
+    field2d.setRobotPose(getPose());
+
+    SmartDashboard.putData("field", field2d);
   }
 
   public BooleanSupplier nearFinalTarget(Pose2d target, double threshold) {
@@ -372,9 +380,32 @@ public class Drive extends SubsystemBase {
     stop();
   }
 
+  public void configBreakMode() {
+    for (int i = 0; i < 4; i++) {
+      modules[i].configBreakMode();
+    }
+  }
+
+  public void configCoastMode() {
+    for (int i = 0; i < 4; i++) {
+      modules[i].configCoastMode();
+    }
+  }
+
   public void setWheelsStraightAndCoast() {
     Rotation2d[] headings = new Rotation2d[4];
     Rotation2d target = getPose().getRotation().plus(Rotation2d.kCW_90deg);
+    for (int i = 0; i < 4; i++) {
+      headings[i] = target;
+    }
+    kinematics.resetHeadings(headings);
+    stop();
+    coast();
+  }
+
+  public void setWheelsAndCoast() {
+    Rotation2d[] headings = new Rotation2d[4];
+    Rotation2d target = getPose().getRotation();
     for (int i = 0; i < 4; i++) {
       headings[i] = target;
     }

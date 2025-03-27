@@ -28,7 +28,7 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.SingleColorFade;
@@ -91,6 +91,8 @@ public class RobotContainer {
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController auxController = new CommandXboxController(1);
 
+  private Trigger anyPov;
+
   private LoggedMechanism2d superstructure2d =
       new LoggedMechanism2d(Units.inchesToMeters(2), Units.inchesToMeters(32.5 * 4));
   private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
@@ -128,7 +130,9 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     VisionConstants.camera1Name, VisionConstants.robotToCamera1),
                 new VisionIOPhotonVision(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2));
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2),
+                new VisionIOPhotonVision(
+                    VisionConstants.camera3Name, VisionConstants.robotToCamera3));
         elevator = new Elevator(new ElevatorIOSparkMax());
         wrist = new Wrist(new WristIOSparkMax());
         climber = new Climber(new ClimberIOSparkMax());
@@ -214,8 +218,13 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    RobotModeTriggers.disabled()
-        .onTrue(mechanismControl.setState(State.idle).ignoringDisable(true));
+    // RobotModeTriggers.disabled()
+    //     .onTrue(
+    //         mechanismControl
+    //             .setState(State.idle)
+    //             .ignoringDisable(true)
+    //             .alongWith(Commands.runOnce(() -> drive.configCoastMode())))
+    //     .onFalse(Commands.runOnce(() -> drive.configBreakMode()));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -231,6 +240,7 @@ public class RobotContainer {
             .repeatedly());
 
     // Lock to 0 when A button is held
+    auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
     controller
         .a()
         .whileTrue(
@@ -256,6 +266,10 @@ public class RobotContainer {
     controller
         .rightTrigger()
         .whileTrue(drive.getRightCoralDriveCommand(mechanismControl.getElevatorUp()));
+
+    anyPov = new Trigger(() -> controller.getHID().getPOV() != -1);
+    anyPov.onTrue(mechanismControl.setState(State.climb));
+
     // Auto aim command example
     @SuppressWarnings("resource")
     PIDController aimController = new PIDController(0.2, 0.0, 0.0);
@@ -279,6 +293,7 @@ public class RobotContainer {
         .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
     controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
 
+    //
     selector
         .addBinding(
             new Binding(
@@ -328,19 +343,19 @@ public class RobotContainer {
             wrist
                 .wristVoltageControl(() -> auxController.getRightY() * 12.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .whileFalse(wrist.stopCommand());
+        .onFalse(Commands.runOnce(() -> climber.stop()));
 
     auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
     auxController
         .povLeft()
         .onTrue(mechanismControl.setState(State.reverse))
-        .onFalse(mechanismControl.setState(State.coralPickup));
+        .onFalse(mechanismControl.setState(State.idle));
 
     auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
     auxController.a().whileTrue(elevator.sysIdRoutine());
 
     auxController.povDown().onTrue(mechanismControl.setState(State.climb));
-    auxController.povRight().onTrue(mechanismControl.setState(State.climberHome));
+
     auxController
         .y()
         .onTrue(mechanismControl.setState(State.algeaGround))

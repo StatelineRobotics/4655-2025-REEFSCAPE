@@ -29,7 +29,7 @@ public class Elevator extends SubsystemBase {
   private double ElevatorPosition = 0.0;
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
-
+  
   private TrapezoidProfile profile =
       new TrapezoidProfile(new Constraints(ElevatorConstants.maxVelo, ElevatorConstants.maxAccel));
   private TrapezoidProfile.State startingState = new State();
@@ -69,8 +69,6 @@ public class Elevator extends SubsystemBase {
   }
 
   private final ElevatorFeedforward feedforward;
-
-  @AutoLogOutput public Trigger atSetpoint = new Trigger(() -> false);
 
   public Elevator(ElevatorIO io) {
     this.io = io;
