@@ -16,47 +16,49 @@ public class MechanismConstants {
 
   public class ElevatorConstants {
     // Gearing constants
-    public static final double elevatorGearing = 25.0;
+    public static final double elevatorGearing = 5.0;
     public static final double elevatorDrumDiam = 0.044704;
     public static final double elevatorDrumRad = elevatorDrumDiam / 2;
-    public static final double conversion_MS_RPM =
-        (60.0 * elevatorGearing) / (Math.PI * elevatorDrumDiam);
-    public static final double conversion_RPM_MS = 1.0 / conversion_MS_RPM;
-    public static final double conversion_M_Rot = (elevatorGearing) / (Math.PI * elevatorDrumDiam);
-    public static final double conversion_Rot_M = 1.0 / conversion_M_Rot;
+    public static final double positionConversion =
+        (Math.PI * elevatorDrumDiam) / elevatorGearing; // revolutions -> meters
+    public static final double velocityConversion = positionConversion / 60.0; // rpm -> m/s
 
     // Closed Loop Constant
-    public static final double kp = 0.06;
+    public static final double kp = 10.0;
     public static final double ki = 0.0;
-    public static final double kd = 0.02;
-    public static final double kg = 0.35;
-    public static final double ks = 0.0;
+    public static final double kd = 1.0;
+    public static final double kg = 1.2208;
+    public static final double ks = 0.37251;
+    public static final double kv = 3.35;
+    public static final double ka = 1.24586;
 
-    public static final double simKp = .04;
+    public static final double simKp = 0.0;
     public static final double simKi = 0.0;
     public static final double simKd = 0.0;
-    public static final double simKg = 0.1375;
+    public static final double simKg = 0.55243;
     public static final double simKs = 0.0;
+    public static final double simKv = 22.325; // V*s/m
+    public static final double simKa = 1.54; // V*s^2/m
 
-    public static final double maxAccel = 10000.0;
-    public static final double maxVelo = 4000.0;
+    public static final double maxAccel = 1.0; // m/s^2 max: 17.14
+    public static final double maxVelo = 0.75; // m/s max: .8
 
-    public static final double simMaxAccel = 20000;
-    public static final double simMaxVelo = 5000;
+    public static final double simMaxAccel = 0.2; // m/s^2 max: 17.14
+    public static final double simMaxVelo = 0.1; // m/s max: .8
 
-    public static final double allowedClosedLoopError = 0.5;
+    public static final double allowedClosedLoopError = 0.01;
 
     // Elevator Constants
-    public static final double intakeHeight = 0.5;
-    public static final double storeAlgeaHeight = 11.0;
+    public static final double intakeHeight = 0.0;
+    public static final double storeAlgeaHeight = 0.0;
     public static final double storeHeight = 0.0;
-    public static final double maxHeight = 105.5;
-    public static final double levelOne = 30;
-    public static final double levelTwo = 40;
-    public static final double levelThree = 65;
-    public static final double levelFour = 105;
-    public static final double algeaL2 = 40;
-    public static final double algeaL3 = 60;
+    public static final double maxHeight = .589;
+    public static final double levelOne = 0.23473908007144928;
+    public static final double levelTwo = 0.23473908007144928;
+    public static final double levelThree = 0.3704996407032013;
+    public static final double levelFour = 0.588;
+    public static final double algeaL2 = 0.20397526025772095;
+    public static final double algeaL3 = 0.33171162009239197;
     public static final double algeaGround = 0.0;
   }
 
