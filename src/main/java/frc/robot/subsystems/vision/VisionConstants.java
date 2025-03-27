@@ -27,8 +27,8 @@ public class VisionConstants {
   private static File deployDirectory = Filesystem.getDeployDirectory();
   private static File alternateJSON = new File(deployDirectory, "alternateTagLayout.json");
 
-  public static AprilTagFieldLayout alternateTagLayout;
-  public static AprilTagFieldLayout defaultLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+  public static AprilTagFieldLayout alternateTagLayout = AprilTagFieldLayout.loadField(alternateJSON);
+    public static AprilTagFieldLayout defaultLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
   static {
     try {
