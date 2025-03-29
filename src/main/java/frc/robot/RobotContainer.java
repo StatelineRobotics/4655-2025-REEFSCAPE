@@ -17,8 +17,9 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -27,6 +28,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -154,11 +157,11 @@ public class RobotContainer {
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose)
-                // new VisionIOPhotonVisionSim(
-                //     VisionConstants.camera2Name, VisionConstants.robotToCamera2,
-                // drive::getPose));
-                );
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         wrist = new Wrist(new WristIOSim());
         climber = new Climber(new ClimberIO() {});
@@ -251,7 +254,15 @@ public class RobotContainer {
                 () -> -controller.getRightX()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    controller
+        .x()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        drive.setPose(
+                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                    drive)
+                .ignoringDisable(true));
 
     // Reset gyro to 0 when B button is pressed
     controller
@@ -262,34 +273,32 @@ public class RobotContainer {
 
     controller
         .leftTrigger()
-        .whileTrue(drive.getLeftCoralDriveCommand(mechanismControl.getElevatorUp()));
+        .whileTrue(
+            new ConditionalCommand(
+                    new InstantCommand(),
+                    drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
+                    wrist.intakeStalled)
+                .alongWith(lights.strobeAnimation(new Color(0, 0, 255), "blue strobe")));
+
     controller
         .rightTrigger()
-        .whileTrue(drive.getRightCoralDriveCommand(mechanismControl.getElevatorUp()));
+        .whileTrue(
+            new ConditionalCommand(
+                    drive.getProccesorDriveCommand(),
+                    drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
+                    wrist.intakeStalled)
+                .alongWith(lights.strobeAnimation(new Color(0, 0, 255), "blue strobe")));
 
     anyPov = new Trigger(() -> controller.getHID().getPOV() != -1);
     anyPov.onTrue(mechanismControl.setState(State.climb));
 
-    // Auto aim command example
-    @SuppressWarnings("resource")
-    PIDController aimController = new PIDController(0.2, 0.0, 0.0);
-    aimController.enableContinuousInput(-Math.PI, Math.PI);
-    controller
-        .b()
-        .whileTrue(
-            Commands.startRun(
-                () -> {
-                  aimController.reset();
-                },
-                () -> {
-                  // **drive.run(0.0, aimController.calculate
-                  //   vision.getTargetX(0).getRadians();
-                },
-                drive));
-
     controller
         .rightBumper()
-        .whileTrue(Commands.run(() -> wrist.reqestIntakeVoltage(12)))
+        .whileTrue(
+            new ConditionalCommand(
+                Commands.run(() -> wrist.reqestIntakeVoltage(6)),
+                Commands.run(() -> wrist.reqestIntakeVoltage(12)),
+                wrist.intakeStalled))
         .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
     controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
 
@@ -329,21 +338,13 @@ public class RobotContainer {
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(elevator.holdPosition());
 
-    // auxController
-    //     .axisMagnitudeGreaterThan(5, 0.1)
-    //     .whileTrue(
-    //         climber
-    //             .voltageCommand(() -> auxController.getRightY() * 12.0)
-    //             .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-    //     .whileFalse(wrist.stopCommand());
-
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
         .whileTrue(
-            wrist
-                .wristVoltageControl(() -> auxController.getRightY() * 12.0)
+            climber
+                .voltageCommand(() -> auxController.getRightY() * 12.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .onFalse(Commands.runOnce(() -> climber.stop()));
+        .onFalse(new InstantCommand(climber::stop));
 
     auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
     auxController
@@ -394,14 +395,7 @@ public class RobotContainer {
             .withTimeout(0.5)
             .asProxy());
     NamedCommands.registerCommand(
-        "waitUntilInake",
-        Commands.waitUntil(
-                () -> {
-                  return mechanismControl.currentState != State.coralPickup
-                      && mechanismControl.currentState != State.coralPickupS2
-                      && mechanismControl.currentState != State.coralPickupS3;
-                })
-            .asProxy());
+        "waitUntilInake", Commands.waitUntil(wrist.detectsForward).asProxy());
     NamedCommands.registerCommand(
         "algaeL3", mechanismControl.setState(State.algeaPickupL3).asProxy());
     NamedCommands.registerCommand(

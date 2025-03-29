@@ -7,6 +7,7 @@ public interface WristIO {
   @AutoLog
   class WristIOInputs {
     public boolean detectsNote = false;
+    public boolean detectsForward = false;
 
     public double wristPos = 0.0;
     public double leftIntakeRPM = 0.0;
@@ -27,6 +28,9 @@ public interface WristIO {
     public double leftAppliedVoltage = 0.0;
     public double leftAppliedCurrent = 0.0;
     public double leftSetpoint = 0.0;
+
+    public double filteredLeftCurrent = 0.0;
+    public double filteredRightCurrent = 0.0;
   }
 
   default void updateInputs(WristIOInputs inputs) {}

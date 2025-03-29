@@ -55,7 +55,7 @@ public class DriveTarget {
   }
 
   private static final Pose2d blueProcessorEndPose =
-      new Pose2d(5.987, 0.451, Rotation2d.fromDegrees(-90));
+      new Pose2d(6.0, 0.451, Rotation2d.fromDegrees(-90));
   private static final Pose2d blueProcessorStartPose =
       blueProcessorEndPose.transformBy(new Transform2d(-0.5, 0.0, Rotation2d.kZero));
   private static final Pose2d[] blueSourceEndPoses = {

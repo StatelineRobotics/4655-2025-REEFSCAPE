@@ -13,6 +13,7 @@ public class MechanismConstants {
   public static final int beltId = 10;
   public static final int canRangeID = 2;
   public static final int CANdleID = 11;
+  public static final int forwardCANrangeId = 12;
 
   public class ElevatorConstants {
     // Gearing constants
@@ -24,9 +25,9 @@ public class MechanismConstants {
     public static final double velocityConversion = positionConversion / 60.0; // rpm -> m/s
 
     // Closed Loop Constant
-    public static final double kp = 10.0;
+    public static final double kp = 20.0;
     public static final double ki = 0.0;
-    public static final double kd = 1.0;
+    public static final double kd = 20.0;
     public static final double kg = 1.2208;
     public static final double ks = 0.37251;
     public static final double kv = 3.35;
@@ -40,24 +41,24 @@ public class MechanismConstants {
     public static final double simKv = 22.325; // V*s/m
     public static final double simKa = 1.54; // V*s^2/m
 
-    public static final double maxAccel = 1.0; // m/s^2 max: 17.14
+    public static final double maxAccel = 1.2; // m/s^2 max: 17.14
     public static final double maxVelo = 0.75; // m/s max: .8
 
     public static final double simMaxAccel = 0.2; // m/s^2 max: 17.14
     public static final double simMaxVelo = 0.1; // m/s max: .8
 
-    public static final double allowedClosedLoopError = 0.01;
+    public static final double allowedClosedLoopError = 0.005;
 
     // Elevator Constants
     public static final double intakeHeight = 0.0;
-    public static final double storeAlgeaHeight = 0.0;
+    public static final double storeAlgeaHeight = 0.03;
     public static final double storeHeight = 0.0;
     public static final double maxHeight = .589;
-    public static final double levelOne = 0.23473908007144928;
+    public static final double levelOne = 0.1197097;
     public static final double levelTwo = 0.23473908007144928;
     public static final double levelThree = 0.3704996407032013;
     public static final double levelFour = 0.588;
-    public static final double algeaL2 = 0.20397526025772095;
+    public static final double algeaL2 = 0.19;
     public static final double algeaL3 = 0.33171162009239197;
     public static final double algeaGround = 0.0;
   }
@@ -67,9 +68,9 @@ public class MechanismConstants {
     public static final double algeaGround = 20.0;
 
     // Closed Loop Constatns
-    public static final double kp = 0.05;
+    public static final double kp = 0.02;
     public static final double ki = 0.0;
-    public static final double kd = 0.0;
+    public static final double kd = 0.01;
     public static final double kg = 0.0;
     public static final double ks = 0.0;
 
@@ -83,12 +84,13 @@ public class MechanismConstants {
     public static final double simKg = 0.0;
     public static final double simKs = 0.0;
 
-    public static final double intakeCoralAngle = 3.0;
+    public static final double intakeCoralAngle = 1.0;
     public static final double storeAlgeaAngle = 2.0;
     public static final double storeAngle = 3.0;
     public static final double coralScoreAngle = 30.0;
     public static final double algeaIntakeAngle = 2.0;
     public static final double algeaScoreAngle = 2.0;
+    public static final double l1angle = 19.678;
   }
 
   public class RollerConstants {
@@ -105,5 +107,11 @@ public class MechanismConstants {
     public static final double ks = 0.0;
     public static final double ka = 0.0;
     public static final int climberCurrentLimit = 10;
+  }
+
+  public class FunnelConstants {
+    public static final double kp = .02;
+    public static final double ki = 0.0;
+    public static final double kd = 0.0;
   }
 }

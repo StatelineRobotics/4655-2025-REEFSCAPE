@@ -23,6 +23,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
@@ -31,6 +32,7 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 
 public class WristIOSparkMax implements WristIO {
   private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
+  private CANrange forwardRange = new CANrange(MechanismConstants.forwardCANrangeId);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
 
   protected SparkMax m_leftIntake =
@@ -51,6 +53,9 @@ public class WristIOSparkMax implements WristIO {
   private double RPM;
   private ClosedLoopConfig intakeConfig;
   private ArmFeedforward armFeedforward = new ArmFeedforward(0, .25, RPM);
+
+  private LinearFilter leftFilter = LinearFilter.movingAverage(10);
+  private LinearFilter rightFilter = LinearFilter.movingAverage(10);
 
   public WristIOSparkMax() {
     mleftConfig
@@ -115,6 +120,7 @@ public class WristIOSparkMax implements WristIO {
         .withProximityThreshold(0.1);
 
     canRange.getConfigurator().apply(canRangeConfig);
+    forwardRange.getConfigurator().apply(canRangeConfig);
 
     leftEncoder = m_leftIntake.getEncoder();
     rightEncoder = m_rightIntake.getEncoder();
@@ -135,6 +141,7 @@ public class WristIOSparkMax implements WristIO {
 
   public void updateInputs(WristIOInputs inputs) {
     inputs.detectsNote = canRange.getIsDetected().getValue();
+    inputs.detectsForward = forwardRange.getIsDetected().getValue();
 
     inputs.leftIntakeRPM = leftEncoder.getVelocity();
     inputs.rightIntakeRPM = rightEncoder.getVelocity();
@@ -151,6 +158,9 @@ public class WristIOSparkMax implements WristIO {
     inputs.leftDutyCycle = m_leftIntake.getAppliedOutput();
     inputs.leftAppliedVoltage = m_leftIntake.getBusVoltage() * inputs.rightDutyCycle;
     inputs.leftAppliedCurrent = m_leftIntake.getOutputCurrent();
+
+    inputs.filteredLeftCurrent = leftFilter.calculate(inputs.leftAppliedCurrent);
+    inputs.filteredRightCurrent = rightFilter.calculate(inputs.rightAppliedCurrent);
 
     if (Constants.usePIDtuning) {
       updatePIDTuning();

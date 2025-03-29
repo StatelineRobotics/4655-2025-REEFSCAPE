@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -25,13 +24,17 @@ public class Wrist extends SubsystemBase {
   public Trigger intakeStalled =
       new Trigger(
               () ->
-                  Math.round(inputs.rightAppliedCurrent) >= RollerConstants.currentLimit
-                      || Math.round(inputs.leftAppliedCurrent) >= RollerConstants.currentLimit)
+                  Math.round(inputs.filteredRightCurrent) >= 8
+                      && Math.round(inputs.filteredLeftCurrent) >= 8)
           .debounce(.25, DebounceType.kBoth);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
+  public Trigger detectsForward = new Trigger(() -> inputs.detectsForward);
+
+  @AutoLogOutput public Trigger detectsBoth = detectsNote.and(detectsForward);
 
   public Trigger detectsNoteDebounced = detectsNote.debounce(.25, DebounceType.kRising);
+  public Trigger detectsForwardDebounced = detectsForward.debounce(.25, DebounceType.kRising);
 
   public Wrist(WristIO io) {
     this.io = io;

@@ -43,12 +43,6 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "G.5 to score G"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "score"
@@ -101,7 +95,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.15
+                        "waitTime": 0.5
                       }
                     },
                     {
@@ -170,7 +164,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.15
+                        "waitTime": 0.5
                       }
                     },
                     {

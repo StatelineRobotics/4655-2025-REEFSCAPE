@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 6.041803278688524,
-        "y": 0.6264856557377039
+        "y": 0.6
       },
       "prevControl": null,
       "nextControl": {
         "x": 6.069569679321391,
-        "y": 1.3131573394987202
+        "y": 1.2866716837610164
       },
       "isLocked": false,
       "linkedName": "Processor"

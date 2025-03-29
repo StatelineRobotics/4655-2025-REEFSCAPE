@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants.FunnelConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
   protected SparkMax m_leftElevator;
@@ -55,7 +56,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
     mFunnelConfig
         .closedLoop
         .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-        .pid(ElevatorConstants.kp, ElevatorConstants.ki, ElevatorConstants.kd)
+        .pid(FunnelConstants.kp, FunnelConstants.ki, FunnelConstants.kd)
         .positionWrappingEnabled(false);
 
     // base config for all motors
