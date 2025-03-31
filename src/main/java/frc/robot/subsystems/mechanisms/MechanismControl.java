@@ -65,7 +65,7 @@ public class MechanismControl extends SubsystemBase {
                     || currentState == State.levelThree
                     || currentState == State.levelFour;
               })
-          .debounce(.5);
+          .debounce(.25);
 
   public MechanismControl(
       Drive driveSubsystem,
@@ -296,7 +296,13 @@ public class MechanismControl extends SubsystemBase {
     } else {
       return Commands.defer(
           () -> {
-            return Commands.runOnce(() -> setDesiredState(desiredState));
+            return Commands.waitUntil(
+                    driveSubsystem.autoElevator.or(
+                        () ->
+                            desiredState == State.store
+                                || desiredState == State.algeaStore
+                                || desiredState == State.coralPickup))
+                .andThen(Commands.runOnce(() -> setDesiredState(desiredState)));
           },
           Set.of(elevatorSubsystem, wristSubsystem, climber));
     }
@@ -306,7 +312,7 @@ public class MechanismControl extends SubsystemBase {
     hasSetElevatorPosition = false;
     currentState = desiredState;
     periodic();
-    getLEDCommand(desiredState).schedule();
+    // getLEDCommand(desiredState).schedule();
   }
 
   private Command getLEDCommand(State desiredState) {

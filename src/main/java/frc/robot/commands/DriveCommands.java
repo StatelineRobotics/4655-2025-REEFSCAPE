@@ -44,9 +44,9 @@ public class DriveCommands {
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
   private static final double TRANSLATION_KP = 3.0;
-  private static final double TRANSLATION_KD = 0.0;
+  private static final double TRANSLATION_KD = 1.0;
   private static final double TRANSLATION_MAX_VELOCITY = 6.0;
-  private static final double TRANSLATION_MAX_ACCELERATION = 6.0;
+  private static final double TRANSLATION_MAX_ACCELERATION = 2.0;
   private static final double FF_START_DELAY = 2.0; // Secs
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
@@ -215,6 +215,9 @@ public class DriveCommands {
 
   public static Command driveToPoseCommand(
       Drive drive, Pose2d targetPose, Supplier<Pose2d> poseSupplier) {
+
+    Pose2d startPose = poseSupplier.get();
+
     ProfiledPIDController xController =
         new ProfiledPIDController(
             TRANSLATION_KP,

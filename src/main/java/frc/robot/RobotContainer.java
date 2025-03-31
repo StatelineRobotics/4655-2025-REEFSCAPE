@@ -60,7 +60,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
 import org.littletonrobotics.junction.Logger;
@@ -150,18 +149,18 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                drive::getPose,
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
+        vision = new Vision(drive::addVisionMeasurement, drive::getPose);
+
+        // drive::addVisionMeasurement,
+        // drive::getPose,
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         wrist = new Wrist(new WristIOSim());
         climber = new Climber(new ClimberIO() {});
@@ -212,6 +211,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    configureLEDbindings();
   }
 
   /**
@@ -246,12 +246,16 @@ public class RobotContainer {
     auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
     controller
         .a()
-        .whileTrue(
-            DriveCommands.joystickDriveRobot(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> -controller.getRightX()));
+        .onTrue(mechanismControl.setState(State.levelFour).withName("L4"))
+        .onFalse(mechanismControl.setState(State.store));
+    // controller
+    //     .a()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveRobot(
+    //             drive,
+    //             () -> -controller.getLeftY(),
+    //             () -> -controller.getLeftX(),
+    //             () -> -controller.getRightX()));
 
     // Switch to X pattern when X button is pressed
     controller
@@ -275,19 +279,17 @@ public class RobotContainer {
         .leftTrigger()
         .whileTrue(
             new ConditionalCommand(
-                    new InstantCommand(),
-                    drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
-                    wrist.intakeStalled)
-                .alongWith(lights.strobeAnimation(new Color(0, 0, 255), "blue strobe")));
+                new InstantCommand(),
+                drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
+                wrist.intakeStalled));
 
     controller
         .rightTrigger()
         .whileTrue(
             new ConditionalCommand(
-                    drive.getProccesorDriveCommand(),
-                    drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
-                    wrist.intakeStalled)
-                .alongWith(lights.strobeAnimation(new Color(0, 0, 255), "blue strobe")));
+                drive.getProccesorDriveCommand(),
+                drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
+                wrist.intakeStalled));
 
     anyPov = new Trigger(() -> controller.getHID().getPOV() != -1);
     anyPov.onTrue(mechanismControl.setState(State.climb));
@@ -361,6 +363,16 @@ public class RobotContainer {
         .y()
         .onTrue(mechanismControl.setState(State.algeaGround))
         .onFalse(mechanismControl.setState(State.algeaStore));
+  }
+
+  private void configureLEDbindings() {
+    mechanismControl
+        .atDualSetPoint
+        .onTrue(lights.solidAnimation(new Color(0, 255, 0), "atDualSetPoint"))
+        .onFalse(lights.solidAnimation(new Color(255, 0, 0), "NOT atDualSetPoint"));
+    wrist.detectsBoth.onTrue(lights.strobeAnimation(new Color(0, 255, 0), "detects both"));
+    wrist.intakeStalled.onTrue(lights.strobeAnimation(new Color(0, 0, 255), "intake Stalled"));
+    drive.autoElevator.onFalse(lights.solidAnimation(new Color(0, 0, 255), "NOT autoElevator"));
   }
 
   public void logSubsystems() {
