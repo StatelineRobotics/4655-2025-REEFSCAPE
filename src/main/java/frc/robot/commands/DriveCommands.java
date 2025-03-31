@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
@@ -82,6 +83,14 @@ public class DriveCommands {
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
+          // double length = Math.hypot(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          // Transform2d transform =
+          //     new Transform2d(
+          //         xSupplier.getAsDouble() / length * .5,
+          //         ySupplier.getAsDouble() / length * .5,
+          //         Rotation2d.kZero);
+
+          // Logger.recordOutput("transformed position", drive.getPose().transformBy(transform));
           // Apply rotation deadband
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 

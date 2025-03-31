@@ -319,6 +319,20 @@ public class Drive extends SubsystemBase {
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
   }
 
+  public Command getLeftSourceDriveCommand()  {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getLeftSourcePose();
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
+    return defer(pathfindingCommand);
+  }
+
+  public Command getRightSourceDriveCommand()  {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getRightSourcePose();
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
+    return defer(pathfindingCommand);
+  }
+
   /**
    * Runs the drive at the desired velocity.
    *

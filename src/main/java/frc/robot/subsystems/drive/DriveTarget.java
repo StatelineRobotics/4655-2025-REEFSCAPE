@@ -216,6 +216,26 @@ public class DriveTarget {
     }
   }
 
+  public static Pose2d[] getLeftSourcePose() {
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      Pose2d[] poses  = {blueSourceStartPoses[1], blueSourceEndPoses[1]};
+      return poses;
+    } else {
+      Pose2d[] poses  = {redSourceStartPoses[1], redSourceEndPoses[1]};
+      return poses; 
+    }
+  }
+
+  public static Pose2d[] getRightSourcePose() {
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      Pose2d[] poses  = {blueSourceStartPoses[0], blueSourceEndPoses[0]};
+      return poses;
+    } else {
+      Pose2d[] poses  = {redSourceStartPoses[0], redSourceEndPoses[0]};
+      return poses; 
+    }
+  }
+
   public static Pose2d[] getSourcePose(Pose2d currentPose) {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
       if (getSquaredDistance(currentPose, blueSourceEndPoses[0])

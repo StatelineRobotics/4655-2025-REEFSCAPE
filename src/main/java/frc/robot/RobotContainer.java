@@ -62,6 +62,10 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
+
+import java.util.EnumMap;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -101,6 +105,17 @@ public class RobotContainer {
   private LoggedMechanismLigament2d elevatorVisual =
       superstructureRoot.append(
           new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
+
+  private enum AutoEnums {
+    coral,
+    algea,
+    intake
+  }
+
+  private EnumMap<AutoEnums, Command> leftCommandMap = new EnumMap<>(AutoEnums.class);
+  private EnumMap<AutoEnums, Command> rightCommandMap = new EnumMap<>(AutoEnums.class);
+
+  private Supplier<AutoEnums> autoEnumSupplier;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -275,21 +290,43 @@ public class RobotContainer {
             DriveCommands.pointTowardsReefCommand(
                 drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
 
-    controller
-        .leftTrigger()
-        .whileTrue(
-            new ConditionalCommand(
-                new InstantCommand(),
-                drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
-                wrist.intakeStalled));
+    autoEnumSupplier = () -> {
+        if(wrist.intakeStalled.getAsBoolean()) {
+            return AutoEnums.algea;
+        } else if (wrist.detectsForward.getAsBoolean()) {
+            return AutoEnums.coral;
+        } else {
+            return AutoEnums.intake;
+        }
+    };
 
-    controller
-        .rightTrigger()
-        .whileTrue(
-            new ConditionalCommand(
-                drive.getProccesorDriveCommand(),
-                drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
-                wrist.intakeStalled));
+    leftCommandMap.put(AutoEnums.coral, drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp));
+    leftCommandMap.put(AutoEnums.algea, new InstantCommand());
+    leftCommandMap.put(AutoEnums.intake, drive.getLeftSourceDriveCommand());
+
+    rightCommandMap.put(AutoEnums.coral, drive.getRightCoralDriveCommand(mechanismControl.elevatorUp));
+    rightCommandMap.put(AutoEnums.algea, drive.getSourceDriveCommand());
+    rightCommandMap.put(AutoEnums.intake, drive.getRightSourceDriveCommand());
+    
+    // controller
+    //     .leftTrigger()
+    //     .whileTrue(
+    //         new ConditionalCommand(
+    //             new InstantCommand(),
+    //             drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
+    //             wrist.intakeStalled));
+
+    controller.leftTrigger().whileTrue(Commands.select(leftCommandMap, autoEnumSupplier));
+
+    // controller
+    //     .rightTrigger()
+    //     .whileTrue(
+    //         new ConditionalCommand(
+    //             drive.getProccesorDriveCommand(),
+    //             drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
+    //             wrist.intakeStalled));
+
+    controller.rightTrigger().whileTrue(Commands.select(rightCommandMap, autoEnumSupplier));
 
     anyPov = new Trigger(() -> controller.getHID().getPOV() != -1);
     anyPov.onTrue(mechanismControl.setState(State.climb));
