@@ -60,9 +60,12 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
+
+import java.util.EnumMap;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -102,6 +105,17 @@ public class RobotContainer {
   private LoggedMechanismLigament2d elevatorVisual =
       superstructureRoot.append(
           new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
+
+  private enum AutoEnums {
+    coral,
+    algea,
+    intake
+  }
+
+  private EnumMap<AutoEnums, Command> leftCommandMap = new EnumMap<>(AutoEnums.class);
+  private EnumMap<AutoEnums, Command> rightCommandMap = new EnumMap<>(AutoEnums.class);
+
+  private Supplier<AutoEnums> autoEnumSupplier;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -150,18 +164,18 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                drive::getPose,
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
+        vision = new Vision(drive::addVisionMeasurement, drive::getPose);
+
+        // drive::addVisionMeasurement,
+        // drive::getPose,
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
+        // new VisionIOPhotonVisionSim(
+        //     VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
         elevator = new Elevator(new ElevatorIOSim());
         wrist = new Wrist(new WristIOSim());
         climber = new Climber(new ClimberIO() {});
@@ -212,6 +226,7 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+    configureLEDbindings();
   }
 
   /**
@@ -246,12 +261,16 @@ public class RobotContainer {
     auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
     controller
         .a()
-        .whileTrue(
-            DriveCommands.joystickDriveRobot(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> -controller.getRightX()));
+        .onTrue(mechanismControl.setState(State.levelFour).withName("L4"))
+        .onFalse(mechanismControl.setState(State.store));
+    // controller
+    //     .a()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveRobot(
+    //             drive,
+    //             () -> -controller.getLeftY(),
+    //             () -> -controller.getLeftX(),
+    //             () -> -controller.getRightX()));
 
     // Switch to X pattern when X button is pressed
     controller
@@ -271,23 +290,43 @@ public class RobotContainer {
             DriveCommands.pointTowardsReefCommand(
                 drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
 
-    controller
-        .leftTrigger()
-        .whileTrue(
-            new ConditionalCommand(
-                    new InstantCommand(),
-                    drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
-                    wrist.intakeStalled)
-                .alongWith(lights.strobeAnimation(new Color(0, 0, 255), "blue strobe")));
+    autoEnumSupplier = () -> {
+        if(wrist.intakeStalled.getAsBoolean()) {
+            return AutoEnums.algea;
+        } else if (wrist.detectsForward.getAsBoolean()) {
+            return AutoEnums.coral;
+        } else {
+            return AutoEnums.intake;
+        }
+    };
 
-    controller
-        .rightTrigger()
-        .whileTrue(
-            new ConditionalCommand(
-                    drive.getProccesorDriveCommand(),
-                    drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
-                    wrist.intakeStalled)
-                .alongWith(lights.strobeAnimation(new Color(0, 0, 255), "blue strobe")));
+    leftCommandMap.put(AutoEnums.coral, drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp));
+    leftCommandMap.put(AutoEnums.algea, new InstantCommand());
+    leftCommandMap.put(AutoEnums.intake, drive.getLeftSourceDriveCommand());
+
+    rightCommandMap.put(AutoEnums.coral, drive.getRightCoralDriveCommand(mechanismControl.elevatorUp));
+    rightCommandMap.put(AutoEnums.algea, drive.getSourceDriveCommand());
+    rightCommandMap.put(AutoEnums.intake, drive.getRightSourceDriveCommand());
+    
+    // controller
+    //     .leftTrigger()
+    //     .whileTrue(
+    //         new ConditionalCommand(
+    //             new InstantCommand(),
+    //             drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
+    //             wrist.intakeStalled));
+
+    controller.leftTrigger().whileTrue(Commands.select(leftCommandMap, autoEnumSupplier));
+
+    // controller
+    //     .rightTrigger()
+    //     .whileTrue(
+    //         new ConditionalCommand(
+    //             drive.getProccesorDriveCommand(),
+    //             drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
+    //             wrist.intakeStalled));
+
+    controller.rightTrigger().whileTrue(Commands.select(rightCommandMap, autoEnumSupplier));
 
     anyPov = new Trigger(() -> controller.getHID().getPOV() != -1);
     anyPov.onTrue(mechanismControl.setState(State.climb));
@@ -361,6 +400,16 @@ public class RobotContainer {
         .y()
         .onTrue(mechanismControl.setState(State.algeaGround))
         .onFalse(mechanismControl.setState(State.algeaStore));
+  }
+
+  private void configureLEDbindings() {
+    mechanismControl
+        .atDualSetPoint
+        .onTrue(lights.solidAnimation(new Color(0, 255, 0), "atDualSetPoint"))
+        .onFalse(lights.solidAnimation(new Color(255, 0, 0), "NOT atDualSetPoint"));
+    wrist.detectsBoth.onTrue(lights.strobeAnimation(new Color(0, 255, 0), "detects both"));
+    wrist.intakeStalled.onTrue(lights.strobeAnimation(new Color(0, 0, 255), "intake Stalled"));
+    drive.autoElevator.onFalse(lights.solidAnimation(new Color(0, 0, 255), "NOT autoElevator"));
   }
 
   public void logSubsystems() {

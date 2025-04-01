@@ -66,7 +66,7 @@ public class Lights extends SubsystemBase {
   }
 
   public Command strobeAnimation(Color color, String name) {
-    return this.startRun(() -> setFade(color), () -> {}).withName(name);
+    return this.startRun(() -> setStrobe(color), () -> {}).withName(name);
   }
 
   public Command strobeAnimation(Color color, BooleanSupplier condition, String name) {

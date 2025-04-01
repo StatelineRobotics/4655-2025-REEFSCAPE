@@ -48,7 +48,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
@@ -114,6 +116,10 @@ public class Drive extends SubsystemBase {
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
   private final Field2d field2d = new Field2d();
+
+  public Trigger readyFinalAuto = new Trigger(() -> nearFinalTarget(getPose(), .05));
+  public boolean firstStageAuto = false;
+  @AutoLogOutput public Trigger autoElevator = new Trigger(() -> !firstStageAuto);
 
   private static final PathConstraints teleopPathConstraints =
       new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
@@ -235,45 +241,57 @@ public class Drive extends SubsystemBase {
     SmartDashboard.putData("field", field2d);
   }
 
-  public BooleanSupplier nearFinalTarget(Pose2d target, double threshold) {
-    return () -> {
-      double distance = target.getTranslation().getDistance(getPose().getTranslation());
-      if (distance < threshold) {
-        return true;
-      } else {
-        return false;
-      }
-    };
+  public boolean nearFinalTarget(Pose2d target, double threshold) {
+    double distance = target.getTranslation().getDistance(getPose().getTranslation());
+    if (distance < threshold) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public Command getLeftCoralDriveCommand(BooleanSupplier condition) {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "left");
+
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-    return defer(pathfindingCommand)
-        .until(() -> nearFinalTarget(getPose(), .25).getAsBoolean() && condition.getAsBoolean())
-        .andThen(
-            defer(
-                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+    Command command =
+        (defer(pathfindingCommand)
+                .beforeStarting(() -> firstStageAuto = true)
+                .finallyDo(() -> firstStageAuto = false))
+            .andThen(Commands.waitUntil(condition))
+            .andThen(
+                defer(
+                    () ->
+                        DriveCommands.driveToPoseCommand(
+                            this, targetPose.get()[1], this::getPose)));
+    return command;
   }
 
-  public Command getRightCoralDriveCommand(BooleanSupplier condition) {
+  public Command getRightCoralDriveCommand(Trigger condition) {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "right");
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-    return defer(pathfindingCommand)
-        .until(() -> nearFinalTarget(getPose(), .25).getAsBoolean() && condition.getAsBoolean())
-        .andThen(
-            defer(
-                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+
+    Command command =
+        (defer(pathfindingCommand)
+                .beforeStarting(() -> firstStageAuto = true)
+                .finallyDo(() -> firstStageAuto = false))
+            .andThen(Commands.waitUntil(() -> condition.getAsBoolean()))
+            .andThen(
+                defer(
+                    () ->
+                        DriveCommands.driveToPoseCommand(
+                            this, targetPose.get()[1], this::getPose)));
+    return command;
   }
 
-  public Command getMiddleCoralDriveCommand() {
+  public Command getMiddleCoralDriveCommand(BooleanSupplier condition) {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "middle");
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     return defer(pathfindingCommand)
-        .until(nearFinalTarget(getPose(), .25))
+        .until(readyFinalAuto.and(condition))
         .andThen(
             defer(
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
@@ -284,7 +302,7 @@ public class Drive extends SubsystemBase {
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     return defer(pathfindingCommand)
-        .until(nearFinalTarget(getPose(), .25))
+        .until(readyFinalAuto)
         .andThen(
             defer(
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
@@ -295,10 +313,24 @@ public class Drive extends SubsystemBase {
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     return defer(pathfindingCommand)
-        .until(nearFinalTarget(getPose(), .25))
+        .until(readyFinalAuto)
         .andThen(
             defer(
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+  }
+
+  public Command getLeftSourceDriveCommand()  {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getLeftSourcePose();
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
+    return defer(pathfindingCommand);
+  }
+
+  public Command getRightSourceDriveCommand()  {
+    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getRightSourcePose();
+    Supplier<Command> pathfindingCommand =
+        () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
+    return defer(pathfindingCommand);
   }
 
   /**

@@ -36,6 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
@@ -44,9 +45,9 @@ public class DriveCommands {
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
   private static final double TRANSLATION_KP = 3.0;
-  private static final double TRANSLATION_KD = 0.0;
+  private static final double TRANSLATION_KD = 1.0;
   private static final double TRANSLATION_MAX_VELOCITY = 6.0;
-  private static final double TRANSLATION_MAX_ACCELERATION = 6.0;
+  private static final double TRANSLATION_MAX_ACCELERATION = 2.0;
   private static final double FF_START_DELAY = 2.0; // Secs
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
@@ -82,6 +83,14 @@ public class DriveCommands {
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
 
+          // double length = Math.hypot(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+          // Transform2d transform =
+          //     new Transform2d(
+          //         xSupplier.getAsDouble() / length * .5,
+          //         ySupplier.getAsDouble() / length * .5,
+          //         Rotation2d.kZero);
+
+          // Logger.recordOutput("transformed position", drive.getPose().transformBy(transform));
           // Apply rotation deadband
           double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
@@ -215,6 +224,9 @@ public class DriveCommands {
 
   public static Command driveToPoseCommand(
       Drive drive, Pose2d targetPose, Supplier<Pose2d> poseSupplier) {
+
+    Pose2d startPose = poseSupplier.get();
+
     ProfiledPIDController xController =
         new ProfiledPIDController(
             TRANSLATION_KP,
