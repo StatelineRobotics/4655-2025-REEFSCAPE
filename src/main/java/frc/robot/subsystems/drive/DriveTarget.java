@@ -19,7 +19,10 @@ import java.util.HashMap;
  */
 public class DriveTarget {
   private static final double reefOffset = 1.281;
-  private static final double startOffset = 0.25;
+  private static final double startOffset = 0.5;
+
+  public static AprilTagFieldLayout aprilTagLayout =
+      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
 
   public static final Translation2d blueReefCenter = new Translation2d(4.489, 4.026);
 
@@ -54,8 +57,10 @@ public class DriveTarget {
         5, getScoreingLocations(blueReefCenter, reefOffset + startOffset, 120, false));
   }
 
+  private static final Pose2d blueProccesorTag = aprilTagLayout.getTagPose(16).get().toPose2d();
   private static final Pose2d blueProcessorEndPose =
-      new Pose2d(6.0, 0.451, Rotation2d.fromDegrees(-90));
+      new Pose2d(
+          blueProccesorTag.getX(), blueProccesorTag.getY() + 0.7, Rotation2d.fromDegrees(-90));
   private static final Pose2d blueProcessorStartPose =
       blueProcessorEndPose.transformBy(new Transform2d(-0.5, 0.0, Rotation2d.kZero));
   private static final Pose2d[] blueSourceEndPoses = {
@@ -114,8 +119,6 @@ public class DriveTarget {
   private static final Pose2d redProcessorStartPose =
       redProcessorEndPose.transformBy(new Transform2d(0.5, 0.0, Rotation2d.kZero));
 
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
   private static final Pose2d[] blueTagPoses = {
     aprilTagLayout.getTagPose(17).get().toPose2d(), // frontRight
     aprilTagLayout.getTagPose(18).get().toPose2d(), // front
@@ -218,21 +221,21 @@ public class DriveTarget {
 
   public static Pose2d[] getLeftSourcePose() {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
-      Pose2d[] poses  = {blueSourceStartPoses[1], blueSourceEndPoses[1]};
+      Pose2d[] poses = {blueSourceStartPoses[1], blueSourceEndPoses[1]};
       return poses;
     } else {
-      Pose2d[] poses  = {redSourceStartPoses[1], redSourceEndPoses[1]};
-      return poses; 
+      Pose2d[] poses = {redSourceStartPoses[1], redSourceEndPoses[1]};
+      return poses;
     }
   }
 
   public static Pose2d[] getRightSourcePose() {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
-      Pose2d[] poses  = {blueSourceStartPoses[0], blueSourceEndPoses[0]};
+      Pose2d[] poses = {blueSourceStartPoses[0], blueSourceEndPoses[0]};
       return poses;
     } else {
-      Pose2d[] poses  = {redSourceStartPoses[0], redSourceEndPoses[0]};
-      return poses; 
+      Pose2d[] poses = {redSourceStartPoses[0], redSourceEndPoses[0]};
+      return poses;
     }
   }
 

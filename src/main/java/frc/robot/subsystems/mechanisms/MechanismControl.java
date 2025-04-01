@@ -113,7 +113,9 @@ public class MechanismControl extends SubsystemBase {
           elevatorSubsystem.getIntakeCommand().schedule();
         }
 
-        if (elevatorSubsystem.isAtSetpoint() && wristSubsystem.isAtSetpoint() && elevatorSubsystem.getFunnelPos() < 5.0) {
+        if (elevatorSubsystem.isAtSetpoint()
+            && wristSubsystem.isAtSetpoint()
+            && elevatorSubsystem.getFunnelPos() < 5.0) {
           setState(State.coralPickupS2).schedule();
         }
         break;

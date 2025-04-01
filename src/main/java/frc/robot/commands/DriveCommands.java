@@ -14,6 +14,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -44,8 +45,8 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.4;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
-  private static final double TRANSLATION_KP = 3.0;
-  private static final double TRANSLATION_KD = 1.0;
+  private static final double TRANSLATION_KP = 2.0;
+  private static final double TRANSLATION_KD = 0.0;
   private static final double TRANSLATION_MAX_VELOCITY = 6.0;
   private static final double TRANSLATION_MAX_ACCELERATION = 2.0;
   private static final double FF_START_DELAY = 2.0; // Secs
@@ -227,19 +228,8 @@ public class DriveCommands {
 
     Pose2d startPose = poseSupplier.get();
 
-    ProfiledPIDController xController =
-        new ProfiledPIDController(
-            TRANSLATION_KP,
-            0,
-            TRANSLATION_KD,
-            new TrapezoidProfile.Constraints(TRANSLATION_MAX_VELOCITY, TRANSLATION_MAX_VELOCITY));
-    ProfiledPIDController yController =
-        new ProfiledPIDController(
-            TRANSLATION_KP,
-            0,
-            TRANSLATION_KD,
-            new TrapezoidProfile.Constraints(
-                TRANSLATION_MAX_VELOCITY, TRANSLATION_MAX_ACCELERATION));
+    PIDController xController = new PIDController(TRANSLATION_KP, 0, TRANSLATION_KD);
+    PIDController yController = new PIDController(TRANSLATION_KP, 0, TRANSLATION_KD);
     ProfiledPIDController angleController =
         new ProfiledPIDController(
             ANGLE_KP,
@@ -258,24 +248,37 @@ public class DriveCommands {
                       targetPose.getRotation().getRadians());
 
               // Convert to field relative speeds & send command
-              ChassisSpeeds speeds =
-                  new ChassisSpeeds(
-                      xController.calculate(currentPose.getX(), targetPose.getX()),
-                      yController.calculate(currentPose.getY(), targetPose.getY()),
-                      omega);
+
+              double xOutput = xController.calculate(currentPose.getX(), targetPose.getX());
+              double yOutput = yController.calculate(currentPose.getY(), targetPose.getY());
+
+              if (Math.abs(xOutput) < 0.05) {
+                xOutput = 0;
+              }
+
+              if (Math.abs(yOutput) < 0.05) {
+                yOutput = 0;
+              }
+
+              Logger.recordOutput("pid/xOutput", xOutput);
+              Logger.recordOutput("pid/yOutput", yOutput);
+
+              ChassisSpeeds speeds = new ChassisSpeeds(xOutput, yOutput, omega);
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
                       && DriverStation.getAlliance().get() == Alliance.Red;
               drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, drive.getRotation()));
             },
             drive)
+        .until(
+            () -> targetPose.getTranslation().getDistance(drive.getPose().getTranslation()) < 0.05)
 
         // Reset PID controller when command starts
         .beforeStarting(
             () -> {
               angleController.reset(drive.getRotation().getRadians());
-              xController.reset(drive.getPose().getX());
-              yController.reset(drive.getPose().getY());
+              xController.setSetpoint(targetPose.getX());
+              yController.setSetpoint(targetPose.getY());
             });
   }
 

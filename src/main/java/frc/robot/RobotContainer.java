@@ -62,10 +62,8 @@ import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.util.Binding;
 import frc.robot.util.ScorePositionSelector;
-
 import java.util.EnumMap;
 import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -290,24 +288,33 @@ public class RobotContainer {
             DriveCommands.pointTowardsReefCommand(
                 drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
 
-    autoEnumSupplier = () -> {
-        if(wrist.intakeStalled.getAsBoolean()) {
+    autoEnumSupplier =
+        () -> {
+          if (wrist.intakeStalled.getAsBoolean()) {
             return AutoEnums.algea;
-        } else if (wrist.detectsForward.getAsBoolean()) {
+          } else if (wrist.detectsForward.getAsBoolean()) {
             return AutoEnums.coral;
-        } else {
+          } else {
             return AutoEnums.intake;
-        }
-    };
+          }
+        };
 
-    leftCommandMap.put(AutoEnums.coral, drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp));
+    leftCommandMap.put(
+        AutoEnums.coral, drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp));
     leftCommandMap.put(AutoEnums.algea, new InstantCommand());
-    leftCommandMap.put(AutoEnums.intake, drive.getLeftSourceDriveCommand());
+    leftCommandMap.put(
+        AutoEnums.intake,
+        (mechanismControl.setState(State.coralPickup).asProxy())
+            .alongWith(drive.getLeftSourceDriveCommand()));
 
-    rightCommandMap.put(AutoEnums.coral, drive.getRightCoralDriveCommand(mechanismControl.elevatorUp));
-    rightCommandMap.put(AutoEnums.algea, drive.getSourceDriveCommand());
-    rightCommandMap.put(AutoEnums.intake, drive.getRightSourceDriveCommand());
-    
+    rightCommandMap.put(
+        AutoEnums.coral, drive.getRightCoralDriveCommand(mechanismControl.elevatorUp));
+    rightCommandMap.put(AutoEnums.algea, drive.getProccesorDriveCommand());
+    rightCommandMap.put(
+        AutoEnums.intake,
+        (mechanismControl.setState(State.coralPickup).asProxy())
+            .alongWith(drive.getRightSourceDriveCommand()));
+
     // controller
     //     .leftTrigger()
     //     .whileTrue(
@@ -341,7 +348,6 @@ public class RobotContainer {
         .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
     controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
 
-    //
     selector
         .addBinding(
             new Binding(

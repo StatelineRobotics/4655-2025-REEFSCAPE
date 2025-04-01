@@ -76,7 +76,7 @@ public class MechanismConstants {
 
     public static final double maxAccel = 40.0;
     public static final double maxVelo = 20.0;
-    public static final double allowError = 1.0;
+    public static final double allowError = 2.0;
 
     public static final double simKp = 0.05;
     public static final double simKi = 0.0;

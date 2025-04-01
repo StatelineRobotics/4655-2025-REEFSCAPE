@@ -117,7 +117,9 @@ public class Drive extends SubsystemBase {
 
   private final Field2d field2d = new Field2d();
 
-  public Trigger readyFinalAuto = new Trigger(() -> nearFinalTarget(getPose(), .05));
+  private Pose2d lastPose = new Pose2d();
+
+  public Trigger readyFinalAuto = new Trigger(() -> nearFinalTarget(getPose(), .5));
   public boolean firstStageAuto = false;
   @AutoLogOutput public Trigger autoElevator = new Trigger(() -> !firstStageAuto);
 
@@ -181,6 +183,8 @@ public class Drive extends SubsystemBase {
 
   @Override
   public void periodic() {
+    lastPose = getPose();
+
     odometryLock.lock(); // Prevents odometry updates while reading data
     gyroIO.updateInputs(gyroInputs);
     Logger.processInputs("Drive/Gyro", gyroInputs);
@@ -239,6 +243,8 @@ public class Drive extends SubsystemBase {
     field2d.setRobotPose(getPose());
 
     SmartDashboard.putData("field", field2d);
+
+    Logger.recordOutput("drive/xVelo", getXVelo());
   }
 
   public boolean nearFinalTarget(Pose2d target, double threshold) {
@@ -319,14 +325,14 @@ public class Drive extends SubsystemBase {
                 () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
   }
 
-  public Command getLeftSourceDriveCommand()  {
+  public Command getLeftSourceDriveCommand() {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getLeftSourcePose();
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
     return defer(pathfindingCommand);
   }
 
-  public Command getRightSourceDriveCommand()  {
+  public Command getRightSourceDriveCommand() {
     Supplier<Pose2d[]> targetPose = () -> DriveTarget.getRightSourcePose();
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
@@ -433,6 +439,14 @@ public class Drive extends SubsystemBase {
     kinematics.resetHeadings(headings);
     stop();
     coast();
+  }
+
+  public double getXVelo() {
+    return (getPose().getX() - lastPose.getX()) / 0.02;
+  }
+
+  public double getYVelo() {
+    return (getPose().getY() - lastPose.getY()) / 0.02;
   }
 
   public void setWheelsAndCoast() {
