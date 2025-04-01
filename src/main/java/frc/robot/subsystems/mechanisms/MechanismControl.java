@@ -106,13 +106,14 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickup -> {
         wristSubsystem.requestWristPOS(WristConstants.intakeCoralAngle);
+        elevatorSubsystem.requestFunnelPOS(0.0);
 
         if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
           hasSetElevatorPosition = true;
           elevatorSubsystem.getIntakeCommand().schedule();
         }
 
-        if (elevatorSubsystem.isAtSetpoint() && wristSubsystem.isAtSetpoint()) {
+        if (elevatorSubsystem.isAtSetpoint() && wristSubsystem.isAtSetpoint() && elevatorSubsystem.getFunnelPos() < 5.0) {
           setState(State.coralPickupS2).schedule();
         }
         break;
