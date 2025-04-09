@@ -78,7 +78,8 @@ public class MechanismControl extends SubsystemBase {
     this.wristSubsystem = wristSubsystem;
     this.climber = climber;
     this.lightSubsystem = lightSubsystem;
-    this.atDualSetPoint = new Trigger(wristSubsystem.atSetpoint.and(elevatorSubsystem.atSetpoint));
+    this.atDualSetPoint =
+        new Trigger(wristSubsystem.atSetpoint.and(elevatorSubsystem.elevatorAtSetpoint));
     SmartDashboard.getNumber("test", test);
   }
 
@@ -124,6 +125,13 @@ public class MechanismControl extends SubsystemBase {
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(8);
         elevatorSubsystem.reqestBeltVoltage(-8);
+        elevatorSubsystem.requestFunnelPOS(0.0);
+
+        if (!hasSetElevatorPosition) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.getIntakeCommand().schedule();
+        }
+
         if (wristSubsystem.detectsBoth.getAsBoolean()) {
           setState(State.coralPickupS3).schedule();
         }
@@ -132,6 +140,12 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS3 -> {
         wristSubsystem.reqestIntakeVoltage(4.75);
+
+        if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.getIntakeCommand().schedule();
+        }
+
         if (!wristSubsystem.detectsNote.getAsBoolean()) {
           wristSubsystem.reqestIntakeVoltage(-1);
           elevatorSubsystem.reqestBeltVoltage(0);
@@ -152,7 +166,8 @@ public class MechanismControl extends SubsystemBase {
           elevatorSubsystem.getCoralStoreCommand().schedule();
         }
 
-        if (wristSubsystem.intakeStalled.getAsBoolean() == true) {
+        if (wristSubsystem.intakeStalled.getAsBoolean() == true
+            && wristSubsystem.detectsForward.getAsBoolean() == false) {
           setState(State.algeaStore).schedule();
         } else {
           wristSubsystem.stopIntake();
@@ -167,7 +182,8 @@ public class MechanismControl extends SubsystemBase {
           elevatorSubsystem.getAlgaeStoreCommand().schedule();
         }
 
-        if (wristSubsystem.intakeStalled.getAsBoolean() == false) {
+        if (wristSubsystem.intakeStalled.getAsBoolean() == false
+            || wristSubsystem.detectsForward.getAsBoolean() == true) {
           setState(State.store).schedule();
         }
       }
@@ -246,6 +262,7 @@ public class MechanismControl extends SubsystemBase {
 
       case climberPrep -> {
         elevatorSubsystem.requestFunnelPOS(100);
+        elevatorSubsystem.reqestBeltVoltage(0);
         if (elevatorSubsystem.getFunnelPos() > 90) {
           climber.setClimberPosition(0);
         }
@@ -255,7 +272,7 @@ public class MechanismControl extends SubsystemBase {
       case climb -> {
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.getClimberPos() >= 12.0) {
+        if (climber.getClimberPos() >= 11.5) {
           climber.stop();
           setState(State.idle).schedule();
         }

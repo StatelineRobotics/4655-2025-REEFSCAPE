@@ -45,7 +45,7 @@ public class DriveCommands {
   private static final double ANGLE_KD = 0.4;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
-  private static final double TRANSLATION_KP = 2.0;
+  private static final double TRANSLATION_KP = 2.25;
   private static final double TRANSLATION_KD = 0.0;
   private static final double TRANSLATION_MAX_VELOCITY = 6.0;
   private static final double TRANSLATION_MAX_ACCELERATION = 2.0;
@@ -271,7 +271,7 @@ public class DriveCommands {
             },
             drive)
         .until(
-            () -> targetPose.getTranslation().getDistance(drive.getPose().getTranslation()) < 0.05)
+            () -> targetPose.getTranslation().getDistance(drive.getPose().getTranslation()) < 0.01)
 
         // Reset PID controller when command starts
         .beforeStarting(

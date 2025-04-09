@@ -17,6 +17,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -397,10 +398,13 @@ public class RobotContainer {
         .onTrue(mechanismControl.setState(State.reverse))
         .onFalse(mechanismControl.setState(State.idle));
 
-    auxController.povUp().onTrue(mechanismControl.setState(State.climberPrep));
-    auxController.a().whileTrue(elevator.sysIdRoutine());
+    auxController
+        .povUp()
+        .and(auxController.b())
+        .onTrue(mechanismControl.setState(State.climberPrep));
+    // auxController.a().whileTrue(elevator.sysIdRoutine());
 
-    auxController.povDown().onTrue(mechanismControl.setState(State.climb));
+    auxController.povDown().and(auxController.b()).onTrue(mechanismControl.setState(State.climb));
 
     auxController
         .y()
@@ -409,8 +413,9 @@ public class RobotContainer {
   }
 
   private void configureLEDbindings() {
-    mechanismControl
-        .atDualSetPoint
+    elevator
+        .elevatorAtSetpoint
+        .and(wrist.atSetpoint.debounce(.5, DebounceType.kFalling))
         .onTrue(lights.solidAnimation(new Color(0, 255, 0), "atDualSetPoint"))
         .onFalse(lights.solidAnimation(new Color(255, 0, 0), "NOT atDualSetPoint"));
     wrist.detectsBoth.onTrue(lights.strobeAnimation(new Color(0, 255, 0), "detects both"));

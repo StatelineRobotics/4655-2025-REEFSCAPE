@@ -8,23 +8,23 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.1473273830812216,
-        "y": 6.645152352144128
+        "x": 3.69716799761817,
+        "y": 5.489694817853002
       },
-      "isLocked": false,
+      "isLocked": true,
       "linkedName": "Left_Human"
     },
     {
       "anchor": {
-        "x": 3.95545,
-        "y": 5.28
+        "x": 3.98,
+        "y": 5.24
       },
       "prevControl": {
-        "x": 4.077597480108136,
-        "y": 5.4981283867432955
+        "x": 3.7226393860243183,
+        "y": 5.449735300276699
       },
       "nextControl": null,
-      "isLocked": true,
+      "isLocked": false,
       "linkedName": "branch_K"
     }
   ],

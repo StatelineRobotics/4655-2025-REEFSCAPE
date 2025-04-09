@@ -30,7 +30,7 @@ public class Elevator extends SubsystemBase {
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
 
-  public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
+  @AutoLogOutput public Trigger elevatorAtSetpoint = new Trigger(this::isAtSetpoint);
 
   private TrapezoidProfile profile =
       new TrapezoidProfile(new Constraints(ElevatorConstants.maxVelo, ElevatorConstants.maxAccel));

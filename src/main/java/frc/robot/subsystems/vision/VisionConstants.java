@@ -22,21 +22,17 @@ import java.io.IOException;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-
-  public static final AprilTagFieldLayout tagLayout;
+  public static AprilTagFieldLayout aprilTagLayout;
 
   static {
     AprilTagFieldLayout fieldLayout;
     try {
-      fieldLayout =
+      aprilTagLayout =
           new AprilTagFieldLayout(Filesystem.getDeployDirectory() + "/aprilTagReefOnly.json");
     } catch (IOException e) {
       System.out.println("Error use default layout");
-      fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+      aprilTagLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
     }
-    tagLayout = fieldLayout;
   }
 
   // Camera names, must match names configured on coprocessor

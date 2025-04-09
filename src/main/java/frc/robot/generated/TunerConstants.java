@@ -66,7 +66,7 @@ public class TunerConstants {
                   // Swerve azimuth does not require much torque output, so we can set a relatively
                   // low
                   // stator current limit to help avoid brownouts without impacting performance.
-                  .withStatorCurrentLimit(Amps.of(60))
+                  .withStatorCurrentLimit(Amps.of(50))
                   .withStatorCurrentLimitEnable(true));
   private static final CANcoderConfiguration encoderInitialConfigs = new CANcoderConfiguration();
   // Configs for the Pigeon 2; leave this null to skip applying Pigeon 2 configs
@@ -86,7 +86,7 @@ public class TunerConstants {
 
   private static final double kDriveGearRatio = 5.79;
   private static final double kSteerGearRatio = 25;
-  private static final Distance kWheelRadius = Inches.of(2.0 * (205.1 / 200.0));
+  private static final Distance kWheelRadius = Inches.of(2.0);
 
   private static final boolean kInvertLeftSide = false;
   private static final boolean kInvertRightSide = true;

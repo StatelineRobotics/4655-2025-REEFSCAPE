@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.826024590163935,
-        "y": 3.87515368852459
+        "x": 6.0840000000000005,
+        "y": 4.05425
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.063427920962104,
-        "y": 3.9535096616596057
+        "x": 5.8340000000000005,
+        "y": 4.05425
       },
       "isLocked": false,
-      "linkedName": "branch_G"
+      "linkedName": "Back_Algae_Barge"
     },
     {
       "anchor": {
-        "x": 6.317520491803278,
-        "y": 4.019006147540983
+        "x": 5.838012295081967,
+        "y": 4.02
       },
       "prevControl": {
-        "x": 6.022582319906619,
-        "y": 3.9343695770836358
+        "x": 6.087939830049258,
+        "y": 4.013981091031311
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "Back_Algae"
+      "linkedName": "Algae_1"
     }
   ],
   "rotationTargets": [],
@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 177.65312570751271
+    "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Center Auto Processor",
+  "folder": "Center Auto Barge",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

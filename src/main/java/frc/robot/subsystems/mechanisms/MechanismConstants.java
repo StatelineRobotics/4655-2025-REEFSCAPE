@@ -25,13 +25,21 @@ public class MechanismConstants {
     public static final double velocityConversion = positionConversion / 60.0; // rpm -> m/s
 
     // Closed Loop Constant
-    public static final double kp = 20.0;
+    // public static final double kp = 10.0;
+    // public static final double ki = 0.0;
+    // public static final double kd = 20.0;
+    // public static final double kg = 1.2208; // 1.2208 // 1.29
+    // public static final double ks = 0.37251; // 0.37251 //.49
+    // public static final double kv = 3.4; // 3.4 // 4.0 low
+    // public static final double ka = 1.44586; // 1.44586
+
+    public static final double kp = 6.0;
     public static final double ki = 0.0;
-    public static final double kd = 20.0;
-    public static final double kg = 1.2208;
-    public static final double ks = 0.37251;
-    public static final double kv = 3.35;
-    public static final double ka = 1.24586;
+    public static final double kd = 0.0;
+    public static final double kg = 1.1625; // 1.2208 // 1.29
+    public static final double ks = 0.47; // 0.37251 //.49
+    public static final double kv = 4.9; // 3.4 // 4.0 low
+    public static final double ka = 0.35; // 1.44586
 
     public static final double simKp = 0.0;
     public static final double simKi = 0.0;
@@ -41,13 +49,13 @@ public class MechanismConstants {
     public static final double simKv = 22.325; // V*s/m
     public static final double simKa = 1.54; // V*s^2/m
 
-    public static final double maxAccel = 1.2; // m/s^2 max: 17.14
-    public static final double maxVelo = 0.75; // m/s max: .8
+    public static final double maxAccel = 1.3; // m/s^1.2  max: 17.14
+    public static final double maxVelo = 0.70; // m/s .75 max: .8
 
     public static final double simMaxAccel = 0.2; // m/s^2 max: 17.14
     public static final double simMaxVelo = 0.1; // m/s max: .8
 
-    public static final double allowedClosedLoopError = 0.005;
+    public static final double allowedClosedLoopError = 0.0075;
 
     // Elevator Constants
     public static final double intakeHeight = 0.0;

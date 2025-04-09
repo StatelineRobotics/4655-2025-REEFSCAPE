@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 5.838012295081967,
-        "y": 3.85
+        "y": 4.02
       },
       "prevControl": null,
       "nextControl": {
         "x": 6.821004098360657,
-        "y": 3.8859631147540985
+        "y": 4.055963114754098
       },
       "isLocked": false,
       "linkedName": "Algae_1"
@@ -45,7 +45,7 @@
     "rotation": -90.0
   },
   "reversed": false,
-  "folder": "Center Auto",
+  "folder": "Center Auto Processor",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0
