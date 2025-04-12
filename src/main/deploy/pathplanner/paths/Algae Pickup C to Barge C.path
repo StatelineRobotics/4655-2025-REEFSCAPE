@@ -3,16 +3,16 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.2065,
-        "y": 5.2145
+        "x": 5.17725,
+        "y": 2.855
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.581119923870026,
-        "y": 4.880906397033684
+        "x": 6.551869923870026,
+        "y": 2.5214063970336835
       },
       "isLocked": false,
-      "linkedName": "Algae_C"
+      "linkedName": "Algae_B"
     },
     {
       "anchor": {
@@ -48,7 +48,7 @@
   "folder": "Center Auto Barge",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -119.99999999999999
+    "rotation": 119.99999999999999
   },
   "useDefaultConstraints": true
 }

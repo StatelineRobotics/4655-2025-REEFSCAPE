@@ -282,6 +282,11 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
 
+    auxController
+        .x()
+        .whileTrue(Commands.run(() -> wrist.reqestIntakeVoltage(-6)))
+        .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
+
     // Reset gyro to 0 when B button is pressed
     controller
         .y()
@@ -384,13 +389,21 @@ public class RobotContainer {
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(elevator.holdPosition());
 
+    // auxController
+    //     .axisMagnitudeGreaterThan(5, 0.1)
+    //     .whileTrue(
+    //         climber
+    //             .voltageCommand(() -> auxController.getRightY() * 12.0)
+    //             .alongWith(mechanismControl.setState(State.idle).repeatedly()))
+    //     .onFalse(new InstantCommand(climber::stop));
+
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
         .whileTrue(
-            climber
-                .voltageCommand(() -> auxController.getRightY() * 12.0)
+            wrist
+                .wristVoltageControl(() -> auxController.getRightY() * 1.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .onFalse(new InstantCommand(climber::stop));
+        .onFalse(new InstantCommand(wrist::stopWrist));
 
     auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
     auxController
