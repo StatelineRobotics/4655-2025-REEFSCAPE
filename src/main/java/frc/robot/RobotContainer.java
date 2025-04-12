@@ -57,6 +57,7 @@ import frc.robot.subsystems.mechanisms.wrist.Wrist;
 import frc.robot.subsystems.mechanisms.wrist.WristIO;
 import frc.robot.subsystems.mechanisms.wrist.WristIOSim;
 import frc.robot.subsystems.mechanisms.wrist.WristIOSparkMax;
+import frc.robot.subsystems.mechanisms.wrist.WristTalonFXIO;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -150,7 +151,7 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     VisionConstants.camera3Name, VisionConstants.robotToCamera3));
         elevator = new Elevator(new ElevatorIOSparkMax());
-        wrist = new Wrist(new WristIOSparkMax());
+        wrist = new Wrist(new WristTalonFXIO());
         climber = new Climber(new ClimberIOSparkMax());
         break;
 

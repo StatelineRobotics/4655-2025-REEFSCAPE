@@ -1,5 +1,6 @@
 package frc.robot.subsystems.mechanisms;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -50,6 +51,8 @@ public class MechanismControl extends SubsystemBase {
   private final Wrist wristSubsystem;
   private final Climber climber;
   private final Lights lightSubsystem;
+
+  private final Timer timer = new Timer();
 
   @AutoLogOutput public final Trigger atDualSetPoint;
 
@@ -110,6 +113,7 @@ public class MechanismControl extends SubsystemBase {
         elevatorSubsystem.requestFunnelPOS(0.0);
 
         if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
+          timer.restart();
           hasSetElevatorPosition = true;
           elevatorSubsystem.getIntakeCommand().schedule();
         }
@@ -118,7 +122,10 @@ public class MechanismControl extends SubsystemBase {
             && wristSubsystem.isAtSetpoint()
             && elevatorSubsystem.getFunnelPos() < 5.0) {
           setState(State.coralPickupS2).schedule();
+        } else if (timer.getFPGATimestamp() > 2.0 && timer.getFPGATimestamp() < 3.0) {
+          setState(State.coralPickup).schedule();
         }
+
         break;
       }
 

@@ -24,8 +24,8 @@ public class Wrist extends SubsystemBase {
   public Trigger intakeStalled =
       new Trigger(
               () ->
-                  Math.round(inputs.filteredRightCurrent) >= 6
-                      && Math.round(inputs.filteredLeftCurrent) >= 6)
+                  Math.round(inputs.filteredRightCurrent) >= 6 //6
+                      && Math.round(inputs.filteredLeftCurrent) >= 6) //6
           .debounce(.25, DebounceType.kBoth);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);
