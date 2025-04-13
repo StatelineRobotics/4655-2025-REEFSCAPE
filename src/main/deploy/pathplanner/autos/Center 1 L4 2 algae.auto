@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Start to L3 Branch H"
+                  "pathName": "Start to L4 Branch H"
                 }
               },
               {
@@ -89,7 +89,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.25
+                        "waitTime": 0.5
                       }
                     },
                     {
@@ -133,7 +133,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.25
+                        "waitTime": 0.0
                       }
                     },
                     {
@@ -171,7 +171,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.25
+                        "waitTime": 1.0
                       }
                     },
                     {
@@ -215,7 +215,7 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 0.15
+                        "waitTime": 0.0
                       }
                     },
                     {

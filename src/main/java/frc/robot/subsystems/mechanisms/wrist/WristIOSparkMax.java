@@ -96,6 +96,7 @@ public class WristIOSparkMax implements WristIO {
         .p(WristConstants.kp)
         .i(WristConstants.ki)
         .d(WristConstants.kd)
+        .velocityFF(WristConstants.FF)
         .positionWrappingEnabled(false);
 
     mwristConfig

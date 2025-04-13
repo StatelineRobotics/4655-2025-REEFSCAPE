@@ -1,6 +1,5 @@
 package frc.robot.subsystems.mechanisms;
 
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -29,6 +28,7 @@ public class MechanismControl extends SubsystemBase {
     levelTwo,
     levelThree,
     levelFour,
+    barge,
     home,
     climberHome,
     climberPrep,
@@ -51,8 +51,6 @@ public class MechanismControl extends SubsystemBase {
   private final Wrist wristSubsystem;
   private final Climber climber;
   private final Lights lightSubsystem;
-
-  private final Timer timer = new Timer();
 
   @AutoLogOutput public final Trigger atDualSetPoint;
 
@@ -113,7 +111,6 @@ public class MechanismControl extends SubsystemBase {
         elevatorSubsystem.requestFunnelPOS(0.0);
 
         if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
-          timer.restart();
           hasSetElevatorPosition = true;
           elevatorSubsystem.getIntakeCommand().schedule();
         }
@@ -122,15 +119,12 @@ public class MechanismControl extends SubsystemBase {
             && wristSubsystem.isAtSetpoint()
             && elevatorSubsystem.getFunnelPos() < 5.0) {
           setState(State.coralPickupS2).schedule();
-        } else if (timer.getFPGATimestamp() > 2.0 && timer.getFPGATimestamp() < 3.0) {
-          setState(State.coralPickup).schedule();
         }
-
         break;
       }
 
       case coralPickupS2 -> {
-        wristSubsystem.reqestIntakeVoltage(8);
+        wristSubsystem.reqestIntakeVoltage(3);
         elevatorSubsystem.reqestBeltVoltage(-8);
         elevatorSubsystem.requestFunnelPOS(0.0);
 
@@ -146,7 +140,7 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case coralPickupS3 -> {
-        wristSubsystem.reqestIntakeVoltage(4.75);
+        wristSubsystem.reqestIntakeVoltage(2.0);
 
         if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
           hasSetElevatorPosition = true;
@@ -154,7 +148,7 @@ public class MechanismControl extends SubsystemBase {
         }
 
         if (!wristSubsystem.detectsNote.getAsBoolean()) {
-          wristSubsystem.reqestIntakeVoltage(-1);
+          wristSubsystem.stopIntake();
           elevatorSubsystem.reqestBeltVoltage(0);
           setState(State.store).schedule();
         }
@@ -183,6 +177,7 @@ public class MechanismControl extends SubsystemBase {
 
       case algeaStore -> {
         wristSubsystem.requestWristPOS(WristConstants.storeAlgeaAngle);
+        wristSubsystem.reqestIntakeVoltage(-1);
 
         if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
           hasSetElevatorPosition = true;
@@ -237,8 +232,17 @@ public class MechanismControl extends SubsystemBase {
           elevatorSubsystem.getL4Command().schedule();
         }
 
-        wristSubsystem.requestWristPOS(WristConstants.coralScoreAngle);
+        wristSubsystem.requestWristPOS(WristConstants.L4coralScoreAngle);
         break;
+      }
+
+      case barge -> {
+        if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.getBargeCommandI().schedule();
+        }
+        wristSubsystem.requestWristPOS(WristConstants.bargeangle);
+        wristSubsystem.reqestIntakeVoltage(-1);
       }
 
       case algaePickupL2 -> {
@@ -268,6 +272,11 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case climberPrep -> {
+        if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.getIntakeCommand().schedule();
+        }
+        wristSubsystem.requestWristPOS(-80);
         elevatorSubsystem.requestFunnelPOS(100);
         elevatorSubsystem.reqestBeltVoltage(0);
         if (elevatorSubsystem.getFunnelPos() > 90) {
@@ -277,6 +286,11 @@ public class MechanismControl extends SubsystemBase {
       }
 
       case climb -> {
+        if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
+          hasSetElevatorPosition = true;
+          elevatorSubsystem.getIntakeCommand().schedule();
+        }
+        wristSubsystem.requestWristPOS(-80);
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
         if (climber.getClimberPos() >= 11.5) {
@@ -324,11 +338,11 @@ public class MechanismControl extends SubsystemBase {
       return Commands.defer(
           () -> {
             return Commands.waitUntil(
-                    driveSubsystem.autoElevator.or(
-                        () ->
-                            desiredState == State.store
-                                || desiredState == State.algeaStore
-                                || desiredState == State.coralPickup))
+                    () ->
+                        desiredState == State.store
+                            || desiredState == State.algeaStore
+                            || desiredState == State.coralPickup
+                            || !driveSubsystem.firstStageAuto)
                 .andThen(Commands.runOnce(() -> setDesiredState(desiredState)));
           },
           Set.of(elevatorSubsystem, wristSubsystem, climber));

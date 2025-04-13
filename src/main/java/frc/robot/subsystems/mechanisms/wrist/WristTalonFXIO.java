@@ -8,15 +8,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.UpdateModeValue;
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
@@ -25,13 +22,11 @@ import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
-import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.subsystems.mechanisms.MechanismConstants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.RollerConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 
 public class WristTalonFXIO implements WristIO {
@@ -51,19 +46,19 @@ public class WristTalonFXIO implements WristIO {
   private ClosedLoopConfig intakeConfig;
   private ArmFeedforward armFeedforward = new ArmFeedforward(0, .25, 0);
 
-  private LinearFilter leftFilter = LinearFilter.movingAverage(10);
-  private LinearFilter rightFilter = LinearFilter.movingAverage(10);
+  private LinearFilter leftFilter = LinearFilter.movingAverage(20);
+  private LinearFilter rightFilter = LinearFilter.movingAverage(20);
 
   public WristTalonFXIO() {
 
-    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(30);
+    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(30).inverted(true);
 
     mwristConfig
         .softLimit
         .forwardSoftLimitEnabled(false)
-        .forwardSoftLimit(0)
+        .forwardSoftLimit(45)
         .reverseSoftLimitEnabled(false)
-        .reverseSoftLimit(-1);
+        .reverseSoftLimit(-81);
 
     mwristConfig
         .absoluteEncoder
@@ -89,8 +84,12 @@ public class WristTalonFXIO implements WristIO {
         .maxVelocity(WristConstants.maxVelo)
         .allowedClosedLoopError(WristConstants.allowError);
 
-    leftMotor.getConfigurator().apply(getTalonConfig().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
-    rightMotor.getConfigurator().apply(getTalonConfig().MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive));
+    leftMotor
+        .getConfigurator()
+        .apply(getTalonConfig().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
+    rightMotor
+        .getConfigurator()
+        .apply(getTalonConfig().MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive));
     m_wrist.configure(mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     canRangeConfig.ToFParams.withUpdateMode(UpdateModeValue.ShortRange100Hz);
@@ -116,11 +115,10 @@ public class WristTalonFXIO implements WristIO {
     TalonFXConfiguration config = new TalonFXConfiguration();
     config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
     config.CurrentLimits.withStatorCurrentLimit(30)
-                        .withStatorCurrentLimitEnable(true)
-                        .withSupplyCurrentLimit(15)
-                        .withSupplyCurrentLimitEnable(true);
-    config.Voltage.withPeakForwardVoltage(10)
-                  .withPeakReverseVoltage(10);
+        .withStatorCurrentLimitEnable(true)
+        .withSupplyCurrentLimit(15)
+        .withSupplyCurrentLimitEnable(true);
+    config.Voltage.withPeakForwardVoltage(10).withPeakReverseVoltage(10);
     return config;
   }
 
@@ -128,8 +126,8 @@ public class WristTalonFXIO implements WristIO {
     inputs.detectsNote = canRange.getIsDetected().getValue();
     inputs.detectsForward = forwardRange.getIsDetected().getValue();
 
-    inputs.leftIntakeRPM = leftMotor.getVelocity(false).getValueAsDouble();
-    inputs.rightIntakeRPM = rightMotor.getVelocity(false).getValueAsDouble();
+    inputs.leftIntakeRPM = leftMotor.getVelocity(true).getValueAsDouble();
+    inputs.rightIntakeRPM = rightMotor.getVelocity(true).getValueAsDouble();
     inputs.wristPos = wristEncoder.getPosition();
 
     inputs.wristDutyCycle = m_wrist.getAppliedOutput();
@@ -138,11 +136,11 @@ public class WristTalonFXIO implements WristIO {
 
     inputs.rightDutyCycle = rightMotor.getDutyCycle(false).getValueAsDouble();
     inputs.rightAppliedVoltage = rightMotor.getMotorVoltage(false).getValueAsDouble();
-    inputs.rightAppliedCurrent = rightMotor.getSupplyCurrent(false).getValueAsDouble();
+    inputs.rightAppliedCurrent = rightMotor.getStatorCurrent(true).getValueAsDouble();
 
     inputs.leftDutyCycle = leftMotor.getDutyCycle(false).getValueAsDouble();
     inputs.leftAppliedVoltage = leftMotor.getMotorVoltage(false).getValueAsDouble();
-    inputs.leftAppliedCurrent = leftMotor.getSupplyCurrent(false).getValueAsDouble();
+    inputs.leftAppliedCurrent = leftMotor.getStatorCurrent(true).getValueAsDouble();
 
     inputs.filteredLeftCurrent = leftFilter.calculate(inputs.leftAppliedCurrent);
     inputs.filteredRightCurrent = rightFilter.calculate(inputs.rightAppliedCurrent);
@@ -158,7 +156,11 @@ public class WristTalonFXIO implements WristIO {
   }
 
   public void requestWristPosition(double targetPos) {
-    wristController.setReference(targetPos, ControlType.kPosition);
+    if (Math.abs(wristEncoder.getPosition() - targetPos) > 1.0) {
+      wristController.setReference(targetPos, ControlType.kPosition);
+    } else {
+      m_wrist.stopMotor();
+    }
   }
 
   public void requestWristVoltage(double voltage) {

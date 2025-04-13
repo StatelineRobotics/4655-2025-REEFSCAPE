@@ -124,7 +124,7 @@ public class Drive extends SubsystemBase {
   @AutoLogOutput public Trigger autoElevator = new Trigger(() -> !firstStageAuto);
 
   private static final PathConstraints teleopPathConstraints =
-      new PathConstraints(3.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
+      new PathConstraints(4.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
 
   public Drive(
       GyroIO gyroIO,
@@ -262,10 +262,8 @@ public class Drive extends SubsystemBase {
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     Command command =
-        (defer(pathfindingCommand)
-                .beforeStarting(() -> firstStageAuto = true)
-                .finallyDo(() -> firstStageAuto = false))
-            .andThen(Commands.waitUntil(condition))
+        (defer(pathfindingCommand).beforeStarting(() -> firstStageAuto = true))
+            .andThen(Commands.waitUntil(condition).beforeStarting(() -> firstStageAuto = false))
             .andThen(
                 defer(
                     () ->

@@ -262,6 +262,7 @@ public class DriveCommands {
 
               Logger.recordOutput("pid/xOutput", xOutput);
               Logger.recordOutput("pid/yOutput", yOutput);
+              Logger.recordOutput("pid/rotOutput", omega);
 
               ChassisSpeeds speeds = new ChassisSpeeds(xOutput, yOutput, omega);
               boolean isFlipped =
@@ -279,6 +280,7 @@ public class DriveCommands {
               angleController.reset(drive.getRotation().getRadians());
               xController.setSetpoint(targetPose.getX());
               yController.setSetpoint(targetPose.getY());
+              Logger.recordOutput("pid/targetPose", targetPose);
             });
   }
 

@@ -21,11 +21,14 @@ public class Wrist extends SubsystemBase {
 
   @AutoLogOutput public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
 
+  @AutoLogOutput
   public Trigger intakeStalled =
       new Trigger(
               () ->
-                  Math.round(inputs.filteredRightCurrent) >= 6 //6
-                      && Math.round(inputs.filteredLeftCurrent) >= 6) //6
+                  (Math.abs(inputs.filteredRightCurrent) >= 10.0
+                          && Math.abs(inputs.rightIntakeRPM) < 10.0) // 6
+                      || (Math.abs(inputs.filteredLeftCurrent)) >= 10
+                          && Math.abs(inputs.rightIntakeRPM) < 10.0) // 6
           .debounce(.25, DebounceType.kBoth);
 
   public Trigger detectsNote = new Trigger(() -> inputs.detectsNote);

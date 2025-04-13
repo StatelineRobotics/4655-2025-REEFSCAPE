@@ -29,7 +29,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -56,7 +55,6 @@ import frc.robot.subsystems.mechanisms.elevator.ElevatorIOSparkMax;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
 import frc.robot.subsystems.mechanisms.wrist.WristIO;
 import frc.robot.subsystems.mechanisms.wrist.WristIOSim;
-import frc.robot.subsystems.mechanisms.wrist.WristIOSparkMax;
 import frc.robot.subsystems.mechanisms.wrist.WristTalonFXIO;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
@@ -112,10 +110,19 @@ public class RobotContainer {
     intake
   }
 
+  private enum OutakeEnums {
+    coral,
+    algea,
+    barge,
+    L1
+  }
+
   private EnumMap<AutoEnums, Command> leftCommandMap = new EnumMap<>(AutoEnums.class);
   private EnumMap<AutoEnums, Command> rightCommandMap = new EnumMap<>(AutoEnums.class);
+  private EnumMap<OutakeEnums, Command> outakeCommandMap = new EnumMap<>(OutakeEnums.class);
 
   private Supplier<AutoEnums> autoEnumSupplier;
+  private Supplier<OutakeEnums> outakeEnumSupplier;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -258,7 +265,7 @@ public class RobotContainer {
             .repeatedly());
 
     // Lock to 0 when A button is held
-    auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
+    // auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
     controller
         .a()
         .onTrue(mechanismControl.setState(State.levelFour).withName("L4"))
@@ -306,6 +313,19 @@ public class RobotContainer {
           }
         };
 
+    outakeEnumSupplier =
+        () -> {
+          if (mechanismControl.currentState == State.algeaStore) {
+            return OutakeEnums.algea;
+          } else if (mechanismControl.currentState == State.barge) {
+            return OutakeEnums.barge;
+          } else if (mechanismControl.currentState == State.levelOne) {
+            return OutakeEnums.L1;
+          } else {
+            return OutakeEnums.coral;
+          }
+        };
+
     leftCommandMap.put(
         AutoEnums.coral, drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp));
     leftCommandMap.put(AutoEnums.algea, new InstantCommand());
@@ -321,6 +341,11 @@ public class RobotContainer {
         AutoEnums.intake,
         (mechanismControl.setState(State.coralPickup).asProxy())
             .alongWith(drive.getRightSourceDriveCommand()));
+
+    outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(4)));
+    outakeCommandMap.put(OutakeEnums.L1, Commands.run(() -> wrist.reqestIntakeVoltage(3.5)));
+    outakeCommandMap.put(OutakeEnums.barge, Commands.run(() -> wrist.reqestIntakeVoltage(12)));
+    outakeCommandMap.put(OutakeEnums.algea, Commands.run(() -> wrist.reqestIntakeVoltage(1)));
 
     // controller
     //     .leftTrigger()
@@ -347,14 +372,21 @@ public class RobotContainer {
 
     controller
         .rightBumper()
-        .whileTrue(
-            new ConditionalCommand(
-                Commands.run(() -> wrist.reqestIntakeVoltage(6)),
-                Commands.run(() -> wrist.reqestIntakeVoltage(12)),
-                wrist.intakeStalled))
-        .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
+        .whileTrue(Commands.select(outakeCommandMap, outakeEnumSupplier))
+        .onFalse(Commands.runOnce(wrist::stopIntake));
     controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
-
+    /*Aux controller control Scheme
+     Coral Store Positions
+     * LeftTrigger  L1
+     * RightTrigger L2
+     * LeftBumper   L3
+     * RightBumper  L4
+     Algea Store Positions
+     * A Barge Algea
+     * Y Algea Ground Intake
+     * LeftTrigger + B L2 Algea
+     * LeftBumper  + B L3 Algea
+    */
     selector
         .addBinding(
             new Binding(
@@ -380,7 +412,14 @@ public class RobotContainer {
         .addBinding(
             new Binding(
                 (auxController.leftBumper().or(auxController.rightBumper())).and(auxController.b()),
-                mechanismControl.setState(State.algeaPickupL3).withName("AlgeaL3")));
+                mechanismControl.setState(State.algeaPickupL3).withName("AlgeaL3")))
+        .addBinding(
+            new Binding(
+                auxController.a(), mechanismControl.setState(State.barge).withName("Barge")))
+        .addBinding(
+            new Binding(
+                auxController.y(),
+                mechanismControl.setState(State.algeaGround).withName("groundIntake")));
 
     auxController
         .axisMagnitudeGreaterThan(1, 0.1)
@@ -390,21 +429,21 @@ public class RobotContainer {
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .whileFalse(elevator.holdPosition());
 
-    // auxController
-    //     .axisMagnitudeGreaterThan(5, 0.1)
-    //     .whileTrue(
-    //         climber
-    //             .voltageCommand(() -> auxController.getRightY() * 12.0)
-    //             .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-    //     .onFalse(new InstantCommand(climber::stop));
-
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
         .whileTrue(
-            wrist
-                .wristVoltageControl(() -> auxController.getRightY() * 1.0)
+            climber
+                .voltageCommand(() -> auxController.getRightY() * 12.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .onFalse(new InstantCommand(wrist::stopWrist));
+        .onFalse(new InstantCommand(climber::stop));
+
+    // auxController
+    //     .axisMagnitudeGreaterThan(5, 0.1)
+    //     .whileTrue(
+    //         wrist
+    //             .wristVoltageControl(() -> auxController.getRightY() * 3.0)
+    //             .alongWith(mechanismControl.setState(State.idle).repeatedly()))
+    //     .onFalse(new InstantCommand(wrist::stopWrist));
 
     auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
     auxController
@@ -419,11 +458,6 @@ public class RobotContainer {
     // auxController.a().whileTrue(elevator.sysIdRoutine());
 
     auxController.povDown().and(auxController.b()).onTrue(mechanismControl.setState(State.climb));
-
-    auxController
-        .y()
-        .onTrue(mechanismControl.setState(State.algeaGround))
-        .onFalse(mechanismControl.setState(State.algeaStore));
   }
 
   private void configureLEDbindings() {
@@ -459,6 +493,7 @@ public class RobotContainer {
 
   public void configureNamedCommands() {
     NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour).asProxy());
+    NamedCommands.registerCommand("L3", mechanismControl.setState(State.levelThree).asProxy());
     NamedCommands.registerCommand(
         "score",
         Commands.runEnd(
@@ -483,6 +518,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("waitAlgea", Commands.waitUntil(wrist.intakeStalled).asProxy());
     NamedCommands.registerCommand(
         "algaeStore", mechanismControl.setState(State.algeaStore).asProxy());
+    NamedCommands.registerCommand("barge", mechanismControl.setState(State.barge).asProxy());
   }
 
   /**

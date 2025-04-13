@@ -271,4 +271,8 @@ public class Elevator extends SubsystemBase {
   public Command getAlgaeStoreCommand() {
     return goToPositionCommand(ElevatorConstants.storeAlgeaHeight);
   }
+
+  public Command getBargeCommandI() {
+    return goToPositionCommand(ElevatorConstants.barge);
+  }
 }
