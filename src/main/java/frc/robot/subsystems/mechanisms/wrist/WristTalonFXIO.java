@@ -8,10 +8,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.UpdateModeValue;
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -155,9 +157,14 @@ public class WristTalonFXIO implements WristIO {
     rightMotor.setVoltage(voltage);
   }
 
-  public void requestWristPosition(double targetPos) {
+  public void requestWristPosition(double targetPos, double arbFeedforward) {
     if (Math.abs(wristEncoder.getPosition() - targetPos) > 1.0) {
-      wristController.setReference(targetPos, ControlType.kPosition);
+      wristController.setReference(
+          targetPos,
+          ControlType.kPosition,
+          ClosedLoopSlot.kSlot0,
+          arbFeedforward,
+          ArbFFUnits.kVoltage);
     } else {
       m_wrist.stopMotor();
     }

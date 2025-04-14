@@ -33,10 +33,10 @@ public class MechanismConstants {
     // public static final double kv = 3.4; // 3.4 // 4.0 low
     // public static final double ka = 1.44586; // 1.44586
 
-    public static final double kp = 15.0;
+    public static final double kp = 12.0;
     public static final double ki = 0.0;
     public static final double kd = 0.0;
-    public static final double kg = 1.1625; // 1.2208 // 1.29
+    public static final double kg = 1.1825; // 1.2208 // 1.29
     public static final double ks = 0.47; // 0.37251 //.49
     public static final double kv = 4.9; // 3.4 // 4.0 low
     public static final double ka = 0.35; // 1.44586
@@ -65,8 +65,8 @@ public class MechanismConstants {
     public static final double levelOne = 0.05;
     public static final double levelTwo = 0.23473908007144928;
     public static final double levelThree = 0.3704996407032013;
-    public static final double levelFour = 0.580;
-    public static final double algeaL2 = 0.18;
+    public static final double levelFour = 0.585;
+    public static final double algeaL2 = 0.185;
     public static final double algeaL3 = 0.31171162009239197;
     public static final double algeaGround = 0.0;
     public static final double barge = 0.588;
@@ -77,9 +77,9 @@ public class MechanismConstants {
     public static final double algeaGround = 20.0;
 
     // Closed Loop Constatns
-    public static final double kp = .3;
+    public static final double kp = .10;
     public static final double ki = 0.0;
-    public static final double kd = 0.2;
+    public static final double kd = 0.0;
     public static final double kg = 0.0;
     public static final double ks = 0.0;
     public static final double FF = 0.0;

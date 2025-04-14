@@ -114,7 +114,8 @@ public class RobotContainer {
     coral,
     algea,
     barge,
-    L1
+    L1,
+    notL4
   }
 
   private EnumMap<AutoEnums, Command> leftCommandMap = new EnumMap<>(AutoEnums.class);
@@ -321,6 +322,9 @@ public class RobotContainer {
             return OutakeEnums.barge;
           } else if (mechanismControl.currentState == State.levelOne) {
             return OutakeEnums.L1;
+          } else if (mechanismControl.currentState == State.levelTwo
+              || mechanismControl.currentState == State.levelThree) {
+            return OutakeEnums.notL4;
           } else {
             return OutakeEnums.coral;
           }
@@ -345,7 +349,8 @@ public class RobotContainer {
     outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(4)));
     outakeCommandMap.put(OutakeEnums.L1, Commands.run(() -> wrist.reqestIntakeVoltage(3.5)));
     outakeCommandMap.put(OutakeEnums.barge, Commands.run(() -> wrist.reqestIntakeVoltage(12)));
-    outakeCommandMap.put(OutakeEnums.algea, Commands.run(() -> wrist.reqestIntakeVoltage(1)));
+    outakeCommandMap.put(OutakeEnums.algea, Commands.run(() -> wrist.reqestIntakeVoltage(0.5)));
+    outakeCommandMap.put(OutakeEnums.notL4, Commands.run(() -> wrist.reqestIntakeVoltage(3)));
 
     // controller
     //     .leftTrigger()
@@ -431,19 +436,21 @@ public class RobotContainer {
 
     auxController
         .axisMagnitudeGreaterThan(5, 0.1)
+        .and(auxController.b())
         .whileTrue(
             climber
                 .voltageCommand(() -> auxController.getRightY() * 12.0)
                 .alongWith(mechanismControl.setState(State.idle).repeatedly()))
         .onFalse(new InstantCommand(climber::stop));
 
-    // auxController
-    //     .axisMagnitudeGreaterThan(5, 0.1)
-    //     .whileTrue(
-    //         wrist
-    //             .wristVoltageControl(() -> auxController.getRightY() * 3.0)
-    //             .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-    //     .onFalse(new InstantCommand(wrist::stopWrist));
+    auxController
+        .axisMagnitudeGreaterThan(5, 0.1)
+        .and(auxController.b().negate())
+        .whileTrue(
+            wrist
+                .wristVoltageControl(() -> auxController.getRightY() * 3.0)
+                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
+        .onFalse(new InstantCommand(wrist::stopWrist));
 
     auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
     auxController

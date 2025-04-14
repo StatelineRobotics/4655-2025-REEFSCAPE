@@ -293,7 +293,7 @@ public class MechanismControl extends SubsystemBase {
         wristSubsystem.requestWristPOS(-80);
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.getClimberPos() >= 11.5) {
+        if (climber.getClimberPos() >= 9.25) {
           climber.stop();
           setState(State.idle).schedule();
         }
@@ -350,6 +350,7 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public void setDesiredState(State desiredState) {
+    elevatorSubsystem.reqestBeltVoltage(0);
     hasSetElevatorPosition = false;
     currentState = desiredState;
     periodic();

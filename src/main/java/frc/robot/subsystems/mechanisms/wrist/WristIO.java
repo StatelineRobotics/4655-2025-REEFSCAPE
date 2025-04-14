@@ -39,7 +39,7 @@ public interface WristIO {
 
   default void requestIntakeVoltage(double voltage) {}
 
-  default void requestWristPosition(double targetPos) {}
+  default void requestWristPosition(double targetPos, double arbFeedforward) {}
 
   default void requestWristVoltage(double voltage) {}
 

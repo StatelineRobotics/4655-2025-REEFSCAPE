@@ -3,9 +3,10 @@
   "robotLength": 0.9,
   "holonomicMode": true,
   "pathFolders": [
+    "Center Auto Barge",
     "Center Auto Processor",
     "Left Auto",
-    "Center Auto Barge",
+    "Right Out Of The Way",
     "Right Auto"
   ],
   "autoFolders": [],

@@ -1,5 +1,6 @@
 package frc.robot.subsystems.mechanisms.wrist;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -18,6 +19,7 @@ public class Wrist extends SubsystemBase {
   private double leftIntakeRPM;
   private double rightIntakeRPM;
   private double wirstPos;
+  private ArmFeedforward armFeedforward = new ArmFeedforward(.10, .28 - .19, 0);
 
   @AutoLogOutput public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
 
@@ -80,15 +82,12 @@ public class Wrist extends SubsystemBase {
 
   public void requestWristPOS(double POS) {
     inputs.wristSetpoint = POS;
-    io.requestWristPosition(POS);
+    double feedforward = armFeedforward.calculate(Math.toRadians(-1.0 * inputs.wristPos), 0);
+    io.requestWristPosition(POS, feedforward);
   }
 
   public void reqestIntakeVoltage(double voltage) {
     io.requestIntakeVoltage(voltage);
-  }
-
-  public Command requestWristPosition(double setPoint) {
-    return Commands.runOnce(() -> io.requestWristPosition(setPoint));
   }
 
   private Command reqestIntakeVoltage(Supplier<Double> voltage) {
