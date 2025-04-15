@@ -339,6 +339,7 @@ public class MechanismControl extends SubsystemBase {
 public Command setNewScoreState(Supplier<State> desiredState) {
   return (Commands.waitUntil(!driveSubsystem.firstStageAuto).withName("Wait For AutoAlign"))
           .andThen(setNewState(desiredState));
+}
 
   // Just a shorthand for setting state with commands to avoid needing more repetition in
   // RobotContainer
