@@ -333,12 +333,12 @@ public class MechanismControl extends SubsystemBase {
 
   public Command setNewState(Supplier<State> desiredState) {
   return Commands.runOnce(() -> setDesiredState(desiredState.get()),
-                          Set.of(elevatorSubsystem, wristSubsystem, climber))
+                          elevatorSubsystem, wristSubsystem, climber)
                           .withName("state: " + desiredState.get());
 }
 
 public Command setNewScoreState(Supplier<State> desiredState) {
-  return (Commands.waitUntil(!driveSubsystem.firstStageAuto).withName("Wait For AutoAlign"))
+  return (Commands.waitUntil(() -> !driveSubsystem.firstStageAuto).withName("Wait For AutoAlign"))
           .andThen(setNewState(desiredState));
 }
 
