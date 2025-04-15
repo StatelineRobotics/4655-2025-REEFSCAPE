@@ -396,15 +396,15 @@ public class RobotContainer {
         .addBinding(
             new Binding(
                 auxController.rightTrigger().and(auxController.b().negate()),
-                mechanismControl.setNewScoreState(State.levelTwo).withName("L2")))
+                mechanismControl.setNewScoreState(() -> State.levelTwo).withName("L2")))
         .addBinding(
             new Binding(
                 auxController.leftBumper().and(auxController.b().negate()),
-                mechanismControl.setNewScoreState(State.levelThree).withName("L3")))
+                mechanismControl.setNewScoreState(() -> State.levelThree).withName("L3")))
         .addBinding(
             new Binding(
                 auxController.rightBumper().and(auxController.b().negate()),
-                mechanismControl.setNewScoreState(State.levelFour).withName("L4")))
+                mechanismControl.setNewScoreState(() -> State.levelFour).withName("L4")))
         // .addBinding(
         //     new Binding(
         //         auxController.leftTrigger().and(auxController.b().negate()),
