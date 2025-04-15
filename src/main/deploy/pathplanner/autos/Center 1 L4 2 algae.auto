@@ -113,7 +113,7 @@
         {
           "type": "named",
           "data": {
-            "name": "score"
+            "name": "bargeScore"
           }
         },
         {
@@ -195,7 +195,7 @@
         {
           "type": "named",
           "data": {
-            "name": "score"
+            "name": "bargeScore"
           }
         },
         {

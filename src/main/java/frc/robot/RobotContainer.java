@@ -346,7 +346,7 @@ public class RobotContainer {
         (mechanismControl.setState(State.coralPickup).asProxy())
             .alongWith(drive.getRightSourceDriveCommand()));
 
-    outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(3.75)));
+    outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(3.0)));
     outakeCommandMap.put(OutakeEnums.L1, Commands.run(() -> wrist.reqestIntakeVoltage(3.5)));
     outakeCommandMap.put(OutakeEnums.barge, Commands.run(() -> wrist.reqestIntakeVoltage(12)));
     outakeCommandMap.put(OutakeEnums.algea, Commands.run(() -> wrist.reqestIntakeVoltage(0.5)));
@@ -501,11 +501,18 @@ public class RobotContainer {
   public void configureNamedCommands() {
     NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour).asProxy());
     NamedCommands.registerCommand("L3", mechanismControl.setState(State.levelThree).asProxy());
+    NamedCommands.registerCommand("bargeScore" , Commands.runEnd(
+        () -> {
+          wrist.reqestIntakeVoltage(12);
+        },
+        () -> wrist.stopIntake())
+    .withTimeout(0.5)
+    .asProxy());
     NamedCommands.registerCommand(
         "score",
         Commands.runEnd(
                 () -> {
-                  wrist.reqestIntakeVoltage(12);
+                  wrist.reqestIntakeVoltage(3);
                 },
                 () -> wrist.stopIntake())
             .withTimeout(0.5)

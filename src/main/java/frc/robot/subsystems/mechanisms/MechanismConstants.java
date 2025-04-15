@@ -65,7 +65,7 @@ public class MechanismConstants {
     public static final double levelOne = 0.05;
     public static final double levelTwo = 0.23473908007144928;
     public static final double levelThree = 0.3704996407032013;
-    public static final double levelFour = 0.585;
+    public static final double levelFour = 0.580;
     public static final double algeaL2 = 0.185;
     public static final double algeaL3 = 0.31171162009239197;
     public static final double algeaGround = 0.0;
