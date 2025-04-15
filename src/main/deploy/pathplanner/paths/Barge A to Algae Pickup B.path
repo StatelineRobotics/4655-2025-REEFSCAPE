@@ -16,12 +16,12 @@
     },
     {
       "anchor": {
-        "x": 5.2065,
-        "y": 5.2145
+        "x": 5.1675,
+        "y": 5.253499999999999
       },
       "prevControl": {
-        "x": 5.4304303278688515,
-        "y": 5.613370901639343
+        "x": 5.391430327868852,
+        "y": 5.652370901639342
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -119.99999999999999
+    "rotation": -118.9264258352537
   },
   "reversed": false,
   "folder": "Center Auto Barge",

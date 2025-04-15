@@ -346,7 +346,7 @@ public class RobotContainer {
         (mechanismControl.setState(State.coralPickup).asProxy())
             .alongWith(drive.getRightSourceDriveCommand()));
 
-    outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(4)));
+    outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(3.75)));
     outakeCommandMap.put(OutakeEnums.L1, Commands.run(() -> wrist.reqestIntakeVoltage(3.5)));
     outakeCommandMap.put(OutakeEnums.barge, Commands.run(() -> wrist.reqestIntakeVoltage(12)));
     outakeCommandMap.put(OutakeEnums.algea, Commands.run(() -> wrist.reqestIntakeVoltage(0.5)));

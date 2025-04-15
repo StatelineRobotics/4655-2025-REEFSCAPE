@@ -4,12 +4,12 @@
     {
       "anchor": {
         "x": 5.17725,
-        "y": 2.855
+        "y": 2.8257499999999993
       },
       "prevControl": null,
       "nextControl": {
         "x": 6.551869923870026,
-        "y": 2.5214063970336835
+        "y": 2.492156397033683
       },
       "isLocked": false,
       "linkedName": "Algae_B"

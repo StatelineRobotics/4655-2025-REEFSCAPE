@@ -98,7 +98,7 @@ public class MechanismConstants {
     public static final double storeAlgeaAngle = -2.0;
     public static final double storeAngle = -2.0;
     public static final double coralScoreAngle = 30.0;
-    public static final double L4coralScoreAngle = 33.0;
+    public static final double L4coralScoreAngle = 35.0;
     public static final double algeaIntakeAngle = 2.0;
     public static final double algeaScoreAngle = 2.0;
     public static final double l1angle = -45.0;
