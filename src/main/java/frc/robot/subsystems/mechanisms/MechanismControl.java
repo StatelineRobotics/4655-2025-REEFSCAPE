@@ -326,19 +326,19 @@ public class MechanismControl extends SubsystemBase {
     }
   }
 
-  /* public Command setIdleState() {
-        return Commands.runOnce(() -> setDesiredState(State.idle));
-      }
-
-  /* public Command setNewState(Supplier<State> desiredState) {
-      return Commands.runOnce(() -> setDesiredState(desiredState.get()),
-                             Set.of(elevatorSubsystem, wristSubsystem, climber));
+  public Command setIdleState() {
+    return Commands.runOnce(() -> setDesiredState(State.idle));
   }
 
-  public Command setNewScoreState(Supplier<State> desiredState) {
-      return Commands.waitUntil(!driveSubsystem.firstStageAuto)
-              .andThen(setNewState(desiredState));
-  */
+  public Command setNewState(Supplier<State> desiredState) {
+  return Commands.runOnce(() -> setDesiredState(desiredState.get()),
+                          Set.of(elevatorSubsystem, wristSubsystem, climber))
+                          .withName("state: " + desiredState.get());
+}
+
+public Command setNewScoreState(Supplier<State> desiredState) {
+  return (Commands.waitUntil(!driveSubsystem.firstStageAuto).withName("Wait For AutoAlign"))
+          .andThen(setNewState(desiredState));
 
   // Just a shorthand for setting state with commands to avoid needing more repetition in
   // RobotContainer
