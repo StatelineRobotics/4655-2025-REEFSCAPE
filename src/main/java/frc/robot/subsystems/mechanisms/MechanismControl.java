@@ -332,7 +332,7 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public Command setNewState(Supplier<State> desiredState) {
-  return runOnce(() -> setDesiredState(desiredState.get()),
+  return Commands.runOnce(() -> setDesiredState(desiredState.get()),
                           elevatorSubsystem, wristSubsystem, climber)
                           .withName("state: " + desiredState.get());
   }
