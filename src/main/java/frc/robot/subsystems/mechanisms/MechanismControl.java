@@ -328,18 +328,18 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public Command setIdleState() {
-    return Commands.runOnce(() -> setDesiredState(State.idle));
+    return runOnce(() -> setDesiredState(State.idle));
   }
 
   public Command setNewState(Supplier<State> desiredState) {
-  return Commands.runOnce(() -> setDesiredState(desiredState.get()),
+  return runOnce(() -> setDesiredState(desiredState.get()),
                           elevatorSubsystem, wristSubsystem, climber)
                           .withName("state: " + desiredState.get());
 }
 
 public Command setNewScoreState(Supplier<State> desiredState) {
-  return (Commands.waitUntil(() -> !driveSubsystem.firstStageAuto).withName("Wait For AutoAlign"))
-          .andThen(setNewState(desiredState));
+  Command waitCommand = run(() -> {}).until(() -> !driveSubsystem.firstStageAuto).withName("Wait For AutoAlign")
+  return waitCommand.andThen(setNewState(desiredState));
 }
 
   // Just a shorthand for setting state with commands to avoid needing more repetition in
@@ -371,60 +371,5 @@ public Command setNewScoreState(Supplier<State> desiredState) {
     currentState = desiredState;
     periodic();
     // getLEDCommand(desiredState).schedule();
-  }
-
-  private Command getLEDCommand(State desiredState) {
-    Command command;
-    switch (desiredState) {
-      case idle, home:
-        // Solid purple
-        command = lightSubsystem.solidAnimation(new Color(80, 7, 120), "Solid Purple");
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-
-        // When intaking solid red
-      case coralPickup:
-        command = lightSubsystem.solidAnimation(new Color(255, 0, 0), "Solid Red");
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-
-        // When see coral, strobe red
-      case coralPickupS3:
-        command = lightSubsystem.strobeAnimation(new Color(255, 0, 0), "Strobe Red");
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-
-        // Move elevatlor store (red) when at store blue
-      case store, algeaStore:
-        command = lightSubsystem.strobeAnimation(new Color(0, 255, 0), "strobeGreen");
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-
-        // Starts red when moving, soid green when at set point
-      case levelOne, levelTwo, levelThree, levelFour:
-        command =
-            lightSubsystem
-                .solidAnimation(new Color(255, 0, 0), atDualSetPoint, "Solid Red")
-                .andThen(lightSubsystem.solidAnimation(new Color(0, 255, 0), "Solid Green"));
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-
-      case algeaPickupL3, algaePickupL2:
-        command =
-            lightSubsystem
-                .solidAnimation(new Color(255, 0, 0), atDualSetPoint, "Solid Red")
-                .andThen(
-                    lightSubsystem.solidAnimation(
-                        new Color(0, 0, 255), wristSubsystem.intakeStalled, "Solid Green"))
-                .andThen(lightSubsystem.strobeAnimation(new Color(0, 255, 0), "Strobe Green"));
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-
-        // default to yellow solid color
-      default:
-        command = lightSubsystem.solidAnimation(new Color(255, 209, 0), "Solid YELLOW");
-        Logger.recordOutput("MechanismControl/latestLED", command.getName());
-        return command;
-    }
   }
 }

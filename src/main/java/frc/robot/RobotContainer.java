@@ -495,6 +495,7 @@ public class RobotContainer {
     SmartDashboard.putData("elevator", elevator);
     SmartDashboard.putData("wrist", wrist);
     SmartDashboard.putData("Lights", lights);
+    SmartDashboard.putData("mechControl", mechanismControl);
     selector.log();
   }
 

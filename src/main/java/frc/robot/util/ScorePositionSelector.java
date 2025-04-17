@@ -80,6 +80,6 @@ public class ScorePositionSelector {
     Logger.recordOutput("Selector/AllBindings", names);
     Logger.recordOutput("Selector/CurrentBindings", currentNames);
     Logger.recordOutput("Selector/CurrentCommand", currentCommand.getName());
-    SmartDashboard.putData("Selector.CurrentCommand", currentCommand);
+    SmartDashboard.putData("Selector/CurrentCommand", currentCommand);
   }
 }
