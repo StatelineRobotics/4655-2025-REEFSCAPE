@@ -15,11 +15,13 @@ public class ScorePositionSelector {
 
   private ArrayList<Binding> currentBindings = new ArrayList<Binding>();
   private ArrayList<Binding> allBindings = new ArrayList<Binding>();
-  private Command defaultCommand;
-  private Command currentCommand = Commands.runOnce(() -> {}).withName("waiting for initial input");
+  private Command defaultCommand = Commands.runOnce(() -> {}).withName("waiting for initial input");
+  private Command currentCommand;
 
   public ScorePositionSelector(Command defaultCommand) {
     this.defaultCommand = defaultCommand;
+    currentCommand = defaultCommand;
+    currentCommand.schedule();
   }
 
   public ScorePositionSelector addBinding(Binding binding) {
@@ -27,16 +29,16 @@ public class ScorePositionSelector {
     binding
         .trigger
         .onTrue(
-            Commands.deferredProxy(
+            Commands.runOnce(
                 () -> {
                   addToPossibeList(binding);
-                  return getDesiredCommand();
+                  runDesiredCommand();
                 }))
         .onFalse(
-            Commands.deferredProxy(
+            Commands.runOnce(
                 () -> {
                   removeFromPossibleList(binding);
-                  return getDesiredCommand();
+                  runDesiredCommand();
                 }));
 
     return this;
@@ -50,20 +52,20 @@ public class ScorePositionSelector {
     for (int i = 0; i < currentBindings.size(); i++) {
       if (currentBindings.get(i) == binding) {
         currentBindings.remove(i);
-        i--;
+        return;
       }
     }
   }
 
-  private Command getDesiredCommand() {
-    if (currentBindings.size() == 0) {
-      currentCommand = defaultCommand;
-      return currentCommand;
-    } else {
-      Binding current = currentBindings.get(0);
-      currentCommand = current.targetCommand;
-      return currentCommand;
+  private Command runDesiredCommand() {
+    Command desiredCommand = defaultCommand;
+    if (currentBindings.size() != 0) {
+      desiredCommand = currentbindings.get(0).command;
     }
+    if (desiredCommand.isScheduled() == false) {
+      desiredCommand.schedule();
+    }
+    currentCommand = desiredCommand;
   }
 
   public void log() {
