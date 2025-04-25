@@ -57,10 +57,10 @@ public class ScorePositionSelector {
     }
   }
 
-  private Command runDesiredCommand() {
+  private void runDesiredCommand() {
     Command desiredCommand = defaultCommand;
     if (currentBindings.size() != 0) {
-      desiredCommand = currentbindings.get(0).command;
+      desiredCommand = currentBindings.get(0).targetCommand;
     }
     if (desiredCommand.isScheduled() == false) {
       desiredCommand.schedule();
