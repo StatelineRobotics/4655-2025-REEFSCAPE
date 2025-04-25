@@ -8,9 +8,9 @@
     "image":"spaceman113138/wpilibdocker:2025.3.2",
 
     // Set any default VSCode settings here
-    "settings": {
-        "terminal.integrated.shell.linux":"/bin/bash"
-    },
+    //"settings": {
+    //    "terminal.integrated.shell.linux":"/bin/bash"
+    //},
 
     // Tell VSCode where to find the workspace directory
     "workspaceMount": "source=${localWorkspaceFolder},target=/root/workspace,type=bind,consistency=cached",
