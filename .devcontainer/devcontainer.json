@@ -1,12 +1,15 @@
 {
+  //"mcr.microsoft.com/devcontainers/universal:2"
   "image": "wpilib/roborio-cross-ubuntu:2025-24.04",
   "features": {},
   "customizations": {
     "vscode": {
       "extensions": [
         "wpilibsuite.vscode-wpilib",
-        "vscjava.vscode-java-pack"
+        "vscjava.vscode-java-pack",
+        "richardwillis.vscode-spotless-gradle"
       ]
     }
-  }
+  },
+  "postStartCommand": "./.devcontainer/postCreateCommand.sh"
 }
