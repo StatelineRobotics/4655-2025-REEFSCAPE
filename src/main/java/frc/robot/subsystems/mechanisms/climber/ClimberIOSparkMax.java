@@ -48,16 +48,12 @@ public class ClimberIOSparkMax implements ClimberIO {
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
     inputs.climberPOS = climbEncoder.getPosition();
-    inputs.climberCurrent = m_climber.getBusVoltage() * m_climber.getAppliedOutput();
-    // inputs.funnelPOS = funnelEncoder.getPosition();
+    inputs.climberCurrent = m_climber.getAppliedCurrent();
+    inputs.climberVoltage = m_climber.getBusVoltage() * m_climber.getAppliedOutput();
   }
 
   public void setClimberPosition(double pos) {
     climbController.setReference(pos, SparkBase.ControlType.kPosition);
-  }
-
-  public void requestPull() {
-    m_climber.set(1.0);
   }
 
   public void stop() {

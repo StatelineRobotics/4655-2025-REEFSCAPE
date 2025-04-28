@@ -13,7 +13,10 @@ public class Climber extends SubsystemBase {
   private final ClimberIO io;
   private ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
   private double climberPOS;
-  private double funnelPOS;
+
+  private static final double prepareClimbPosition = 0.0;
+  private static final double climbPosition = 4.6; //may be double this
+
   public Trigger climberStalled =
       new Trigger(() -> Math.round(inputs.climberCurrent) >= ClimberConstants.climberCurrentLimit)
           .debounce(.25, DebounceType.kFalling);
@@ -28,7 +31,7 @@ public class Climber extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  public void requestClimberVoltage(Supplier<Double> voltage) {
+  private void requestClimberVoltage(Supplier<Double> voltage) {
     io.voltageControl(voltage.get());
   }
 
@@ -36,23 +39,23 @@ public class Climber extends SubsystemBase {
     return Commands.run(() -> requestClimberVoltage(voltage));
   }
 
-  public void requestPull() {
-    io.requestPull();
+  public Command prepareClimbPosition() {
+    return run(() -> requestPosition(climbPosition));
   }
 
-  public void reqestPosition(double position) {
-    io.setClimberPosition(position / 2.0);
+  private void reqestPosition(double position) {
+    io.setClimberPosition(position);
   }
 
-  public void setClimberPosition(double pos) {
-    io.setClimberPosition(pos / 2.0);
+  private void setClimberPosition(double pos) {
+    io.setClimberPosition(pos);
   }
 
   public double getClimberPos() {
     return inputs.climberPOS;
   }
 
-  public void stop() {
+  private void stop() {
     io.stop();
   }
 }

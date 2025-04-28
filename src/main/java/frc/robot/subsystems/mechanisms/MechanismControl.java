@@ -293,7 +293,7 @@ public class MechanismControl extends SubsystemBase {
         }
         wristSubsystem.requestWristPOS(-80);
         driveSubsystem.setWheelsStraightAndCoast();
-        climber.requestPull();
+        climber.requestClimberVoltage(() -> 12.0);
         if (climber.getClimberPos() >= 9.25) {
           climber.stop();
           setState(State.idle).schedule();
