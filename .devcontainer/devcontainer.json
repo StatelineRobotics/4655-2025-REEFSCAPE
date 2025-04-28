@@ -1,5 +1,4 @@
 {
-  //"mcr.microsoft.com/devcontainers/universal:2"
   "image": "wpilib/roborio-cross-ubuntu:2025-24.04",
   "features": {},
   "customizations": {
@@ -11,5 +10,5 @@
       ]
     }
   },
-  "postStartCommand": "./.devcontainer/postCreateCommand.sh"
+  "postStartCommand": "chmod +rwx .devcontainer/start.sh && ./.devcontainer/start.sh"
 }

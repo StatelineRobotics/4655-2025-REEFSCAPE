@@ -1,53 +1,66 @@
 package frc.robot.subsystems.mechanisms.hopper;
 
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import frc.robot.subsystems.mechanisms.MechanismConstants;
+import frc.robot.subsystems.mechanisms.MechanismConstants.FunnelConstants;
+
 public class HopperIOSparkMax implements HopperIO {
 
-    public SparkMax pivotMotor = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushless);
-    public ClosedLoopControler pivotController = pivotMotor.getClosedLoopController();
-    public SparkAbsoluteEncoder pivotEncoder = povotMotor.getAbsoluteEncoder();
+  public SparkMax pivotMotor = new SparkMax(MechanismConstants.funnelId, MotorType.kBrushless);
+  public SparkClosedLoopController pivotController = pivotMotor.getClosedLoopController();
+  public SparkAbsoluteEncoder pivotEncoder = pivotMotor.getAbsoluteEncoder();
 
-    public SparkMax beltMotor = new SparkMax(MechanismConstants.beltId, MotorType.kBrushless);
-    public SparkEncoder beltEncoder = beltMotor.getEncoder();
+  public SparkMax beltMotor = new SparkMax(MechanismConstants.beltId, MotorType.kBrushless);
+  public RelativeEncoder beltEncoder = beltMotor.getEncoder();
 
-    public HopperIOSparkMax() {
-        public SparkMaxConfig wristConfig = new SparkMaxConfig();
-        
-        wristConfig.inverted(false).smartCurrentLimit(20);
-        wristConfig.closedLoop.pid(
-            FunnelConstants.kp,
-            FunnelConstants.ki,
-            FunnelConstants.kd
-        ).setFeedback(kAbsolute);
-        wristConfig.encoder.positionConversion(360).velocityConversion(360).centered(true);
+  public HopperIOSparkMax() {
+    SparkMaxConfig wristConfig = new SparkMaxConfig();
 
-        public SparkMaxConfig beltConfig = new SparkMaxConfig();
-        beltConfig.inverted(false).smartCurrentLimit(10);
-    }
+    wristConfig.inverted(false).smartCurrentLimit(20);
+    wristConfig
+        .closedLoop
+        .pid(FunnelConstants.kp, FunnelConstants.ki, FunnelConstants.kd)
+        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+    wristConfig
+        .absoluteEncoder
+        .setSparkMaxDataPortConfig()
+        .positionConversionFactor(360)
+        .velocityConversionFactor(360)
+        .zeroCentered(true);
 
-    public void updateInputs(HopperIOInputs inputs) {
-        inputs.pivotAngle = pivotEncoder.getPosition();
-        pivotMotorVoltage = pivotMotor.getBusVoltage() * pivotMotor.getAppliedOutput();
-        pivotMotorCurrent = pivotMotor.getAppliedCurrent();
+    SparkMaxConfig beltConfig = new SparkMaxConfig();
+    beltConfig.inverted(false).smartCurrentLimit(10);
+  }
 
-        beltMotorVoltage = beltMotor.getBusVoltage() * beltMotor.getAppliedOutput();
-        beltMotorCurrent = beltMotor.getOutputCurrent();
-    }
+  public void updateInputs(HopperIOInputs inputs) {
+    inputs.pivotAngle = pivotEncoder.getPosition();
+    inputs.pivotMotorVoltage = pivotMotor.getBusVoltage() * pivotMotor.getAppliedOutput();
+    inputs.pivotMotorCurrent = pivotMotor.getOutputCurrent();
 
-    public void requestBeltVoltage(double voltage) {
-        beltMotor.setVoltage(voltage);
-    }
+    inputs.beltMotorVoltage = beltMotor.getBusVoltage() * beltMotor.getAppliedOutput();
+    inputs.beltMotorCurrent = beltMotor.getOutputCurrent();
+  }
 
-    public void requestPivotAngle(double angle) {
-        wristController.setReference(angle, ControlType.kPosition);
-    }
+  public void requestBeltVoltage(double voltage) {
+    beltMotor.setVoltage(voltage);
+  }
 
-    public void stopBelt() {
-        beltMotor.stop();
-    }
+  public void requestPivotAngle(double angle) {
+    pivotController.setReference(angle, ControlType.kPosition);
+  }
 
-    public void stopWrist() {
-        wristMotor.stop();
-    }
+  public void stopBelt() {
+    beltMotor.stopMotor();
+  }
 
-
+  public void stopWrist() {
+    pivotMotor.stopMotor();
+  }
 }

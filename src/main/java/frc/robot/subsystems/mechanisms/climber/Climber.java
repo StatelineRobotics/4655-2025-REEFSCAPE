@@ -15,7 +15,7 @@ public class Climber extends SubsystemBase {
   private double climberPOS;
 
   private static final double prepareClimbPosition = 0.0;
-  private static final double climbPosition = 4.6; //may be double this
+  private static final double climbPosition = 4.6; // may be double this
 
   public Trigger climberStalled =
       new Trigger(() -> Math.round(inputs.climberCurrent) >= ClimberConstants.climberCurrentLimit)
