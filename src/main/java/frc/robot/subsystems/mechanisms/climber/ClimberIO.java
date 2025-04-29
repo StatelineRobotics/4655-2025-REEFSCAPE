@@ -8,8 +8,8 @@ public interface ClimberIO {
   class ClimberIOInputs {
 
     public double climberPOS = 0.0;
-    public double funnelPOS = 0.0;
     public double climberCurrent = 0.0;
+    public double climberVoltage = 0.0;
   }
 
   default void voltageControl(double voltage) {}
@@ -17,8 +17,6 @@ public interface ClimberIO {
   default void updateInputs(ClimberIOInputs inputs) {}
 
   default void setClimberPosition(double position) {}
-
-  default void requestPull() {}
 
   default void stop() {}
 }
