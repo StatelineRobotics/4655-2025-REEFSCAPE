@@ -48,7 +48,7 @@ public class ClimberIOSparkMax implements ClimberIO {
   @Override
   public void updateInputs(ClimberIOInputs inputs) {
     inputs.climberPOS = climbEncoder.getPosition();
-    inputs.climberCurrent = m_climber.getAppliedCurrent();
+    inputs.climberCurrent = m_climber.getOutputCurrent();
     inputs.climberVoltage = m_climber.getBusVoltage() * m_climber.getAppliedOutput();
   }
 

@@ -124,7 +124,10 @@ public class Drive extends SubsystemBase {
   @AutoLogOutput public Trigger autoElevator = new Trigger(() -> !firstStageAuto);
   private boolean readyScore = false;
   @AutoLogOutput public Trigger readyAutoScore = new Trigger(() -> readyScore);
-  @AutoLogOutput public Trigger safeElevatorDown = new Trigger(() -> getPose().getTranslation().getDistance(DriveTarget.getReefPose()) > 2.0);
+
+  @AutoLogOutput
+  public Trigger safeElevatorDown =
+      new Trigger(() -> getPose().getTranslation().getDistance(DriveTarget.getReefPose()) > 2.0);
 
   private static final PathConstraints teleopPathConstraints =
       new PathConstraints(4.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));

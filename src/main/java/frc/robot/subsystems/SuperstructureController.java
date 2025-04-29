@@ -1,61 +1,53 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.wpilibj2.command.Commands.*;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
+import frc.robot.subsystems.mechanisms.outakeRollers.OutakeRollers;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
 
 public class SuperstructureController {
   private Elevator elevator;
   private Wrist wrist;
+  private OutakeRollers outake;
   private Drive drive;
 
   public Trigger useFullAuto;
 
-  public SuperstructureController(Drive drive, Elevator elevator, Wrist wrist) {
+  public enum SuperstructurePositions {
+    level1(0.05, -45, 6.0),
+    level2(0.05, -45, 6.0);
+
+    public final double elevator;
+    public final double wrist;
+    public final double outake;
+
+    private SuperstructurePositions(double elevator, double wrist, double outake) {
+      this.elevator = elevator;
+      this.wrist = wrist;
+      this.outake = outake;
+    }
+  }
+
+  public SuperstructureController(
+      Drive drive, Elevator elevator, Wrist wrist, OutakeRollers outake) {
     this.drive = drive;
     this.elevator = elevator;
     this.wrist = wrist;
+    this.outake = outake;
     SmartDashboard.putBoolean("useFullAuto", true);
     useFullAuto = new Trigger(() -> SmartDashboard.getBoolean("useFullAuto", false));
   }
 
-  private Command autoCoralScoreCommand(Command elevatorPosition, Command wristPosition) {
-    return Commands.waitUntil(drive.autoElevator)
-                   .andThen(elevatorPosition.alongWith(wristPosition))
-                   .andThen(Commands.waitUntil(drive.readyAutoScore))
-                   //.andThen(someThing someThing score command)
-                   .andThen(wrist.moveCoralStorePosition()).withTimeout(Seconds.of(.5))
-                   .andThen(DriveCommands.straightBack(drive).until(drive.safeElevatorDown))
-                   .andThen(wrist.moveCoralStorePosition().alongWith(elevator.getCoralStoreCommand()));
+  public Command score(SuperstructurePositions position) {
+    return idle(outake); // needs to be the outake move shooty thing
   }
 
-  private Command manualCoralScoreCommand(Command elevatorPosition, Command wristPosition) {
-    return elevatorPosition.alongWith(wristPosition);
+  public Command moveToPosition(SuperstructurePositions positions) {
+    return wrist.moveToSetpoint(positions).alongWith(elevator.moveToSetpoint(positions));
   }
-
-  private Command coralScoreCommand(Command elevatorPosition, Command wristPosition) {
-    return new ConditionalCommand(autoCoralScoreCommand(elevatorPosition, wristPosition), manualCoralScoreCommand(elevatorPosition, wristPosition), useFullAuto);
-  }
-
-  public Command l2ScoreCommand() {
-    return coralScoreCommand(elevator.getL2Command(), wrist.moveMidcoralPosition()).withName("L2 score command");
-  }
-
-  public Command l3ScoreCommand() {
-    return coralScoreCommand(elevator.getL3Command(), wrist.moveMidcoralPosition()).withName("L3 score command");
-  }
-
-  public Command l4ScoreCommand() {
-    return coralScoreCommand(elevator.getL4Command(), wrist.moveL4coralPosition()).withName("L4 score command");
-  }
-
 }

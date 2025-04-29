@@ -8,6 +8,7 @@ import org.littletonrobotics.junction.Logger;
 public class Hopper extends SubsystemBase {
 
   private final HopperIO io;
+
   private final HopperIOInputsAutoLogged inputs = new HopperIOInputsAutoLogged();
 
   private static final double pivotAllowedError = 1.0;

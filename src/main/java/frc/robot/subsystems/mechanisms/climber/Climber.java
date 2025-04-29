@@ -31,7 +31,7 @@ public class Climber extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  private void requestClimberVoltage(Supplier<Double> voltage) {
+  public void requestClimberVoltage(Supplier<Double> voltage) {
     io.voltageControl(voltage.get());
   }
 
@@ -43,11 +43,11 @@ public class Climber extends SubsystemBase {
     return run(() -> requestPosition(climbPosition));
   }
 
-  private void reqestPosition(double position) {
+  private void requestPosition(double position) {
     io.setClimberPosition(position);
   }
 
-  private void setClimberPosition(double pos) {
+  public void setClimberPosition(double pos) {
     io.setClimberPosition(pos);
   }
 
@@ -55,7 +55,7 @@ public class Climber extends SubsystemBase {
     return inputs.climberPOS;
   }
 
-  private void stop() {
+  public void stop() {
     io.stop();
   }
 }

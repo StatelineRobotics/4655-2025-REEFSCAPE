@@ -1,8 +1,6 @@
 package frc.robot.subsystems.mechanisms.outakeRollers;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.mechanisms.outakeRollers.OutakeRollersIO.OutakeRollersIOInputs;
-
 import org.littletonrobotics.junction.Logger;
 
 public class OutakeRollers extends SubsystemBase {

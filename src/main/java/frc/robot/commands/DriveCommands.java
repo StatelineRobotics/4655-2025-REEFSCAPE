@@ -150,11 +150,12 @@ public class DriveCommands {
 
   public static Command straightBack(Drive drive) {
     return Commands.run(
-      () -> {
-        ChassisSpeeds speeds = ChassisSpeeds.fromRobotRelativeSpeeds(2, 0, 0, drive.getRotation());
-        drive.runTeleOpVelocity(speeds);
-      }, drive
-    );
+        () -> {
+          ChassisSpeeds speeds =
+              ChassisSpeeds.fromRobotRelativeSpeeds(2, 0, 0, drive.getRotation());
+          drive.runTeleOpVelocity(speeds);
+        },
+        drive);
   }
 
   /**

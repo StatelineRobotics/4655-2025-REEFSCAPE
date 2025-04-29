@@ -18,8 +18,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
+import frc.robot.subsystems.SuperstructureController.SuperstructurePositions;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -75,8 +77,8 @@ public class Elevator extends SubsystemBase {
   public Elevator(ElevatorIO io) {
     this.io = io;
     if (true) {
-      SmartDashboard.putData("Elevator/lowerTestCommand", testLowerPosition());
-      SmartDashboard.putData("Elevator/upperTestCommand", testUpperPosition());
+      SmartDashboard.putData("Elevator/lowerTestCommand", goToAnyPositionCommand(() -> 1.0));
+      SmartDashboard.putData("Elevator/upperTestCommand", goToAnyPositionCommand(() -> 1.0));
     }
 
     if (Robot.isSimulation()) {
@@ -99,7 +101,6 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    SmartDashboard.putNumber("TestArmAngle", 22.5);
     io.updateInputs(inputs);
     Logger.processInputs("Elevator", inputs);
 
@@ -108,18 +109,6 @@ public class Elevator extends SubsystemBase {
     } else {
 
     }
-  }
-
-  public void requestBeltRPM(double RPM) {
-    beltRPM = RPM;
-  }
-
-  public void reqestBeltVoltage(double voltage) {
-    io.reqestBeltVoltage(voltage);
-  }
-
-  public void requestFunnelPOS(double POS) {
-    io.requestFunnelPOS(POS);
   }
 
   private void stop() {
@@ -136,58 +125,50 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command manualRunCommand(DoubleSupplier controllerInput) {
-    return this.run(
-            () -> {
-              voltageControl(controllerInput.getAsDouble() * -6.0 + 1.0);
-            })
-        .withName("Maual Run Command");
+    return run(() -> {
+          voltageControl(controllerInput.getAsDouble() * -6.0 + feedforward.getKg());
+        })
+        .withName("Manual Run Command");
   }
 
   public Command stopCommand() {
-    return this.runOnce(this::stop);
+    return run(this::stop);
   }
 
   public Command holdPosition() {
-    return this.run(
+    return run(
         () -> {
-          voltageControl(1.0);
+          voltageControl(feedforward.getKg());
         });
   }
 
-  public Command testLowerPosition() {
-    return goToPositionCommand(SmartDashboard.getNumber("Elevator/lowerSetpoint", 0.05));
+  private Command goToAnyPositionCommand(Supplier<Double> targetPostion) {
+    return requestElevatorPosition(targetPostion.get());
   }
 
-  public Command testUpperPosition() {
-    return goToPositionCommand(SmartDashboard.getNumber("Elevator/upperSetpoint", 0.45));
-  }
-
-  public Command goToPositionCommand(double targetPostion) {
+  private Command requestElevatorPosition(double targetPostion) {
     return startRun(
-        () -> {
-          inputs.finalSetpoint = targetPostion;
-          startingState = new State(inputs.elevatorPos, inputs.elevatorVelo);
-          endState = new State(targetPostion, 0.0);
-          timer.restart();
-        },
-        () -> {
-          double currentTime = timer.get();
-          Logger.recordOutput("time", currentTime);
-          // TrapezoidProfile.State currentState = new State(inputs.elevatorPos,
-          // inputs.elevatorVelo);
-          State currentTarget = profile.calculate(currentTime, startingState, endState);
-          State nextState = profile.calculate(currentTime + 0.02, startingState, endState);
-          double voltageFeed =
-              feedforward.calculateWithVelocities(currentTarget.velocity, nextState.velocity);
-          positionControl(currentTarget.position, voltageFeed);
-          inputs.veolocitySetpoint = currentTarget.velocity;
-          inputs.motionSetpoint = currentTarget.position;
-          lastTime = currentTime;
-        });
-  }
-
-  public Command goToAnyPositionCommand(double targetPostion) {
-    return defer(() -> goToAnyPositionCommand(targetPostion));
+            () -> {
+              inputs.finalSetpoint = targetPostion;
+              startingState = new State(inputs.elevatorPos, inputs.elevatorVelo);
+              endState = new State(targetPostion, 0.0);
+              timer.restart();
+            },
+            () -> {
+              double currentTime = timer.get();
+              Logger.recordOutput("time", currentTime);
+              // TrapezoidProfile.State currentState = new State(inputs.elevatorPos,
+              // inputs.elevatorVelo);
+              State currentTarget = profile.calculate(currentTime, startingState, endState);
+              State nextState = profile.calculate(currentTime + 0.02, startingState, endState);
+              double voltageFeed =
+                  feedforward.calculateWithVelocities(currentTarget.velocity, nextState.velocity);
+              positionControl(currentTarget.position, voltageFeed);
+              inputs.veolocitySetpoint = currentTarget.velocity;
+              inputs.motionSetpoint = currentTarget.position;
+              lastTime = currentTime;
+            })
+        .until(elevatorAtSetpoint);
   }
 
   public boolean isAtSetpoint() {
@@ -222,57 +203,11 @@ public class Elevator extends SubsystemBase {
     return inputs.elevatorVelo * 3.0;
   }
 
-  @AutoLogOutput
   public double getVelocity() {
     return inputs.elevatorVelo;
   }
 
-  @AutoLogOutput
-  public double getFunnelPos() {
-    return inputs.funnelPos;
-  }
-
-  public Command getL1Command() {
-    return goToPositionCommand(ElevatorConstants.levelOne);
-  }
-
-  public Command getL2Command() {
-    return goToPositionCommand(ElevatorConstants.levelTwo);
-  }
-
-  public Command getL3Command() {
-    return goToPositionCommand(ElevatorConstants.levelThree);
-  }
-
-  public Command getL4Command() {
-    return goToPositionCommand(ElevatorConstants.levelFour);
-  }
-
-  public Command getAlgaeL2Command() {
-    return goToPositionCommand(ElevatorConstants.algeaL2);
-  }
-
-  public Command getAlgaeL3Command() {
-    return goToPositionCommand(ElevatorConstants.algeaL3);
-  }
-
-  public Command getIntakeCommand() {
-    return goToPositionCommand(ElevatorConstants.intakeHeight);
-  }
-
-  public Command getAlgaeIntakeCommand() {
-    return goToPositionCommand(ElevatorConstants.algeaGround);
-  }
-
-  public Command getCoralStoreCommand() {
-    return goToPositionCommand(ElevatorConstants.storeHeight);
-  }
-
-  public Command getAlgaeStoreCommand() {
-    return goToPositionCommand(ElevatorConstants.storeAlgeaHeight);
-  }
-
-  public Command getBargeCommandI() {
-    return goToPositionCommand(ElevatorConstants.barge);
+  public Command moveToSetpoint(SuperstructurePositions position) {
+    return requestElevatorPosition(position.elevator);
   }
 }

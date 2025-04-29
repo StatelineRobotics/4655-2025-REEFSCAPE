@@ -1,6 +1,9 @@
 package frc.robot.subsystems.mechanisms.hopper;
 
+import org.littletonrobotics.junction.AutoLog;
+
 public interface HopperIO {
+  @AutoLog
   public class HopperIOInputs {
 
     public double pivotAngle = 0.0;

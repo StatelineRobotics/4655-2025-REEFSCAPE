@@ -1,6 +1,9 @@
 package frc.robot.subsystems.mechanisms.outakeRollers;
 
+import org.littletonrobotics.junction.AutoLog;
+
 public interface OutakeRollersIO {
+  @AutoLog
   public class OutakeRollersIOInputs {
 
     public double leftMotorVoltage = 0.0;

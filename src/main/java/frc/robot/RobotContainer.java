@@ -16,7 +16,6 @@ package frc.robot;
 // import static frc.robot.subsystems.Vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -29,9 +28,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.SingleColorFade;
@@ -43,8 +40,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.mechanisms.MechanismControl;
-import frc.robot.subsystems.mechanisms.MechanismControl.State;
 import frc.robot.subsystems.mechanisms.climber.Climber;
 import frc.robot.subsystems.mechanisms.climber.ClimberIO;
 import frc.robot.subsystems.mechanisms.climber.ClimberIOSparkMax;
@@ -60,8 +55,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.util.Binding;
-import frc.robot.util.ScorePositionSelector;
 import java.util.EnumMap;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -85,17 +78,11 @@ public class RobotContainer {
   private final Climber climber;
   private final Lights lights;
 
-  private final MechanismControl mechanismControl;
-
   private final Vision vision;
-
-  private final ScorePositionSelector selector;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController auxController = new CommandXboxController(1);
-
-  private Trigger anyPov;
 
   private LoggedMechanism2d superstructure2d =
       new LoggedMechanism2d(Units.inchesToMeters(2), Units.inchesToMeters(32.5 * 4));
@@ -123,7 +110,6 @@ public class RobotContainer {
   private EnumMap<OutakeEnums, Command> outakeCommandMap = new EnumMap<>(OutakeEnums.class);
 
   private Supplier<AutoEnums> autoEnumSupplier;
-  private Supplier<OutakeEnums> outakeEnumSupplier;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -207,11 +193,7 @@ public class RobotContainer {
         break;
     }
 
-    mechanismControl = new MechanismControl(drive, elevator, wrist, climber, lights);
-
     configureNamedCommands();
-
-    selector = new ScorePositionSelector(mechanismControl.setState(State.store).withName("Store"));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -267,10 +249,6 @@ public class RobotContainer {
 
     // Lock to 0 when A button is held
     // auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
-    controller
-        .a()
-        .onTrue(mechanismControl.setState(State.levelFour).withName("L4"))
-        .onFalse(mechanismControl.setState(State.store));
     // controller
     //     .a()
     //     .whileTrue(
@@ -290,193 +268,6 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-
-    auxController
-        .x()
-        .whileTrue(Commands.run(() -> wrist.reqestIntakeVoltage(-6)))
-        .onFalse(Commands.runOnce(() -> wrist.reqestIntakeVoltage(0)));
-
-    // Reset gyro to 0 when B button is pressed
-    controller
-        .y()
-        .whileTrue(
-            DriveCommands.pointTowardsReefCommand(
-                drive, () -> -controller.getLeftY(), () -> -controller.getLeftX()));
-
-    autoEnumSupplier =
-        () -> {
-          if (wrist.intakeStalled.getAsBoolean()) {
-            return AutoEnums.algea;
-          } else if (wrist.detectsForward.getAsBoolean()) {
-            return AutoEnums.coral;
-          } else {
-            return AutoEnums.intake;
-          }
-        };
-
-    outakeEnumSupplier =
-        () -> {
-          if (mechanismControl.currentState == State.algeaStore) {
-            return OutakeEnums.algea;
-          } else if (mechanismControl.currentState == State.barge) {
-            return OutakeEnums.barge;
-          } else if (mechanismControl.currentState == State.levelOne) {
-            return OutakeEnums.L1;
-          } else if (mechanismControl.currentState == State.levelTwo
-              || mechanismControl.currentState == State.levelThree) {
-            return OutakeEnums.notL4;
-          } else {
-            return OutakeEnums.coral;
-          }
-        };
-
-    leftCommandMap.put(
-        AutoEnums.coral, drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp));
-    leftCommandMap.put(AutoEnums.algea, new InstantCommand());
-    leftCommandMap.put(
-        AutoEnums.intake,
-        (mechanismControl.setState(State.coralPickup).asProxy())
-            .alongWith(drive.getLeftSourceDriveCommand()));
-
-    rightCommandMap.put(
-        AutoEnums.coral, drive.getRightCoralDriveCommand(mechanismControl.elevatorUp));
-    rightCommandMap.put(AutoEnums.algea, drive.getProccesorDriveCommand());
-    rightCommandMap.put(
-        AutoEnums.intake,
-        (mechanismControl.setState(State.coralPickup).asProxy())
-            .alongWith(drive.getRightSourceDriveCommand()));
-
-    outakeCommandMap.put(OutakeEnums.coral, Commands.run(() -> wrist.reqestIntakeVoltage(3.0)));
-    outakeCommandMap.put(OutakeEnums.L1, Commands.run(() -> wrist.reqestIntakeVoltage(3.5)));
-    outakeCommandMap.put(OutakeEnums.barge, Commands.run(() -> wrist.reqestIntakeVoltage(12)));
-    outakeCommandMap.put(OutakeEnums.algea, Commands.run(() -> wrist.reqestIntakeVoltage(0.5)));
-    outakeCommandMap.put(OutakeEnums.notL4, Commands.run(() -> wrist.reqestIntakeVoltage(3)));
-
-    // controller
-    //     .leftTrigger()
-    //     .whileTrue(
-    //         new ConditionalCommand(
-    //             new InstantCommand(),
-    //             drive.getLeftCoralDriveCommand(mechanismControl.elevatorUp),
-    //             wrist.intakeStalled));
-
-    controller.leftTrigger().whileTrue(Commands.select(leftCommandMap, autoEnumSupplier));
-
-    // controller
-    //     .rightTrigger()
-    //     .whileTrue(
-    //         new ConditionalCommand(
-    //             drive.getProccesorDriveCommand(),
-    //             drive.getRightCoralDriveCommand(mechanismControl.elevatorUp),
-    //             wrist.intakeStalled));
-
-    controller.rightTrigger().whileTrue(Commands.select(rightCommandMap, autoEnumSupplier));
-
-    anyPov = new Trigger(() -> controller.getHID().getPOV() != -1);
-    anyPov.onTrue(mechanismControl.setState(State.climb));
-
-    controller
-        .rightBumper()
-        .whileTrue(Commands.select(outakeCommandMap, outakeEnumSupplier))
-        .onFalse(Commands.runOnce(wrist::stopIntake));
-    controller.leftBumper().onTrue(mechanismControl.setState(State.coralPickup));
-    /*Aux controller control Scheme
-     Coral Store Positions
-     * LeftTrigger  L1
-     * RightTrigger L2
-     * LeftBumper   L3
-     * RightBumper  L4
-     Algea Store Positions
-     * A Barge Algea
-     * Y Algea Ground Intake
-     * LeftTrigger + B L2 Algea
-     * LeftBumper  + B L3 Algea
-    */
-    selector
-        .addBinding(
-            new Binding(
-                auxController.rightTrigger().and(auxController.b().negate()),
-                mechanismControl.setNewScoreState(() -> State.levelTwo).withName("L2")))
-        .addBinding(
-            new Binding(
-                auxController.leftBumper().and(auxController.b().negate()),
-                mechanismControl.setNewScoreState(() -> State.levelThree).withName("L3")))
-        .addBinding(
-            new Binding(
-                auxController.rightBumper().and(auxController.b().negate()),
-                mechanismControl.setNewScoreState(() -> State.levelFour).withName("L4")))
-        // .addBinding(
-        //     new Binding(
-        //         auxController.leftTrigger().and(auxController.b().negate()),
-        //         mechanismControl.setState(State.levelOne).withName("L1")))
-        // .addBinding(
-        //     new Binding(
-        //         auxController.rightTrigger().and(auxController.b().negate()),
-        //         mechanismControl.setState(State.levelTwo).withName("L2")))
-        // .addBinding(
-        //     new Binding(
-        //         auxController.leftBumper().and(auxController.b().negate()),
-        //         mechanismControl.setState(State.levelThree).withName("L3")))
-        // .addBinding(
-        //     new Binding(
-        //         auxController.rightBumper().and(auxController.b().negate()),
-        //         mechanismControl.setState(State.levelFour).withName("L4")))
-        .addBinding(
-            new Binding(
-                (auxController.leftTrigger().or(auxController.rightTrigger()))
-                    .and(auxController.b()),
-                mechanismControl.setState(State.algaePickupL2).withName("AlgeaL2")))
-        .addBinding(
-            new Binding(
-                (auxController.leftBumper().or(auxController.rightBumper())).and(auxController.b()),
-                mechanismControl.setState(State.algeaPickupL3).withName("AlgeaL3")))
-        .addBinding(
-            new Binding(
-                auxController.a(), mechanismControl.setState(State.barge).withName("Barge")))
-        .addBinding(
-            new Binding(
-                auxController.y(),
-                mechanismControl.setState(State.algeaGround).withName("groundIntake")));
-
-    auxController
-        .axisMagnitudeGreaterThan(1, 0.1)
-        .whileTrue(
-            elevator
-                .manualRunCommand(() -> auxController.getLeftY())
-                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .whileFalse(elevator.holdPosition());
-
-    auxController
-        .axisMagnitudeGreaterThan(5, 0.1)
-        .and(auxController.b())
-        .whileTrue(
-            climber
-                .voltageCommand(() -> auxController.getRightY() * 12.0)
-                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .onFalse(new InstantCommand(climber::stop));
-
-    auxController
-        .axisMagnitudeGreaterThan(5, 0.1)
-        .and(auxController.b().negate())
-        .whileTrue(
-            wrist
-                .wristVoltageControl(() -> auxController.getRightY() * 3.0)
-                .alongWith(mechanismControl.setState(State.idle).repeatedly()))
-        .onFalse(new InstantCommand(wrist::stopWrist));
-
-    auxController.povRight().onTrue(mechanismControl.setState(State.coralPickup));
-    auxController
-        .povLeft()
-        .onTrue(mechanismControl.setState(State.reverse))
-        .onFalse(mechanismControl.setState(State.idle));
-
-    auxController
-        .povUp()
-        .and(auxController.b())
-        .onTrue(mechanismControl.setState(State.climberPrep));
-    // auxController.a().whileTrue(elevator.sysIdRoutine());
-
-    auxController.povDown().and(auxController.b()).onTrue(mechanismControl.setState(State.climb));
   }
 
   private void configureLEDbindings() {
@@ -495,8 +286,6 @@ public class RobotContainer {
     SmartDashboard.putData("elevator", elevator);
     SmartDashboard.putData("wrist", wrist);
     SmartDashboard.putData("Lights", lights);
-    SmartDashboard.putData("mechControl", mechanismControl);
-    selector.log();
   }
 
   public void updateMechanism2ds() {
@@ -512,42 +301,44 @@ public class RobotContainer {
   }
 
   public void configureNamedCommands() {
-    NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour).asProxy());
-    NamedCommands.registerCommand("L3", mechanismControl.setState(State.levelThree).asProxy());
-    NamedCommands.registerCommand(
-        "bargeScore",
-        Commands.runEnd(
-                () -> {
-                  wrist.reqestIntakeVoltage(12);
-                },
-                () -> wrist.stopIntake())
-            .withTimeout(0.5)
-            .asProxy());
-    NamedCommands.registerCommand(
-        "score",
-        Commands.runEnd(
-                () -> {
-                  wrist.reqestIntakeVoltage(3);
-                },
-                () -> wrist.stopIntake())
-            .withTimeout(0.5)
-            .asProxy());
-    NamedCommands.registerCommand(
-        "waitUntilInake", Commands.waitUntil(wrist.detectsForward).asProxy());
-    NamedCommands.registerCommand(
-        "algaeL3", mechanismControl.setState(State.algeaPickupL3).asProxy());
-    NamedCommands.registerCommand(
-        "algaeL2", mechanismControl.setState(State.algaePickupL2).asProxy());
-    NamedCommands.registerCommand("store", mechanismControl.setState(State.store).asProxy());
-    NamedCommands.registerCommand("intake", mechanismControl.setState(State.coralPickup).asProxy());
-    NamedCommands.registerCommand(
-        "waitUntilSetpoint",
-        Commands.run(() -> {}).until(mechanismControl.atDualSetPoint).asProxy());
+    // NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour).asProxy());
+    // NamedCommands.registerCommand("L3", mechanismControl.setState(State.levelThree).asProxy());
+    // NamedCommands.registerCommand(
+    //     "bargeScore",
+    //     Commands.runEnd(
+    //             () -> {
+    //               wrist.reqestIntakeVoltage(12);
+    //             },
+    //             () -> wrist.stopIntake())
+    //         .withTimeout(0.5)
+    //         .asProxy());
+    // NamedCommands.registerCommand(
+    //     "score",
+    //     Commands.runEnd(
+    //             () -> {
+    //               wrist.reqestIntakeVoltage(3);
+    //             },
+    //             () -> wrist.stopIntake())
+    //         .withTimeout(0.5)
+    //         .asProxy());
+    // NamedCommands.registerCommand(
+    //     "waitUntilInake", Commands.waitUntil(wrist.detectsForward).asProxy());
+    // NamedCommands.registerCommand(
+    //     "algaeL3", mechanismControl.setState(State.algeaPickupL3).asProxy());
+    // NamedCommands.registerCommand(
+    //     "algaeL2", mechanismControl.setState(State.algaePickupL2).asProxy());
+    // NamedCommands.registerCommand("store", mechanismControl.setState(State.store).asProxy());
+    // NamedCommands.registerCommand("intake",
+    // mechanismControl.setState(State.coralPickup).asProxy());
+    // NamedCommands.registerCommand(
+    //     "waitUntilSetpoint",
+    //     Commands.run(() -> {}).until(mechanismControl.atDualSetPoint).asProxy());
 
-    NamedCommands.registerCommand("waitAlgea", Commands.waitUntil(wrist.intakeStalled).asProxy());
-    NamedCommands.registerCommand(
-        "algaeStore", mechanismControl.setState(State.algeaStore).asProxy());
-    NamedCommands.registerCommand("barge", mechanismControl.setState(State.barge).asProxy());
+    // NamedCommands.registerCommand("waitAlgea",
+    // Commands.waitUntil(wrist.intakeStalled).asProxy());
+    // NamedCommands.registerCommand(
+    //     "algaeStore", mechanismControl.setState(State.algeaStore).asProxy());
+    // NamedCommands.registerCommand("barge", mechanismControl.setState(State.barge).asProxy());
   }
 
   /**
