@@ -239,6 +239,14 @@ public class DriveTarget {
     }
   }
 
+  public static Translation2d getReefPose() {
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
+      return blueReefCenter;
+    } else {
+      return redReefCenter;
+    }
+  }
+
   public static Pose2d[] getSourcePose(Pose2d currentPose) {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) {
       if (getSquaredDistance(currentPose, blueSourceEndPoses[0])

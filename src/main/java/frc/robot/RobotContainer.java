@@ -514,13 +514,15 @@ public class RobotContainer {
   public void configureNamedCommands() {
     NamedCommands.registerCommand("L4", mechanismControl.setState(State.levelFour).asProxy());
     NamedCommands.registerCommand("L3", mechanismControl.setState(State.levelThree).asProxy());
-    NamedCommands.registerCommand("bargeScore" , Commands.runEnd(
-        () -> {
-          wrist.reqestIntakeVoltage(12);
-        },
-        () -> wrist.stopIntake())
-    .withTimeout(0.5)
-    .asProxy());
+    NamedCommands.registerCommand(
+        "bargeScore",
+        Commands.runEnd(
+                () -> {
+                  wrist.reqestIntakeVoltage(12);
+                },
+                () -> wrist.stopIntake())
+            .withTimeout(0.5)
+            .asProxy());
     NamedCommands.registerCommand(
         "score",
         Commands.runEnd(

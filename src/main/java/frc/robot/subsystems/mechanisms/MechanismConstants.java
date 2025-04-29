@@ -103,6 +103,7 @@ public class MechanismConstants {
     public static final double algeaScoreAngle = 2.0;
     public static final double l1angle = -45.0;
     public static final double bargeangle = -35;
+    public static final double climbAngle = -80;
   }
 
   public class RollerConstants {

@@ -1,7 +1,6 @@
 package frc.robot.subsystems.mechanisms;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -332,13 +331,14 @@ public class MechanismControl extends SubsystemBase {
   }
 
   public Command setNewState(Supplier<State> desiredState) {
-  return Commands.runOnce(() -> setDesiredState(desiredState.get()),
-                          elevatorSubsystem, wristSubsystem, climber)
-                          .withName("state: " + desiredState.get());
+    return Commands.runOnce(
+            () -> setDesiredState(desiredState.get()), elevatorSubsystem, wristSubsystem, climber)
+        .withName("state: " + desiredState.get());
   }
 
   public Command setNewScoreState(Supplier<State> desiredState) {
-    Command waitCommand = run(() -> {}).until(() -> !driveSubsystem.firstStageAuto).withName("Wait For AutoAlign");
+    Command waitCommand =
+        run(() -> {}).until(() -> !driveSubsystem.firstStageAuto).withName("Wait For AutoAlign");
     return waitCommand.andThen(setNewState(desiredState));
   }
 

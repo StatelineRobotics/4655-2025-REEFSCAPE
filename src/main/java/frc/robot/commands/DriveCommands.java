@@ -148,6 +148,15 @@ public class DriveCommands {
         drive);
   }
 
+  public static Command straightBack(Drive drive) {
+    return Commands.run(
+      () -> {
+        ChassisSpeeds speeds = ChassisSpeeds.fromRobotRelativeSpeeds(2, 0, 0, drive.getRotation());
+        drive.runTeleOpVelocity(speeds);
+      }, drive
+    );
+  }
+
   /**
    * Field relative drive command using joystick for linear control and PID for angular control.
    * Possible use cases include snapping to an angle, aiming at a vision target, or controlling

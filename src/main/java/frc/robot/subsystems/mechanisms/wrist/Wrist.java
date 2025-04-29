@@ -119,4 +119,63 @@ public class Wrist extends SubsystemBase {
   public Command stopCommand() {
     return this.runOnce(this::stop);
   }
+
+  public Command intakeSequesnce() {
+    return moveIntakePosition()
+        .andThen(run(() -> reqestIntakeVoltage(3.0)).until(detectsForward))
+        .andThen(
+            runEnd(() -> reqestIntakeVoltage(2.0), this::stopIntake).until(detectsNote.negate()));
+  }
+
+  public Command eject() {
+    return runEnd(() -> reqestIntakeVoltage(12.0), this::stopIntake);
+  }
+
+  public Command moveIntakePosition() {
+    return run(() -> requestWristPOS(WristConstants.intakeCoralAngle)).until(atSetpoint);
+  }
+
+  public Command moveCoralStorePosition() {
+    return run(() -> requestWristPOS(WristConstants.storeAngle)).until(atSetpoint);
+  }
+
+  public Command moveGroundPosition() {
+    return run(() -> requestWristPOS(WristConstants.algeaGround)).until(atSetpoint);
+  }
+
+  public Command moveL1Position() {
+    return run(() -> requestWristPOS(WristConstants.l1angle)).until(atSetpoint);
+  }
+
+  public Command moveMidcoralPosition() {
+    return run(() -> requestWristPOS(WristConstants.L4coralScoreAngle)).until(atSetpoint);
+  }
+
+  public Command moveL4coralPosition() {
+    return run(() -> requestWristPOS(WristConstants.L4coralScoreAngle)).until(atSetpoint);
+  }
+
+  public Command moveAlgeaIntakePosition() {
+    return run(
+        () -> {
+          requestWristPOS(WristConstants.algeaIntakeAngle);
+          reqestIntakeVoltage(6.0);
+        });
+  }
+
+  public Command moveAlgeaStorePosition() {
+    return run(
+        () -> {
+          requestWristPOS(WristConstants.storeAlgeaAngle);
+          reqestIntakeVoltage(1.0);
+        });
+  }
+
+  public Command moveClimbPosition() {
+    return run(() -> requestWristPOS(WristConstants.climbAngle)).until(atSetpoint);
+  }
+
+  public Command moveBargePosition() {
+    return run(() -> requestWristPOS(WristConstants.bargeangle)).until(atSetpoint);
+  }
 }
