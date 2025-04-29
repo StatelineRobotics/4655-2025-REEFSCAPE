@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.SuperstructureController.SuperstructurePositions;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -129,7 +128,7 @@ public class Wrist extends SubsystemBase {
   // this::stopIntake).until(detectsNote.negate()));
   // }
 
-  public Command moveToSetpoint(SuperstructurePositions position) {
-    return run(() -> requestWristPosition(position.wrist)).until(atSetpoint);
+  public Command moveToSetpoint(double position) {
+    return run(() -> requestWristPosition(position)).until(atSetpoint);
   }
 }

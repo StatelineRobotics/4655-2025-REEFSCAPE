@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
+import static frc.robot.util.FieldConstants.PieceType.*;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -9,6 +10,7 @@ import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.outakeRollers.OutakeRollers;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
+import frc.robot.util.FieldConstants.PieceType;
 
 public class SuperstructureController {
   private Elevator elevator;
@@ -18,7 +20,7 @@ public class SuperstructureController {
 
   public Trigger useFullAuto;
 
-  public enum SuperstructurePositions {
+  public static enum ScorePositions {
     level1(0.05, -45, 6.0),
     level2(0.05, -45, 6.0);
 
@@ -26,10 +28,25 @@ public class SuperstructureController {
     public final double wrist;
     public final double outake;
 
-    private SuperstructurePositions(double elevator, double wrist, double outake) {
+    private ScorePositions(double elevator, double wrist, double outake) {
       this.elevator = elevator;
       this.wrist = wrist;
       this.outake = outake;
+    }
+  }
+
+  public static enum IntakePositions {
+    hopperCoral(1, 1, coral),
+    algea(1, 1, algae);
+
+    public final double elevator;
+    public final double wrist;
+    public final PieceType type;
+
+    private IntakePositions(double elevator, double wrist, PieceType type) {
+      this.elevator = elevator;
+      this.wrist = wrist;
+      this.type = type;
     }
   }
 
@@ -43,11 +60,18 @@ public class SuperstructureController {
     useFullAuto = new Trigger(() -> SmartDashboard.getBoolean("useFullAuto", false));
   }
 
-  public Command score(SuperstructurePositions position) {
+  public Command score(ScorePositions position) {
     return idle(outake); // needs to be the outake move shooty thing
   }
 
-  public Command moveToPosition(SuperstructurePositions positions) {
-    return wrist.moveToSetpoint(positions).alongWith(elevator.moveToSetpoint(positions));
+  public Command intake(IntakePositions postion) {
+    return sequence(wrist.moveToSetpoint(postion.wrist), elevator.moveToSetpoint(postion.elevator))
+           .andThen(outake.intake(postion.type));
+  }
+
+  public Command prepareToScore(ScorePositions positions) {
+    return wrist
+        .moveToSetpoint(positions.elevator)
+        .alongWith(elevator.moveToSetpoint(positions.wrist));
   }
 }

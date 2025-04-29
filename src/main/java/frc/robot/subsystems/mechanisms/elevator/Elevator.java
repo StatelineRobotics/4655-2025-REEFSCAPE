@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
-import frc.robot.subsystems.SuperstructureController.SuperstructurePositions;
 import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -207,7 +206,7 @@ public class Elevator extends SubsystemBase {
     return inputs.elevatorVelo;
   }
 
-  public Command moveToSetpoint(SuperstructurePositions position) {
-    return requestElevatorPosition(position.elevator);
+  public Command moveToSetpoint(double position) {
+    return requestElevatorPosition(position);
   }
 }
