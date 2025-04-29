@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms;
+package frc.robot.subsystems;
 
 public class MechanismConstants {
 

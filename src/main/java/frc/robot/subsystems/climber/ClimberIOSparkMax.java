@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms.climber;
+package frc.robot.subsystems.climber;
 
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
@@ -11,8 +11,10 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import frc.robot.subsystems.MechanismConstants;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
-import frc.robot.subsystems.mechanisms.MechanismConstants;
 
 public class ClimberIOSparkMax implements ClimberIO {
   private SparkFlex m_climber;

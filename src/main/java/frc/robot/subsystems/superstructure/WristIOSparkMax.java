@@ -1,21 +1,18 @@
-package frc.robot.subsystems.mechanisms.wrist;
+package frc.robot.subsystems.superstructure;
 
 import com.ctre.phoenix6.configs.CANrangeConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANrange;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.UpdateModeValue;
 import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkClosedLoopController.ArbFFUnits;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.ClosedLoopConfigAccessor;
@@ -24,43 +21,66 @@ import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.MAXMotionConfigAccessor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkFlexConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
-import frc.robot.subsystems.mechanisms.MechanismConstants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
+import frc.robot.subsystems.MechanismConstants;
+import frc.robot.subsystems.MechanismConstants.RollerConstants;
+import frc.robot.subsystems.MechanismConstants.WristConstants;
 
-public class WristTalonFXIO implements WristIO {
+public class WristIOSparkMax implements WristIO {
   private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
   private CANrange forwardRange = new CANrange(MechanismConstants.forwardCANrangeId);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
 
-  private TalonFX leftMotor = new TalonFX(MechanismConstants.leftIntakeId);
-  private TalonFX rightMotor = new TalonFX(MechanismConstants.rightIntakeId);
-
+  protected SparkMax m_leftIntake =
+      new SparkMax(MechanismConstants.leftIntakeId, MotorType.kBrushless);
+  protected SparkMax m_rightIntake =
+      new SparkMax(MechanismConstants.rightIntakeId, MotorType.kBrushless);
   protected SparkFlex m_wrist = new SparkFlex(MechanismConstants.wristId, MotorType.kBrushless);
 
   private AbsoluteEncoder wristEncoder;
+  private RelativeEncoder leftEncoder;
+  private RelativeEncoder rightEncoder;
+  private SparkClosedLoopController leftController;
+  private SparkClosedLoopController rightController;
   private SparkClosedLoopController wristController;
+  private SparkMaxConfig mleftConfig = new SparkMaxConfig();
+  private SparkMaxConfig mrightConfig = new SparkMaxConfig();
   private SparkFlexConfig mwristConfig = new SparkFlexConfig();
   private double RPM;
   private ClosedLoopConfig intakeConfig;
-  private ArmFeedforward armFeedforward = new ArmFeedforward(0, .25, 0);
+  private ArmFeedforward armFeedforward = new ArmFeedforward(0, .25, RPM);
 
-  private LinearFilter leftFilter = LinearFilter.movingAverage(20);
-  private LinearFilter rightFilter = LinearFilter.movingAverage(20);
+  private LinearFilter leftFilter = LinearFilter.movingAverage(10);
+  private LinearFilter rightFilter = LinearFilter.movingAverage(10);
 
-  public WristTalonFXIO() {
+  public WristIOSparkMax() {
+    mleftConfig
+        .idleMode(IdleMode.kBrake)
+        .smartCurrentLimit(RollerConstants.currentLimit)
+        .inverted(false);
 
-    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(30).inverted(true);
+    mleftConfig
+        .closedLoop
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+        .p(RollerConstants.kp)
+        .i(RollerConstants.ki)
+        .d(RollerConstants.kd)
+        .velocityFF(RollerConstants.ff);
+
+    mrightConfig.apply(mleftConfig).inverted(true);
+
+    mwristConfig.idleMode(IdleMode.kBrake).smartCurrentLimit(30);
 
     mwristConfig
         .softLimit
         .forwardSoftLimitEnabled(false)
-        .forwardSoftLimit(45)
+        .forwardSoftLimit(0)
         .reverseSoftLimitEnabled(false)
-        .reverseSoftLimit(-81);
+        .reverseSoftLimit(-1);
 
     mwristConfig
         .absoluteEncoder
@@ -76,6 +96,7 @@ public class WristTalonFXIO implements WristIO {
         .p(WristConstants.kp)
         .i(WristConstants.ki)
         .d(WristConstants.kd)
+        .velocityFF(WristConstants.FF)
         .positionWrappingEnabled(false);
 
     mwristConfig
@@ -86,12 +107,10 @@ public class WristTalonFXIO implements WristIO {
         .maxVelocity(WristConstants.maxVelo)
         .allowedClosedLoopError(WristConstants.allowError);
 
-    leftMotor
-        .getConfigurator()
-        .apply(getTalonConfig().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
-    rightMotor
-        .getConfigurator()
-        .apply(getTalonConfig().MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive));
+    m_leftIntake.configure(
+        mleftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    m_rightIntake.configure(
+        mrightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     m_wrist.configure(mwristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
     canRangeConfig.ToFParams.withUpdateMode(UpdateModeValue.ShortRange100Hz);
@@ -104,45 +123,42 @@ public class WristTalonFXIO implements WristIO {
     canRange.getConfigurator().apply(canRangeConfig);
     forwardRange.getConfigurator().apply(canRangeConfig);
 
+    leftEncoder = m_leftIntake.getEncoder();
+    rightEncoder = m_rightIntake.getEncoder();
+
     wristEncoder = m_wrist.getAbsoluteEncoder();
 
+    leftController = m_leftIntake.getClosedLoopController();
+    rightController = m_rightIntake.getClosedLoopController();
     wristController = m_wrist.getClosedLoopController();
+
+    intakeConfig = mleftConfig.closedLoop;
+    intakeConfig.pid(0.0013, 0, 0);
 
     if (Constants.usePIDtuning) {
       setUpPIDTuning();
     }
   }
 
-  public TalonFXConfiguration getTalonConfig() {
-    TalonFXConfiguration config = new TalonFXConfiguration();
-    config.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
-    config.CurrentLimits.withStatorCurrentLimit(30)
-        .withStatorCurrentLimitEnable(true)
-        .withSupplyCurrentLimit(15)
-        .withSupplyCurrentLimitEnable(true);
-    config.Voltage.withPeakForwardVoltage(10).withPeakReverseVoltage(10);
-    return config;
-  }
-
   public void updateInputs(WristIOInputs inputs) {
     inputs.detectsNote = canRange.getIsDetected().getValue();
     inputs.detectsForward = forwardRange.getIsDetected().getValue();
 
-    inputs.leftIntakeRPM = leftMotor.getVelocity(true).getValueAsDouble();
-    inputs.rightIntakeRPM = rightMotor.getVelocity(true).getValueAsDouble();
+    inputs.leftIntakeRPM = leftEncoder.getVelocity();
+    inputs.rightIntakeRPM = rightEncoder.getVelocity();
     inputs.wristPos = wristEncoder.getPosition();
 
     inputs.wristDutyCycle = m_wrist.getAppliedOutput();
     inputs.wristAppliedVoltage = m_wrist.getBusVoltage() * inputs.wristDutyCycle;
     inputs.wristAppliedCurrent = m_wrist.getOutputCurrent();
 
-    inputs.rightDutyCycle = rightMotor.getDutyCycle(false).getValueAsDouble();
-    inputs.rightAppliedVoltage = rightMotor.getMotorVoltage(false).getValueAsDouble();
-    inputs.rightAppliedCurrent = rightMotor.getStatorCurrent(true).getValueAsDouble();
+    inputs.rightDutyCycle = m_rightIntake.getAppliedOutput();
+    inputs.rightAppliedVoltage = m_rightIntake.getBusVoltage() * inputs.rightDutyCycle;
+    inputs.rightAppliedCurrent = m_rightIntake.getOutputCurrent();
 
-    inputs.leftDutyCycle = leftMotor.getDutyCycle(false).getValueAsDouble();
-    inputs.leftAppliedVoltage = leftMotor.getMotorVoltage(false).getValueAsDouble();
-    inputs.leftAppliedCurrent = leftMotor.getStatorCurrent(true).getValueAsDouble();
+    inputs.leftDutyCycle = m_leftIntake.getAppliedOutput();
+    inputs.leftAppliedVoltage = m_leftIntake.getBusVoltage() * inputs.rightDutyCycle;
+    inputs.leftAppliedCurrent = m_leftIntake.getOutputCurrent();
 
     inputs.filteredLeftCurrent = leftFilter.calculate(inputs.leftAppliedCurrent);
     inputs.filteredRightCurrent = rightFilter.calculate(inputs.rightAppliedCurrent);
@@ -153,36 +169,31 @@ public class WristTalonFXIO implements WristIO {
   }
 
   public void requestIntakeVoltage(double voltage) {
-    leftMotor.setVoltage(voltage);
-    rightMotor.setVoltage(voltage);
+    leftController.setReference(voltage, ControlType.kVoltage);
+    rightController.setReference(voltage, ControlType.kVoltage);
   }
 
-  public void requestWristPosition(double targetPos, double arbFeedforward) {
-    if (Math.abs(wristEncoder.getPosition() - targetPos) > 1.0) {
-      wristController.setReference(
-          targetPos,
-          ControlType.kPosition,
-          ClosedLoopSlot.kSlot0,
-          arbFeedforward,
-          ArbFFUnits.kVoltage);
-    } else {
-      m_wrist.stopMotor();
-    }
+  public void requestWristPosition(double targetPos) {
+    wristController.setReference(targetPos, ControlType.kPosition);
   }
 
   public void requestWristVoltage(double voltage) {
     wristController.setReference(voltage, ControlType.kVoltage);
   }
 
+  public void requestIntakeVelo(double RPM) {
+    leftController.setReference(RPM, SparkBase.ControlType.kVelocity);
+  }
+
   public void stop() {
-    rightMotor.stopMotor();
-    leftMotor.stopMotor();
+    m_leftIntake.stopMotor();
+    m_rightIntake.stopMotor();
     m_wrist.stopMotor();
   }
 
   public void stopIntake() {
-    rightMotor.stopMotor();
-    leftMotor.stopMotor();
+    m_leftIntake.stopMotor();
+    m_rightIntake.stopMotor();
   }
 
   public void stopWrist() {

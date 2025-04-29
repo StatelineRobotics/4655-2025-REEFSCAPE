@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms.wrist;
+package frc.robot.subsystems.superstructure;
 
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
@@ -14,7 +14,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
+import frc.robot.subsystems.MechanismConstants.WristConstants;
 
 public class WristIOSim extends WristIOSparkMax {
 

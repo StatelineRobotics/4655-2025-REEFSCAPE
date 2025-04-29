@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms.elevator;
+package frc.robot.subsystems.superstructure;
 
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
@@ -18,7 +18,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
-import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+import frc.robot.subsystems.MechanismConstants.ElevatorConstants;
+
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;

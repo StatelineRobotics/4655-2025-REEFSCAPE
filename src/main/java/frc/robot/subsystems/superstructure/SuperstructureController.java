@@ -1,4 +1,4 @@
-package frc.robot.subsystems;
+package frc.robot.subsystems.superstructure;
 
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.util.FieldConstants.PieceType.*;
@@ -7,9 +7,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.mechanisms.elevator.Elevator;
-import frc.robot.subsystems.mechanisms.outakeRollers.OutakeRollers;
-import frc.robot.subsystems.mechanisms.wrist.Wrist;
 import frc.robot.util.FieldConstants.PieceType;
 
 public class SuperstructureController {

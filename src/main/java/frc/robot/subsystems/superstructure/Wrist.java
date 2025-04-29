@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms.wrist;
+package frc.robot.subsystems.superstructure;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
@@ -8,7 +8,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
+import frc.robot.subsystems.MechanismConstants.WristConstants;
+
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms.hopper;
+package frc.robot.subsystems.intake;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
@@ -7,9 +7,11 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+
+import frc.robot.subsystems.MechanismConstants;
+import frc.robot.subsystems.MechanismConstants.FunnelConstants;
+
 import com.revrobotics.spark.config.SparkMaxConfig;
-import frc.robot.subsystems.mechanisms.MechanismConstants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.FunnelConstants;
 
 public class HopperIOSparkMax implements HopperIO {
 

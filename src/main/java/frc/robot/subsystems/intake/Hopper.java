@@ -1,8 +1,9 @@
-package frc.robot.subsystems.mechanisms.hopper;
+package frc.robot.subsystems.intake;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Hopper extends SubsystemBase {

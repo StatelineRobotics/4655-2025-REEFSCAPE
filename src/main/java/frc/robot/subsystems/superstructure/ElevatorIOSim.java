@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.mechanisms.elevator;
+package frc.robot.subsystems.superstructure;
 
 import com.revrobotics.sim.SparkLimitSwitchSim;
 import com.revrobotics.sim.SparkMaxSim;
@@ -16,7 +16,8 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import frc.robot.Constants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
+import frc.robot.subsystems.MechanismConstants.ElevatorConstants;
+
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */

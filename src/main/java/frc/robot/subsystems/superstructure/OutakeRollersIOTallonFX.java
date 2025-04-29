@@ -1,3 +1,3 @@
-package frc.robot.subsystems.mechanisms.outakeRollers;
+package frc.robot.subsystems.superstructure;
 
 public class OutakeRollersIOTallonFX implements OutakeRollersIO {}

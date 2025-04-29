@@ -1,4 +1,4 @@
-package frc.robot.subsystems.mechanisms.elevator;
+package frc.robot.subsystems.superstructure;
 
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
@@ -22,9 +22,9 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
-import frc.robot.subsystems.mechanisms.MechanismConstants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.ElevatorConstants;
-import frc.robot.subsystems.mechanisms.MechanismConstants.FunnelConstants;
+import frc.robot.subsystems.MechanismConstants;
+import frc.robot.subsystems.MechanismConstants.ElevatorConstants;
+import frc.robot.subsystems.MechanismConstants.FunnelConstants;
 
 public class ElevatorIOSparkMax implements ElevatorIO {
   protected SparkMax m_leftElevator;
