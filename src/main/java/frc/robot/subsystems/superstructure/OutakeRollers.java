@@ -2,9 +2,12 @@ package frc.robot.subsystems.superstructure;
 
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.util.FieldConstants.PieceType;
+
+import static edu.wpi.first.wpilibj2.command.Commands.either;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -48,13 +51,13 @@ public class OutakeRollers extends SubsystemBase {
     return runOnce(this::stop);
   }
 
-  public Command score(double speed) {
+  protected Command score(double speed) {
     return run(() -> requestVoltageControl(speed))
         .until(manipulatorDetects.negate().and(outakeStalled.negate()))
         .withName("score");
   }
 
-  public Command intake(PieceType type) {
+  protected Command intake(PieceType type) {
     if (type == PieceType.coral) {
       return intakeCoral();
     } else {
@@ -62,15 +65,28 @@ public class OutakeRollers extends SubsystemBase {
     }
   }
 
-  public Command intakeAlgae() {
+  private Command holdCoral() {
+    return run(() -> requestVoltageControl(0));
+  }
+
+  private Command holdAlgae() {
+    return run(() -> requestVoltageControl(-1));
+  }
+
+  protected Command holdPiece() {
+    return either(holdAlgae(), intakeCoral().andThen(holdCoral()), hasAlgae);
+  }
+
+  private Command intakeAlgae() {
     return run(() -> requestVoltageControl(12.0)).until(hasAlgae).withName("inake algea");
   }
 
-  public Command intakeCoral() {
+  private Command intakeCoral() {
     return (run(() -> requestVoltageControl(6.0)).until(manipulatorDetects))
         .andThen(run(() -> requestVoltageControl(3.0)))
         .until(elevatorDetects.negate())
         .andThen(stopRollers())
+        .onlyIf(manipulatorDetects.negate())
         .withName("intake coral");
   }
 

@@ -3,23 +3,24 @@ package frc.robot.subsystems.superstructure;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.util.FieldConstants.PieceType.*;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.SubsystemGroup;
 import frc.robot.util.FieldConstants.PieceType;
 
-public class SuperstructureController {
+public class SuperstructureController extends SubsystemGroup{
   private Elevator elevator;
   private Wrist wrist;
   private OutakeRollers outake;
-  private Drive drive;
-
-  public Trigger useFullAuto;
 
   public static enum ScorePositions {
     level1(0.05, -45, 6.0),
-    level2(0.05, -45, 6.0);
+    level2(0.05, -45, 6.0),
+    level3(0.05, -45, 6.0),
+    level4(0.05, -45, 6.0),
+    barge(0.05, -45, 6.0),
+    processor(0.05, -45, 6.0);
 
     public final double elevator;
     public final double wrist;
@@ -34,7 +35,9 @@ public class SuperstructureController {
 
   public static enum IntakePositions {
     hopperCoral(1, 1, coral),
-    algea(1, 1, algae);
+    algaeGround(1, 1, algae),
+    algaeL2(1,1,algae),
+    algaeL3(1,1,algae);
 
     public final double elevator;
     public final double wrist;
@@ -47,28 +50,124 @@ public class SuperstructureController {
     }
   }
 
+  public static enum StorePositions {
+    storeCoral(0, 0),
+    storeAlgae(.5, 0);
+
+    public final double elevator;
+    public final double wrist;
+
+    private StorePositions(double elevator, double wrist) {
+      this.elevator = elevator;
+      this.wrist = wrist;
+    }
+  }
+
   public SuperstructureController(
-      Drive drive, Elevator elevator, Wrist wrist, OutakeRollers outake) {
-    this.drive = drive;
-    this.elevator = elevator;
-    this.wrist = wrist;
-    this.outake = outake;
-    SmartDashboard.putBoolean("useFullAuto", true);
-    useFullAuto = new Trigger(() -> SmartDashboard.getBoolean("useFullAuto", false));
+      ElevatorIO elevator, WristIO wrist, OutakeRollersIO outake) {
+    this.elevator = new Elevator(elevator);
+    this.wrist = new Wrist(wrist);
+    this.outake = new OutakeRollers(outake);
+
+    configureDefaultCommands();
   }
 
-  public Command score(ScorePositions position) {
-    return idle(outake); // needs to be the outake move shooty thing
+  private void configureDefaultCommands() {
+    elevator.setDefaultCommand(elevator.moveToStore(outake.hasAlgae));
+    wrist.setDefaultCommand(wrist.moveToSetpoint(0.0));
+    outake.setDefaultCommand(outake.holdPiece());
   }
 
-  public Command intake(IntakePositions postion) {
+  private Command score(ScorePositions position) {
+    return outake.score(position.outake);
+  }
+
+  private Command intake(IntakePositions postion) {
     return sequence(wrist.moveToSetpoint(postion.wrist), elevator.moveToSetpoint(postion.elevator))
            .andThen(outake.intake(postion.type));
   }
 
-  public Command prepareToScore(ScorePositions positions) {
+  private Command prepareToScore(ScorePositions positions) {
     return wrist
         .moveToSetpoint(positions.elevator)
         .alongWith(elevator.moveToSetpoint(positions.wrist));
+  }
+
+  public Command scoreL4(BooleanSupplier canScore) {
+    return expose(
+      prepareToScore(ScorePositions.level4)
+      .withDeadline(
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean()).
+        andThen(score(ScorePositions.level4))).withName("Level 4")
+    );
+  }
+
+  public Command scoreL3(BooleanSupplier canScore) {
+    return expose(
+      prepareToScore(ScorePositions.level3)
+      .withDeadline(
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean()).
+        andThen(score(ScorePositions.level3))).withName("Level 3")
+    );
+  }
+
+  public Command scoreL2(BooleanSupplier canScore) {
+    return expose(
+      prepareToScore(ScorePositions.level2)
+      .withDeadline(
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean()).
+        andThen(score(ScorePositions.level2))).withName("Level 2")
+    );
+  }
+
+  public Command scoreL1(BooleanSupplier canScore) {
+    return expose(
+      prepareToScore(ScorePositions.level1)
+      .withDeadline(
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean())
+        .andThen(score(ScorePositions.level1))).withName("Level 1")
+    );
+  }
+
+  public Command scoreBarge(BooleanSupplier canScore) {
+    return expose(
+      prepareToScore(ScorePositions.barge)
+      .withDeadline(
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean())
+        .andThen(score(ScorePositions.barge))).withName("Barge")
+    );
+  }
+
+  public Command scoreProcessor(BooleanSupplier canScore) {
+    return expose(
+      prepareToScore(ScorePositions.processor)
+      .withDeadline(
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean())
+        .andThen(score(ScorePositions.processor))).withName("Processor")
+    );
+  }
+
+  public Command intakeCoral() {
+    return expose(
+      intake(IntakePositions.hopperCoral).withName("Intake Coral")
+    );
+  }
+
+  public Command intakeAlgaeGround() {
+    return expose(
+      intake(IntakePositions.algaeGround).withName("Ground Algae")
+    );
+  }
+
+  public Command intakeAlgaeL2() {
+    return expose(
+      intake(IntakePositions.algaeL2).withName("Algae L2")
+    );
+  }
+
+  public Command intakeAlgaeL3() {
+    return expose(
+      intake(IntakePositions.algaeL3).withName("Algae L3")
+    );
   }
 }

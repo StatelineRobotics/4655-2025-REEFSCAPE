@@ -272,7 +272,7 @@ public class RobotContainer {
 
   private void configureLEDbindings() {
     elevator
-        .elevatorAtSetpoint
+        .atSetpoint
         .and(wrist.atSetpoint.debounce(.5, DebounceType.kFalling))
         .onTrue(lights.solidAnimation(new Color(0, 255, 0), "atDualSetPoint"))
         .onFalse(lights.solidAnimation(new Color(255, 0, 0), "NOT atDualSetPoint"));

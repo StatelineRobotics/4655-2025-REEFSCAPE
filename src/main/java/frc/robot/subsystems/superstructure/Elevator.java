@@ -3,6 +3,7 @@ package frc.robot.subsystems.superstructure;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.wpilibj2.command.Commands.either;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -19,7 +20,10 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
 import frc.robot.subsystems.MechanismConstants.ElevatorConstants;
+import frc.robot.subsystems.superstructure.SuperstructureController.StorePositions;
+import frc.robot.util.FieldConstants.PieceType;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -32,7 +36,7 @@ public class Elevator extends SubsystemBase {
   private double FunnelPosition = 0.0;
   private double beltRPM = 0.0;
 
-  @AutoLogOutput public Trigger elevatorAtSetpoint = new Trigger(this::isAtSetpoint);
+  @AutoLogOutput public Trigger atSetpoint = new Trigger(this::isAtSetpoint);
 
   private TrapezoidProfile profile =
       new TrapezoidProfile(new Constraints(ElevatorConstants.maxVelo, ElevatorConstants.maxAccel));
@@ -50,36 +54,32 @@ public class Elevator extends SubsystemBase {
               (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
           new Mechanism((voltage) -> voltageControl(voltage.magnitude()), null, this));
 
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+  private Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return routine.quasistatic(direction);
   }
 
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+  private Command sysIdDynamic(SysIdRoutine.Direction direction) {
     return routine.dynamic(direction);
   }
 
   public Command sysIdRoutine() {
     return (sysIdQuasistatic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .45))
-        .andThen(run(() -> voltageControl(0.0)).withTimeout(0.0))
+        .andThen(holdPosition().withTimeout(0.0))
         .andThen(
             sysIdQuasistatic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .15))
-        .andThen(run(() -> voltageControl(0.0)).withTimeout(0.0))
+        .andThen(holdPosition().withTimeout(0.0))
         .andThen(
             sysIdDynamic(SysIdRoutine.Direction.kForward).until(() -> inputs.elevatorPos > .45))
-        .andThen(run(() -> voltageControl(0.0)).withTimeout(0.0))
+        .andThen(holdPosition().withTimeout(0.0))
         .andThen(
             sysIdDynamic(SysIdRoutine.Direction.kReverse).until(() -> inputs.elevatorPos < .15))
-        .andThen(() -> voltageControl(0.0));
+        .andThen(holdPosition());
   }
 
   private final ElevatorFeedforward feedforward;
 
   public Elevator(ElevatorIO io) {
     this.io = io;
-    if (true) {
-      SmartDashboard.putData("Elevator/lowerTestCommand", goToAnyPositionCommand(() -> 1.0));
-      SmartDashboard.putData("Elevator/upperTestCommand", goToAnyPositionCommand(() -> 1.0));
-    }
 
     if (Robot.isSimulation()) {
       feedforward =
@@ -126,7 +126,7 @@ public class Elevator extends SubsystemBase {
 
   public Command manualRunCommand(DoubleSupplier controllerInput) {
     return run(() -> {
-          voltageControl(controllerInput.getAsDouble() * -6.0 + feedforward.getKg());
+          io.voltageControl(controllerInput.getAsDouble() * -6.0 + feedforward.getKg());
         })
         .withName("Manual Run Command");
   }
@@ -135,15 +135,11 @@ public class Elevator extends SubsystemBase {
     return run(this::stop);
   }
 
-  public Command holdPosition() {
+  protected Command holdPosition() {
     return run(
         () -> {
-          voltageControl(feedforward.getKg());
+          io.voltageControl(feedforward.getKg());
         });
-  }
-
-  private Command goToAnyPositionCommand(Supplier<Double> targetPostion) {
-    return requestElevatorPosition(targetPostion.get());
   }
 
   private Command requestElevatorPosition(double targetPostion) {
@@ -167,11 +163,18 @@ public class Elevator extends SubsystemBase {
               inputs.veolocitySetpoint = currentTarget.velocity;
               inputs.motionSetpoint = currentTarget.position;
               lastTime = currentTime;
-            })
-        .until(elevatorAtSetpoint);
+            });
   }
 
-  public boolean isAtSetpoint() {
+  protected Command moveToSetpoint(double position) {
+    return requestElevatorPosition(position);
+  }
+
+  protected Command moveToStore(BooleanSupplier hasAlgae) {
+    return either(moveToSetpoint(StorePositions.storeAlgae.elevator), moveToSetpoint(StorePositions.storeCoral.elevator), hasAlgae);
+  }
+
+  private boolean isAtSetpoint() {
     if (Math.abs(inputs.elevatorPos - inputs.finalSetpoint)
         < ElevatorConstants.allowedClosedLoopError) {
       return true;
@@ -179,6 +182,7 @@ public class Elevator extends SubsystemBase {
     return false;
   }
 
+  @AutoLogOutput
   public boolean isHomed() {
     return inputs.zeroed;
   }
@@ -201,13 +205,5 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput
   public double getCarrageVelocity() {
     return inputs.elevatorVelo * 3.0;
-  }
-
-  public double getVelocity() {
-    return inputs.elevatorVelo;
-  }
-
-  public Command moveToSetpoint(double position) {
-    return requestElevatorPosition(position);
   }
 }
