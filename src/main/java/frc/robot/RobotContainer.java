@@ -43,10 +43,16 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.hopper.Hopper;
+import frc.robot.subsystems.hopper.HopperIO;
+import frc.robot.subsystems.hopper.HopperIOSparkMax;
 import frc.robot.subsystems.superstructure.Elevator;
 import frc.robot.subsystems.superstructure.ElevatorIO;
 import frc.robot.subsystems.superstructure.ElevatorIOSim;
 import frc.robot.subsystems.superstructure.ElevatorIOSparkMax;
+import frc.robot.subsystems.superstructure.OutakeRollersIO;
+import frc.robot.subsystems.superstructure.OutakeRollersIOTallonFX;
+import frc.robot.subsystems.superstructure.SuperstructureController;
 import frc.robot.subsystems.superstructure.Wrist;
 import frc.robot.subsystems.superstructure.WristIO;
 import frc.robot.subsystems.superstructure.WristIOSim;
@@ -55,6 +61,8 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+
 import java.util.EnumMap;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -73,8 +81,8 @@ public class RobotContainer {
 
   // Subsystems
   private final Drive drive;
-  private final Elevator elevator;
-  private final Wrist wrist;
+  private final Hopper hopper;
+  private final SuperstructureController superstructure;
   private final Climber climber;
   private final Lights lights;
 
@@ -84,39 +92,11 @@ public class RobotContainer {
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController auxController = new CommandXboxController(1);
 
-  private LoggedMechanism2d superstructure2d =
-      new LoggedMechanism2d(Units.inchesToMeters(2), Units.inchesToMeters(32.5 * 4));
-  private LoggedMechanismRoot2d superstructureRoot = superstructure2d.getRoot("elevatorBase", 0, 0);
-  private LoggedMechanismLigament2d elevatorVisual =
-      superstructureRoot.append(
-          new LoggedMechanismLigament2d("elevator", Units.inchesToMeters(9), 90));
-
-  private enum AutoEnums {
-    coral,
-    algea,
-    intake
-  }
-
-  private enum OutakeEnums {
-    coral,
-    algea,
-    barge,
-    L1,
-    notL4
-  }
-
-  private EnumMap<AutoEnums, Command> leftCommandMap = new EnumMap<>(AutoEnums.class);
-  private EnumMap<AutoEnums, Command> rightCommandMap = new EnumMap<>(AutoEnums.class);
-  private EnumMap<OutakeEnums, Command> outakeCommandMap = new EnumMap<>(OutakeEnums.class);
-
-  private Supplier<AutoEnums> autoEnumSupplier;
-
   // Dashboard inputs
-  private final LoggedDashboardChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<Command> autoChooser  = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    lights = new Lights();
 
     switch (Constants.currentMode) {
       case REAL:
@@ -128,10 +108,6 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        // vision =
-        //     new Vision(
-        //         drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO()
-        // {});
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -144,9 +120,12 @@ public class RobotContainer {
                     VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                 new VisionIOPhotonVision(
                     VisionConstants.camera3Name, VisionConstants.robotToCamera3));
-        elevator = new Elevator(new ElevatorIOSparkMax());
-        wrist = new Wrist(new WristTalonFXIO());
+        superstructure = new SuperstructureController(
+          new ElevatorIOSparkMax(),
+          new WristTalonFXIO(),
+          new OutakeRollersIOTallonFX());
         climber = new Climber(new ClimberIOSparkMax());
+        hopper = new Hopper(new HopperIOSparkMax());
         break;
 
       case SIM:
@@ -158,21 +137,23 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision = new Vision(drive::addVisionMeasurement, drive::getPose);
-
-        // drive::addVisionMeasurement,
-        // drive::getPose,
-        // new VisionIOPhotonVisionSim(
-        //     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-        // new VisionIOPhotonVisionSim(
-        //     VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-        // new VisionIOPhotonVisionSim(
-        //     VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
-        // new VisionIOPhotonVisionSim(
-        //     VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
-        elevator = new Elevator(new ElevatorIOSim());
-        wrist = new Wrist(new WristIOSim());
+        vision = new Vision(
+          drive::addVisionMeasurement,
+          drive::getPose,
+          new VisionIOPhotonVisionSim(
+              VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+          new VisionIOPhotonVisionSim(
+              VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+          new VisionIOPhotonVisionSim(
+              VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
+          new VisionIOPhotonVisionSim(
+              VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
+          superstructure = new SuperstructureController(
+              new ElevatorIOSim(),
+              new WristIOSim(),
+              new OutakeRollersIO() {});
         climber = new Climber(new ClimberIO() {});
+        hopper = new Hopper(new HopperIOSparkMax());
         break;
 
       default:
@@ -187,33 +168,19 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
-        elevator = new Elevator(new ElevatorIO() {});
-        wrist = new Wrist(new WristIO() {});
+                superstructure = new SuperstructureController(
+                  new ElevatorIO() {},
+                  new WristIO() {},
+                  new OutakeRollersIO() {});
         climber = new Climber(new ClimberIO() {});
+        hopper = new Hopper(new HopperIO() {});
         break;
     }
 
+    lights = new Lights();
+
     configureNamedCommands();
-
-    // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-
-    // Set up SysId routines
-    autoChooser.addOption(
-        "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    autoChooser.addOption(
-        "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Forward)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Quasistatic Reverse)",
-        drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    autoChooser.addOption(
-        "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
+    configureTunerPaths();
     // Configure the button bindings
     configureButtonBindings();
     configureLEDbindings();
@@ -226,13 +193,6 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureButtonBindings() {
-    // RobotModeTriggers.disabled()
-    //     .onTrue(
-    //         mechanismControl
-    //             .setState(State.idle)
-    //             .ignoringDisable(true)
-    //             .alongWith(Commands.runOnce(() -> drive.configCoastMode())))
-    //     .onFalse(Commands.runOnce(() -> drive.configBreakMode()));
 
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
@@ -247,18 +207,7 @@ public class RobotContainer {
                 .andThen(new SingleColorFade(new Color(255, 209, 0), lights)))
             .repeatedly());
 
-    // Lock to 0 when A button is held
-    // auxController.a().onTrue(Commands.runOnce(() -> drive.setWheelsAndCoast()));
-    // controller
-    //     .a()
-    //     .whileTrue(
-    //         DriveCommands.joystickDriveRobot(
-    //             drive,
-    //             () -> -controller.getLeftY(),
-    //             () -> -controller.getLeftX(),
-    //             () -> -controller.getRightX()));
-
-    // Switch to X pattern when X button is pressed
+    // reset heading to when X button is pressed
     controller
         .x()
         .onTrue(
@@ -271,31 +220,21 @@ public class RobotContainer {
   }
 
   private void configureLEDbindings() {
-    elevator
-        .atSetpoint
-        .and(wrist.atSetpoint.debounce(.5, DebounceType.kFalling))
-        .onTrue(lights.solidAnimation(new Color(0, 255, 0), "atDualSetPoint"))
-        .onFalse(lights.solidAnimation(new Color(255, 0, 0), "NOT atDualSetPoint"));
-    wrist.detectsBoth.onTrue(lights.strobeAnimation(new Color(0, 255, 0), "detects both"));
-    wrist.intakeStalled.onTrue(lights.strobeAnimation(new Color(0, 0, 255), "intake Stalled"));
-    drive.autoElevator.onFalse(lights.solidAnimation(new Color(0, 0, 255), "NOT autoElevator"));
+
   }
 
   public void logSubsystems() {
     SmartDashboard.putData("drive", drive);
-    SmartDashboard.putData("elevator", elevator);
-    SmartDashboard.putData("wrist", wrist);
+    SmartDashboard.putData("superstructure", superstructure);
     SmartDashboard.putData("Lights", lights);
   }
 
   public void updateMechanism2ds() {
-    elevatorVisual.setLength(Units.inchesToMeters(9.0) + elevator.getCarrageHeight());
-    Logger.recordOutput("mech2d/superstructure", superstructure2d);
     Pose3d[] mechanismPoses = {
       new Pose3d(0, 0, 0, new Rotation3d(0, 0, 0)),
-      new Pose3d(0, 0, elevator.get1stStageHeight(), new Rotation3d(0, 0, 0)),
-      new Pose3d(0, 0, elevator.get2ndStageHeight(), new Rotation3d(0, 0, 0)),
-      new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
+      // new Pose3d(0, 0, elevator.get1stStageHeight(), new Rotation3d(0, 0, 0)),
+      // new Pose3d(0, 0, elevator.get2ndStageHeight(), new Rotation3d(0, 0, 0)),
+      // new Pose3d(0, 0, elevator.getCarrageHeight(), new Rotation3d(0, 0, 0))
     };
     Logger.recordOutput("mechanismPoses", mechanismPoses);
   }
@@ -339,6 +278,28 @@ public class RobotContainer {
     // NamedCommands.registerCommand(
     //     "algaeStore", mechanismControl.setState(State.algeaStore).asProxy());
     // NamedCommands.registerCommand("barge", mechanismControl.setState(State.barge).asProxy());
+  }
+
+  private void configureTunerPaths() {
+    // Set up auto routines
+
+    if (Constants.usePIDtuning) {
+      // Set up SysId routines
+      autoChooser.addOption(
+          "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
+      autoChooser.addOption(
+          "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
+      autoChooser.addOption(
+          "Drive SysId (Quasistatic Forward)",
+          drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+      autoChooser.addOption(
+          "Drive SysId (Quasistatic Reverse)",
+          drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+      autoChooser.addOption(
+          "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
+      autoChooser.addOption(
+          "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+    }
   }
 
   /**

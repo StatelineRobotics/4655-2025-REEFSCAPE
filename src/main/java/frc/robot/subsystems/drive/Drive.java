@@ -14,6 +14,7 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.wpilibj2.command.Commands.sequence;
 
 import com.ctre.phoenix6.CANBus;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -119,8 +120,9 @@ public class Drive extends SubsystemBase {
   private final Field2d field2d = new Field2d();
 
   private Pose2d lastPose = new Pose2d();
+  private Pose2d[] targets = new Pose2d[2];
 
-  public Trigger readyFinalAuto = new Trigger(() -> nearFinalTarget(getPose(), .5));
+  public Trigger readyFinalAuto = new Trigger(() -> nearTarget(targets[1], .5));
   public boolean secondStagePathfinding = false;
   @AutoLogOutput public Trigger autoElevator = new Trigger(() -> secondStagePathfinding);
   private boolean readyScore = false;
@@ -254,7 +256,7 @@ public class Drive extends SubsystemBase {
     Logger.recordOutput("drive/xVelo", getXVelo());
   }
 
-  public boolean nearFinalTarget(Pose2d target, double threshold) {
+  public boolean nearTarget(Pose2d target, double threshold) {
     double distance = target.getTranslation().getDistance(getPose().getTranslation());
     if (distance < threshold) {
       return true;
@@ -264,79 +266,63 @@ public class Drive extends SubsystemBase {
   }
 
   public Command getLeftCoralDriveCommand(BooleanSupplier condition) {
-    Pose2d[] targets = new Pose2d[2];
-    runOnce(() -> targets = DriveTarget.getTargetReefPose(getPose(), "left")) //get targets
-    .andThen(defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto))) //pathplanner to pose
-    .andThen(startRunEnd(
-      () -> secondStagePathfinding = true,
-      DriveCommands.driveToPoseCommand(this, () -> targets[1]),//pid to pose
-      () -> secondStagePathfinding = false)); 
+    return sequence(
+      runOnce(() -> targets = DriveTarget.getTargetReefPose(getPose(), "left")), //get target poses
+      defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto)), //pathplanner to pose
+      startRunEnd( //pid to pose
+        () -> secondStagePathfinding = true,
+        DriveCommands.driveToPoseCommand(this, () -> targets[1]),
+        () -> secondStagePathfinding = false));
   }
 
   public Command getRightCoralDriveCommand(Trigger condition) {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "right");
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-
-    Command command =
-        (defer(pathfindingCommand)
-                .beforeStarting(() -> firstStageAuto = true)
-                .finallyDo(() -> firstStageAuto = false))
-            .andThen(Commands.waitUntil(() -> condition.getAsBoolean()))
-            .andThen(
-                defer(
-                    () ->
-                        DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)
-                            .finallyDo(() -> readyScore = true)))
-            .beforeStarting(() -> readyScore = false);
-    return command;
+    return sequence(
+      runOnce(() -> targets = DriveTarget.getTargetReefPose(getPose(), "right")), //get target poses
+      defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto)), //pathplanner to pose
+      startRunEnd( //pid to pose
+        () -> secondStagePathfinding = true,
+        DriveCommands.driveToPoseCommand(this, () -> targets[1]),
+        () -> secondStagePathfinding = false));
   }
 
   public Command getMiddleCoralDriveCommand(BooleanSupplier condition) {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "middle");
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-    return defer(pathfindingCommand)
-        .until(readyFinalAuto.and(condition))
-        .andThen(
-            defer(
-                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+    return sequence(
+      runOnce(() -> targets = DriveTarget.getTargetReefPose(getPose(), "middle")), //get target poses
+      defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto)), //pathplanner to pose
+      startRunEnd( //pid to pose
+        () -> secondStagePathfinding = true,
+        DriveCommands.driveToPoseCommand(this, () -> targets[1]),
+        () -> secondStagePathfinding = false));
   }
 
   public Command getProccesorDriveCommand() {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getProcesseorPose();
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-    return defer(pathfindingCommand)
-        .until(readyFinalAuto)
-        .andThen(
-            defer(
-                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+    return sequence(
+      runOnce(() -> targets = DriveTarget.getProcesseorPose()), //get target poses
+      defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto)), //pathplanner to pose
+      startRunEnd( //pid to pose
+        () -> secondStagePathfinding = true,
+        DriveCommands.driveToPoseCommand(this, () -> targets[1]),
+        () -> secondStagePathfinding = false));
   }
 
   public Command getSourceDriveCommand() {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getSourcePose(getPose());
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-    return defer(pathfindingCommand)
-        .until(readyFinalAuto)
-        .andThen(
-            defer(
-                () -> DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)));
+    return sequence(
+      runOnce(() -> targets = DriveTarget.getSourcePose(getPose())), //get target poses
+      defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto)), //pathplanner to pose
+      startRunEnd( //pid to pose
+        () -> secondStagePathfinding = true,
+        DriveCommands.driveToPoseCommand(this, () -> targets[1]),
+        () -> secondStagePathfinding = false));
   }
 
   public Command getLeftSourceDriveCommand() {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getLeftSourcePose();
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
-    return defer(pathfindingCommand);
+    return defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints)).until(readyFinalAuto)
+           .beforeStarting(() -> targets = DriveTarget.getLeftSourcePose());
   }
 
   public Command getRightSourceDriveCommand() {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getRightSourcePose();
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[1], teleopPathConstraints);
-    return defer(pathfindingCommand);
+    return defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints)).until(readyFinalAuto)
+           .beforeStarting(() -> targets = DriveTarget.getRightSourcePose());
   }
 
   /**
@@ -562,5 +548,5 @@ public class Drive extends SubsystemBase {
 
   private Command startRunEnd(Runnable start, Command run, Runnable end) {
     return run.beforeStarting(start).finallyDo(end);
-  } 
+  }
 }

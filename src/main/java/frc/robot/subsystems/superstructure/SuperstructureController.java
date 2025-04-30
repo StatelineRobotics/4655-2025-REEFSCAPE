@@ -94,40 +94,49 @@ public class SuperstructureController extends SubsystemGroup{
         .alongWith(elevator.moveToSetpoint(positions.wrist));
   }
 
-  public Command scoreL4(BooleanSupplier canScore) {
+  public Command scoreL4(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
-      prepareToScore(ScorePositions.level4)
-      .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
-        andThen(score(ScorePositions.level4))).withName("Level 4")
+      waitUntil(delayCondition)
+      .andThen(
+        prepareToScore(ScorePositions.level4)
+        .withDeadline(
+          waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
+          .andThen(score(ScorePositions.level4))).withName("Level 4")
+      )
     );
   }
 
-  public Command scoreL3(BooleanSupplier canScore) {
+  public Command scoreL3(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
+      waitUntil(delayCondition)
+      .andThen(
       prepareToScore(ScorePositions.level3)
       .withDeadline(
         waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
         andThen(score(ScorePositions.level3))).withName("Level 3")
-    );
+    ));
   }
 
-  public Command scoreL2(BooleanSupplier canScore) {
+  public Command scoreL2(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
+      waitUntil(delayCondition)
+      .andThen(
       prepareToScore(ScorePositions.level2)
       .withDeadline(
         waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
         andThen(score(ScorePositions.level2))).withName("Level 2")
-    );
+    ));
   }
 
-  public Command scoreL1(BooleanSupplier canScore) {
+  public Command scoreL1(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
+      waitUntil(delayCondition)
+      .andThen(
       prepareToScore(ScorePositions.level1)
       .withDeadline(
         waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
         .andThen(score(ScorePositions.level1))).withName("Level 1")
-    );
+    ));
   }
   public Command holdHigh() {
     return expose(
@@ -135,13 +144,15 @@ public class SuperstructureController extends SubsystemGroup{
     );
   }
 
-  public Command scoreBarge(BooleanSupplier canScore) {
+  public Command scoreBarge(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
+      waitUntil(delayCondition)
+      .andThen(
       prepareToScore(ScorePositions.barge)
       .withDeadline(
         waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
         .andThen(score(ScorePositions.barge))).withName("Barge")
-    );
+    ));
   }
 
   public Command scoreProcessor(BooleanSupplier canScore) {

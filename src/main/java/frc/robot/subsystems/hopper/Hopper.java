@@ -1,8 +1,9 @@
-package frc.robot.subsystems.intake;
+package frc.robot.subsystems.hopper;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.hopper.HopperIOInputsAutoLogged;
 
 import org.littletonrobotics.junction.Logger;
 
