@@ -49,6 +49,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -120,8 +121,8 @@ public class Drive extends SubsystemBase {
   private Pose2d lastPose = new Pose2d();
 
   public Trigger readyFinalAuto = new Trigger(() -> nearFinalTarget(getPose(), .5));
-  public boolean firstStageAuto = false;
-  @AutoLogOutput public Trigger autoElevator = new Trigger(() -> !firstStageAuto);
+  public boolean secondStagePathfinding = false;
+  @AutoLogOutput public Trigger autoElevator = new Trigger(() -> secondStagePathfinding);
   private boolean readyScore = false;
   @AutoLogOutput public Trigger readyAutoScore = new Trigger(() -> readyScore);
 
@@ -263,20 +264,13 @@ public class Drive extends SubsystemBase {
   }
 
   public Command getLeftCoralDriveCommand(BooleanSupplier condition) {
-    Supplier<Pose2d[]> targetPose = () -> DriveTarget.getTargetReefPose(getPose(), "left");
-
-    Supplier<Command> pathfindingCommand =
-        () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
-    Command command =
-        (defer(pathfindingCommand).beforeStarting(() -> firstStageAuto = true))
-            .andThen(Commands.waitUntil(condition).beforeStarting(() -> firstStageAuto = false))
-            .andThen(
-                defer(
-                    () ->
-                        DriveCommands.driveToPoseCommand(this, targetPose.get()[1], this::getPose)
-                            .finallyDo(() -> readyScore = true)))
-            .beforeStarting(() -> readyScore = false);
-    return command;
+    Pose2d[] targets = new Pose2d[2];
+    runOnce(() -> targets = DriveTarget.getTargetReefPose(getPose(), "left")) //get targets
+    .andThen(defer(() -> AutoBuilder.pathfindToPose(targets[0], teleopPathConstraints).until(readyFinalAuto))) //pathplanner to pose
+    .andThen(startRunEnd(
+      () -> secondStagePathfinding = true,
+      DriveCommands.driveToPoseCommand(this, () -> targets[1]),//pid to pose
+      () -> secondStagePathfinding = false)); 
   }
 
   public Command getRightCoralDriveCommand(Trigger condition) {
@@ -565,4 +559,8 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
   }
+
+  private Command startRunEnd(Runnable start, Command run, Runnable end) {
+    return run.beforeStarting(start).finallyDo(end);
+  } 
 }

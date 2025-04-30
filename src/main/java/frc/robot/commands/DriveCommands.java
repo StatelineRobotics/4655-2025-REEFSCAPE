@@ -234,9 +234,9 @@ public class DriveCommands {
   }
 
   public static Command driveToPoseCommand(
-      Drive drive, Pose2d targetPose, Supplier<Pose2d> poseSupplier) {
+      Drive drive, Supplier<Pose2d> targetSupplier) {
 
-    Pose2d startPose = poseSupplier.get();
+    Pose2d startPose = drive.getPose();
 
     PIDController xController = new PIDController(TRANSLATION_KP, 0, TRANSLATION_KD);
     PIDController yController = new PIDController(TRANSLATION_KP, 0, TRANSLATION_KD);
@@ -251,6 +251,7 @@ public class DriveCommands {
     return Commands.run(
             () -> {
               Pose2d currentPose = drive.getPose();
+              Pose2d targetPose = targetSupplier.get();
               // Calculate angular speed
               double omega =
                   angleController.calculate(
@@ -282,11 +283,12 @@ public class DriveCommands {
             },
             drive)
         .until(
-            () -> targetPose.getTranslation().getDistance(drive.getPose().getTranslation()) < 0.01)
+            () -> targetSupplier.get().getTranslation().getDistance(drive.getPose().getTranslation()) < 0.01)
 
         // Reset PID controller when command starts
         .beforeStarting(
             () -> {
+              Pose2d targetPose = targetSupplier.get();
               angleController.reset(drive.getRotation().getRadians());
               xController.setSetpoint(targetPose.getX());
               yController.setSetpoint(targetPose.getY());

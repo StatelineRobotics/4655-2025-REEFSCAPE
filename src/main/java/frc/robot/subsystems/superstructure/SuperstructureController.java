@@ -15,6 +15,7 @@ public class SuperstructureController extends SubsystemGroup{
   private OutakeRollers outake;
 
   public static enum ScorePositions {
+    hold(0.05, -45, 6.0),
     level1(0.05, -45, 6.0),
     level2(0.05, -45, 6.0),
     level3(0.05, -45, 6.0),
@@ -97,7 +98,7 @@ public class SuperstructureController extends SubsystemGroup{
     return expose(
       prepareToScore(ScorePositions.level4)
       .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean()).
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
         andThen(score(ScorePositions.level4))).withName("Level 4")
     );
   }
@@ -106,7 +107,7 @@ public class SuperstructureController extends SubsystemGroup{
     return expose(
       prepareToScore(ScorePositions.level3)
       .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean()).
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
         andThen(score(ScorePositions.level3))).withName("Level 3")
     );
   }
@@ -115,7 +116,7 @@ public class SuperstructureController extends SubsystemGroup{
     return expose(
       prepareToScore(ScorePositions.level2)
       .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean()).
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
         andThen(score(ScorePositions.level2))).withName("Level 2")
     );
   }
@@ -124,8 +125,13 @@ public class SuperstructureController extends SubsystemGroup{
     return expose(
       prepareToScore(ScorePositions.level1)
       .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean())
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
         .andThen(score(ScorePositions.level1))).withName("Level 1")
+    );
+  }
+  public Command holdHigh() {
+    return expose(
+      prepareToScore(ScorePositions.hold)
     );
   }
 
@@ -133,7 +139,7 @@ public class SuperstructureController extends SubsystemGroup{
     return expose(
       prepareToScore(ScorePositions.barge)
       .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean())
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
         .andThen(score(ScorePositions.barge))).withName("Barge")
     );
   }
@@ -142,7 +148,7 @@ public class SuperstructureController extends SubsystemGroup{
     return expose(
       prepareToScore(ScorePositions.processor)
       .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean())
+        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
         .andThen(score(ScorePositions.processor))).withName("Processor")
     );
   }
