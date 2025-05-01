@@ -17,7 +17,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import frc.robot.Constants;
 import frc.robot.subsystems.MechanismConstants.ElevatorConstants;
-
 import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */

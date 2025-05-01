@@ -6,15 +6,20 @@ public interface OutakeRollersIO {
   @AutoLog
   public class OutakeRollersIOInputs {
 
+    public boolean leftMotorConnected = false;
     public double leftMotorVoltage = 0.0;
     public double leftMotorVelocity = 0.0;
     public double leftMotorCurrent = 0.0;
 
+    public boolean rightMotorConnected = false;
     public double rightMotorVoltage = 0.0;
     public double rightMotorVelocity = 0.0;
     public double rightMotorCurrent = 0.0;
 
+    public boolean manipulatorLaserConnected = false;
     public boolean manipulatorLaserDetects = false;
+
+    public boolean elevatorLaserConnected = false;
     public boolean elevatorLaserDetects = false;
   }
 

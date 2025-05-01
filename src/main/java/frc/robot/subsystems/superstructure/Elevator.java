@@ -21,11 +21,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
 import frc.robot.subsystems.MechanismConstants.ElevatorConstants;
 import frc.robot.subsystems.superstructure.SuperstructureController.StorePositions;
-import frc.robot.util.FieldConstants.PieceType;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -144,26 +141,26 @@ public class Elevator extends SubsystemBase {
 
   private Command requestElevatorPosition(double targetPostion) {
     return startRun(
-            () -> {
-              inputs.finalSetpoint = targetPostion;
-              startingState = new State(inputs.elevatorPos, inputs.elevatorVelo);
-              endState = new State(targetPostion, 0.0);
-              timer.restart();
-            },
-            () -> {
-              double currentTime = timer.get();
-              Logger.recordOutput("time", currentTime);
-              // TrapezoidProfile.State currentState = new State(inputs.elevatorPos,
-              // inputs.elevatorVelo);
-              State currentTarget = profile.calculate(currentTime, startingState, endState);
-              State nextState = profile.calculate(currentTime + 0.02, startingState, endState);
-              double voltageFeed =
-                  feedforward.calculateWithVelocities(currentTarget.velocity, nextState.velocity);
-              positionControl(currentTarget.position, voltageFeed);
-              inputs.veolocitySetpoint = currentTarget.velocity;
-              inputs.motionSetpoint = currentTarget.position;
-              lastTime = currentTime;
-            });
+        () -> {
+          inputs.finalSetpoint = targetPostion;
+          startingState = new State(inputs.elevatorPos, inputs.elevatorVelo);
+          endState = new State(targetPostion, 0.0);
+          timer.restart();
+        },
+        () -> {
+          double currentTime = timer.get();
+          Logger.recordOutput("time", currentTime);
+          // TrapezoidProfile.State currentState = new State(inputs.elevatorPos,
+          // inputs.elevatorVelo);
+          State currentTarget = profile.calculate(currentTime, startingState, endState);
+          State nextState = profile.calculate(currentTime + 0.02, startingState, endState);
+          double voltageFeed =
+              feedforward.calculateWithVelocities(currentTarget.velocity, nextState.velocity);
+          positionControl(currentTarget.position, voltageFeed);
+          inputs.veolocitySetpoint = currentTarget.velocity;
+          inputs.motionSetpoint = currentTarget.position;
+          lastTime = currentTime;
+        });
   }
 
   protected Command moveToSetpoint(double position) {
@@ -171,7 +168,10 @@ public class Elevator extends SubsystemBase {
   }
 
   protected Command moveToStore(BooleanSupplier hasAlgae) {
-    return either(moveToSetpoint(StorePositions.storeAlgae.elevator), moveToSetpoint(StorePositions.storeCoral.elevator), hasAlgae);
+    return either(
+        moveToSetpoint(StorePositions.storeAlgae.elevator),
+        moveToSetpoint(StorePositions.storeCoral.elevator),
+        hasAlgae);
   }
 
   private boolean isAtSetpoint() {

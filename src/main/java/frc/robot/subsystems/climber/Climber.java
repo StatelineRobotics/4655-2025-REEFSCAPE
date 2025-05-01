@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.MechanismConstants.ClimberConstants;
-
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 

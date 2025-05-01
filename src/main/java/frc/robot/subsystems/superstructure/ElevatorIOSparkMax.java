@@ -154,6 +154,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
   public void requestBeltRPM(double RPM) {
     funnelController.setReference(RPM, ControlType.kVelocity);
   }
+
   /**
    * Drive motors in voltage control mode
    *

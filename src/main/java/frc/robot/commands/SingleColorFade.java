@@ -15,6 +15,7 @@ public class SingleColorFade extends Command {
   private Lights lights;
   private double time;
   private boolean increasing = true;
+
   /** Creates a new SingleColorFade. */
   public SingleColorFade(Color targetColor, Lights lights) {
     this.targetColor = targetColor;

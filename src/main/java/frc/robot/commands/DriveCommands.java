@@ -233,10 +233,7 @@ public class DriveCommands {
         });
   }
 
-  public static Command driveToPoseCommand(
-      Drive drive, Supplier<Pose2d> targetSupplier) {
-
-    Pose2d startPose = drive.getPose();
+  public static Command driveToPoseCommand(Drive drive, Supplier<Pose2d> targetSupplier) {
 
     PIDController xController = new PIDController(TRANSLATION_KP, 0, TRANSLATION_KD);
     PIDController yController = new PIDController(TRANSLATION_KP, 0, TRANSLATION_KD);
@@ -276,14 +273,13 @@ public class DriveCommands {
               Logger.recordOutput("pid/rotOutput", omega);
 
               ChassisSpeeds speeds = new ChassisSpeeds(xOutput, yOutput, omega);
-              boolean isFlipped =
-                  DriverStation.getAlliance().isPresent()
-                      && DriverStation.getAlliance().get() == Alliance.Red;
               drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, drive.getRotation()));
             },
             drive)
         .until(
-            () -> targetSupplier.get().getTranslation().getDistance(drive.getPose().getTranslation()) < 0.01)
+            () ->
+                targetSupplier.get().getTranslation().getDistance(drive.getPose().getTranslation())
+                    < 0.01)
 
         // Reset PID controller when command starts
         .beforeStarting(

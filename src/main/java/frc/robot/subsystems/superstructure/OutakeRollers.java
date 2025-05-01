@@ -1,14 +1,12 @@
 package frc.robot.subsystems.superstructure;
 
+import static edu.wpi.first.wpilibj2.command.Commands.either;
+
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.util.FieldConstants.PieceType;
-
-import static edu.wpi.first.wpilibj2.command.Commands.either;
-
 import org.littletonrobotics.junction.Logger;
 
 public class OutakeRollers extends SubsystemBase {

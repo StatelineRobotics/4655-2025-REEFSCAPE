@@ -16,12 +16,10 @@ package frc.robot;
 // import static frc.robot.subsystems.Vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -46,14 +44,12 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.hopper.Hopper;
 import frc.robot.subsystems.hopper.HopperIO;
 import frc.robot.subsystems.hopper.HopperIOSparkMax;
-import frc.robot.subsystems.superstructure.Elevator;
 import frc.robot.subsystems.superstructure.ElevatorIO;
 import frc.robot.subsystems.superstructure.ElevatorIOSim;
 import frc.robot.subsystems.superstructure.ElevatorIOSparkMax;
 import frc.robot.subsystems.superstructure.OutakeRollersIO;
 import frc.robot.subsystems.superstructure.OutakeRollersIOTallonFX;
 import frc.robot.subsystems.superstructure.SuperstructureController;
-import frc.robot.subsystems.superstructure.Wrist;
 import frc.robot.subsystems.superstructure.WristIO;
 import frc.robot.subsystems.superstructure.WristIOSim;
 import frc.robot.subsystems.superstructure.WristTalonFXIO;
@@ -62,13 +58,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-
-import java.util.EnumMap;
-import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -93,7 +83,9 @@ public class RobotContainer {
   private final CommandXboxController auxController = new CommandXboxController(1);
 
   // Dashboard inputs
-  private final LoggedDashboardChooser<Command> autoChooser  = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());;
+  private final LoggedDashboardChooser<Command> autoChooser =
+      new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+  ;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -120,10 +112,9 @@ public class RobotContainer {
                     VisionConstants.camera2Name, VisionConstants.robotToCamera2),
                 new VisionIOPhotonVision(
                     VisionConstants.camera3Name, VisionConstants.robotToCamera3));
-        superstructure = new SuperstructureController(
-          new ElevatorIOSparkMax(),
-          new WristTalonFXIO(),
-          new OutakeRollersIOTallonFX());
+        superstructure =
+            new SuperstructureController(
+                new ElevatorIOSparkMax(), new WristTalonFXIO(), new OutakeRollersIOTallonFX());
         climber = new Climber(new ClimberIOSparkMax());
         hopper = new Hopper(new HopperIOSparkMax());
         break;
@@ -137,21 +128,21 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision = new Vision(
-          drive::addVisionMeasurement,
-          drive::getPose,
-          new VisionIOPhotonVisionSim(
-              VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-          new VisionIOPhotonVisionSim(
-              VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-          new VisionIOPhotonVisionSim(
-              VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
-          new VisionIOPhotonVisionSim(
-              VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
-          superstructure = new SuperstructureController(
-              new ElevatorIOSim(),
-              new WristIOSim(),
-              new OutakeRollersIO() {});
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                drive::getPose,
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
+        superstructure =
+            new SuperstructureController(
+                new ElevatorIOSim(), new WristIOSim(), new OutakeRollersIO() {});
         climber = new Climber(new ClimberIO() {});
         hopper = new Hopper(new HopperIOSparkMax());
         break;
@@ -168,10 +159,9 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement, drive::getPose, new VisionIO() {}, new VisionIO() {});
-                superstructure = new SuperstructureController(
-                  new ElevatorIO() {},
-                  new WristIO() {},
-                  new OutakeRollersIO() {});
+        superstructure =
+            new SuperstructureController(
+                new ElevatorIO() {}, new WristIO() {}, new OutakeRollersIO() {});
         climber = new Climber(new ClimberIO() {});
         hopper = new Hopper(new HopperIO() {});
         break;
@@ -219,9 +209,7 @@ public class RobotContainer {
                 .ignoringDisable(true));
   }
 
-  private void configureLEDbindings() {
-
-  }
+  private void configureLEDbindings() {}
 
   public void logSubsystems() {
     SmartDashboard.putData("drive", drive);

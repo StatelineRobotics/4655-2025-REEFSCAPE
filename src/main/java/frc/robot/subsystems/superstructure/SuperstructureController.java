@@ -3,13 +3,12 @@ package frc.robot.subsystems.superstructure;
 import static edu.wpi.first.wpilibj2.command.Commands.*;
 import static frc.robot.util.FieldConstants.PieceType.*;
 
+import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.util.FieldConstants.PieceType;
+import frc.robot.util.SubsystemGroup;
 import java.util.function.BooleanSupplier;
 
-import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.util.SubsystemGroup;
-import frc.robot.util.FieldConstants.PieceType;
-
-public class SuperstructureController extends SubsystemGroup{
+public class SuperstructureController extends SubsystemGroup {
   private Elevator elevator;
   private Wrist wrist;
   private OutakeRollers outake;
@@ -37,8 +36,8 @@ public class SuperstructureController extends SubsystemGroup{
   public static enum IntakePositions {
     hopperCoral(1, 1, coral),
     algaeGround(1, 1, algae),
-    algaeL2(1,1,algae),
-    algaeL3(1,1,algae);
+    algaeL2(1, 1, algae),
+    algaeL3(1, 1, algae);
 
     public final double elevator;
     public final double wrist;
@@ -64,8 +63,7 @@ public class SuperstructureController extends SubsystemGroup{
     }
   }
 
-  public SuperstructureController(
-      ElevatorIO elevator, WristIO wrist, OutakeRollersIO outake) {
+  public SuperstructureController(ElevatorIO elevator, WristIO wrist, OutakeRollersIO outake) {
     this.elevator = new Elevator(elevator);
     this.wrist = new Wrist(wrist);
     this.outake = new OutakeRollers(outake);
@@ -85,7 +83,7 @@ public class SuperstructureController extends SubsystemGroup{
 
   private Command intake(IntakePositions postion) {
     return sequence(wrist.moveToSetpoint(postion.wrist), elevator.moveToSetpoint(postion.elevator))
-           .andThen(outake.intake(postion.type));
+        .andThen(outake.intake(postion.type));
   }
 
   private Command prepareToScore(ScorePositions positions) {
@@ -96,95 +94,109 @@ public class SuperstructureController extends SubsystemGroup{
 
   public Command scoreL4(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
-      waitUntil(delayCondition)
-      .andThen(
-        prepareToScore(ScorePositions.level4)
-        .withDeadline(
-          waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
-          .andThen(score(ScorePositions.level4))).withName("Level 4")
-      )
-    );
+        waitUntil(delayCondition)
+            .andThen(
+                prepareToScore(ScorePositions.level4)
+                    .withDeadline(
+                        waitUntil(
+                                () ->
+                                    canScore.getAsBoolean()
+                                        && elevator.atSetpoint.getAsBoolean()
+                                        && wrist.atSetpoint.getAsBoolean())
+                            .andThen(score(ScorePositions.level4)))
+                    .withName("Level 4")));
   }
 
   public Command scoreL3(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
-      waitUntil(delayCondition)
-      .andThen(
-      prepareToScore(ScorePositions.level3)
-      .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
-        andThen(score(ScorePositions.level3))).withName("Level 3")
-    ));
+        waitUntil(delayCondition)
+            .andThen(
+                prepareToScore(ScorePositions.level3)
+                    .withDeadline(
+                        waitUntil(
+                                () ->
+                                    canScore.getAsBoolean()
+                                        && elevator.atSetpoint.getAsBoolean()
+                                        && wrist.atSetpoint.getAsBoolean())
+                            .andThen(score(ScorePositions.level3)))
+                    .withName("Level 3")));
   }
 
   public Command scoreL2(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
-      waitUntil(delayCondition)
-      .andThen(
-      prepareToScore(ScorePositions.level2)
-      .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean()).
-        andThen(score(ScorePositions.level2))).withName("Level 2")
-    ));
+        waitUntil(delayCondition)
+            .andThen(
+                prepareToScore(ScorePositions.level2)
+                    .withDeadline(
+                        waitUntil(
+                                () ->
+                                    canScore.getAsBoolean()
+                                        && elevator.atSetpoint.getAsBoolean()
+                                        && wrist.atSetpoint.getAsBoolean())
+                            .andThen(score(ScorePositions.level2)))
+                    .withName("Level 2")));
   }
 
   public Command scoreL1(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
-      waitUntil(delayCondition)
-      .andThen(
-      prepareToScore(ScorePositions.level1)
-      .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
-        .andThen(score(ScorePositions.level1))).withName("Level 1")
-    ));
+        waitUntil(delayCondition)
+            .andThen(
+                prepareToScore(ScorePositions.level1)
+                    .withDeadline(
+                        waitUntil(
+                                () ->
+                                    canScore.getAsBoolean()
+                                        && elevator.atSetpoint.getAsBoolean()
+                                        && wrist.atSetpoint.getAsBoolean())
+                            .andThen(score(ScorePositions.level1)))
+                    .withName("Level 1")));
   }
+
   public Command holdHigh() {
-    return expose(
-      prepareToScore(ScorePositions.hold)
-    );
+    return expose(prepareToScore(ScorePositions.hold));
   }
 
   public Command scoreBarge(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
-      waitUntil(delayCondition)
-      .andThen(
-      prepareToScore(ScorePositions.barge)
-      .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
-        .andThen(score(ScorePositions.barge))).withName("Barge")
-    ));
+        waitUntil(delayCondition)
+            .andThen(
+                prepareToScore(ScorePositions.barge)
+                    .withDeadline(
+                        waitUntil(
+                                () ->
+                                    canScore.getAsBoolean()
+                                        && elevator.atSetpoint.getAsBoolean()
+                                        && wrist.atSetpoint.getAsBoolean())
+                            .andThen(score(ScorePositions.barge)))
+                    .withName("Barge")));
   }
 
   public Command scoreProcessor(BooleanSupplier canScore) {
     return expose(
-      prepareToScore(ScorePositions.processor)
-      .withDeadline(
-        waitUntil(() -> canScore.getAsBoolean() && elevator.atSetpoint.getAsBoolean() && wrist.atSetpoint.getAsBoolean())
-        .andThen(score(ScorePositions.processor))).withName("Processor")
-    );
+        prepareToScore(ScorePositions.processor)
+            .withDeadline(
+                waitUntil(
+                        () ->
+                            canScore.getAsBoolean()
+                                && elevator.atSetpoint.getAsBoolean()
+                                && wrist.atSetpoint.getAsBoolean())
+                    .andThen(score(ScorePositions.processor)))
+            .withName("Processor"));
   }
 
   public Command intakeCoral() {
-    return expose(
-      intake(IntakePositions.hopperCoral).withName("Intake Coral")
-    );
+    return expose(intake(IntakePositions.hopperCoral).withName("Intake Coral"));
   }
 
   public Command intakeAlgaeGround() {
-    return expose(
-      intake(IntakePositions.algaeGround).withName("Ground Algae")
-    );
+    return expose(intake(IntakePositions.algaeGround).withName("Ground Algae"));
   }
 
   public Command intakeAlgaeL2() {
-    return expose(
-      intake(IntakePositions.algaeL2).withName("Algae L2")
-    );
+    return expose(intake(IntakePositions.algaeL2).withName("Algae L2"));
   }
 
   public Command intakeAlgaeL3() {
-    return expose(
-      intake(IntakePositions.algaeL3).withName("Algae L3")
-    );
+    return expose(intake(IntakePositions.algaeL3).withName("Algae L3"));
   }
 }
