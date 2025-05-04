@@ -10,8 +10,6 @@ public interface ElevatorIO {
     public boolean zeroed = false;
 
     public double elevatorPos = 0.0;
-    public double funnelPos = 0.0;
-    public double funnelVoltage = 0.0;
     public double elevatorVelo = 0.0;
     public double dutyCycle = 0.0;
     public double appliedVolts = 0.0;
@@ -20,7 +18,6 @@ public interface ElevatorIO {
     public double motionSetpoint = 0.0;
     public double veolocitySetpoint = 0.0;
     public double setpoint = 0.0;
-    public double funnelCurrent = 0.0;
 
     public boolean isAtBottom = false;
   }

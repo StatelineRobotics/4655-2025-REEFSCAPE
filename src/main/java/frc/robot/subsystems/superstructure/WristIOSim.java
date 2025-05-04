@@ -2,8 +2,6 @@ package frc.robot.subsystems.superstructure;
 
 import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
-import com.revrobotics.sim.SparkMaxSim;
-import com.revrobotics.sim.SparkRelativeEncoderSim;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -20,10 +18,7 @@ public class WristIOSim extends WristIOSparkMax {
 
   private SparkFlexSim wristMotorSim;
   private SparkAbsoluteEncoderSim wristEncoderSim;
-  private SparkMaxSim rightMotorSim;
-  private SparkRelativeEncoderSim rightEncoderSim;
-  private SparkMaxSim leftMotorSim;
-  private SparkRelativeEncoderSim leftEncoderSim;
+
   private SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getNeoVortex(1),
@@ -53,12 +48,6 @@ public class WristIOSim extends WristIOSparkMax {
     wConfig.apply(getWristClosedLoopConfig());
     m_wrist.configure(wConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
 
-    leftMotorSim = new SparkMaxSim(m_leftIntake, DCMotor.getNeo550(1));
-    leftEncoderSim = leftMotorSim.getRelativeEncoderSim();
-
-    rightMotorSim = new SparkMaxSim(m_rightIntake, DCMotor.getNeo550(1));
-    rightEncoderSim = rightMotorSim.getRelativeEncoderSim();
-
     if (Constants.usePIDtuning) {
       super.setUpPIDTuning();
     }
@@ -68,20 +57,12 @@ public class WristIOSim extends WristIOSparkMax {
     updateSim(inputs);
     super.updateInputs(inputs);
     inputs.wristPos = inputs.wristSetpoint;
-    inputs.leftAppliedCurrent = 100.0;
-    inputs.rightAppliedCurrent = 100.0;
   }
 
   private void updateSim(WristIOInputs inputs) {
-    leftSim.setInputVoltage(inputs.leftAppliedVoltage);
-    leftSim.update(.02);
-    rightSim.setInputVoltage(inputs.rightAppliedVoltage);
-    rightSim.update(.02);
     armSim.setInputVoltage(inputs.wristAppliedVoltage);
     armSim.update(.02);
 
-    leftMotorSim.iterate(leftSim.getAngularVelocityRPM() * 25, 12, 0.02);
-    rightMotorSim.iterate(rightSim.getAngularVelocityRPM() * 25, 12, 0.02);
     wristMotorSim.iterate(
         Units.radiansPerSecondToRotationsPerMinute(armSim.getVelocityRadPerSec()) * 25, 12, 0.02);
   }
