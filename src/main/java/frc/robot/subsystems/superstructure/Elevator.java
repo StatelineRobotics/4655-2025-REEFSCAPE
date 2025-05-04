@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 import static edu.wpi.first.wpilibj2.command.Commands.either;
+import static edu.wpi.first.wpilibj2.command.Commands.idle;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -172,6 +173,10 @@ public class Elevator extends SubsystemBase {
         moveToSetpoint(StorePositions.storeAlgae.elevator),
         moveToSetpoint(StorePositions.storeCoral.elevator),
         hasAlgae);
+  }
+
+  protected Command idleCommand() {
+    return idle(this);
   }
 
   private boolean isAtSetpoint() {

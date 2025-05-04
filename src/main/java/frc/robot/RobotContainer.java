@@ -27,6 +27,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.SingleColorFade;
@@ -81,6 +83,9 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController auxController = new CommandXboxController(1);
+
+  private final Trigger delayCondition;
+  private final Trigger autoScore;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser =
@@ -169,11 +174,17 @@ public class RobotContainer {
 
     lights = new Lights();
 
+    delayCondition = new Trigger(drive.autoElevator.or(auxController.y()));
+    autoScore = new Trigger(drive.readyAutoScore.or(controller.rightBumper()));
+
     configureNamedCommands();
     configureTunerPaths();
     // Configure the button bindings
     configureButtonBindings();
     configureLEDbindings();
+
+    RobotModeTriggers.disabled()
+        .onFalse(Commands.parallel(superstructure.idle(), hopper.idleCommand()));
   }
 
   /**
@@ -207,6 +218,75 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+
+    controller.leftBumper().onTrue(superstructure.intakeCoral().alongWith(hopper.intakeCommand()));
+
+    /*
+     * For all score commands: they do not do anything until auto score OR pressing Aux-Y
+     * For all score commands: score is done automaticaly when auto score OR Driver-Rb
+     * For all score commands: drives back and drops elevator automaticaly or waits until Aux-Y is released
+     *
+     * Aux-Lt without Aux-B: Move to L1
+     * Aux-Rt without Aux-B: Move to L2
+     * Aux-Lb without Aux-B: Move to L3
+     * Aux-Lr without Aux-B: Move to L4
+     *
+     * Aux-Lt with Aux-B: Move to ground intake
+     * Aux-Rt with Aux-B: Move to algae L2
+     * Aux-Lb with Aux-B: Move to algae L3
+     * Aux-Rb with Aux-B: Move to barge
+     *
+     */
+    auxController
+        .leftTrigger()
+        .and(auxController.b().negate())
+        .whileTrue(
+            superstructure
+                .scoreL1(() -> true, controller.rightBumper())
+                .andThen(
+                    superstructure
+                        .holdHigh()
+                        .until(drive.safeElevatorDown.and(auxController.y().negate()))));
+    auxController
+        .rightTrigger()
+        .and(auxController.b().negate())
+        .whileTrue(
+            superstructure
+                .scoreL2(delayCondition, autoScore)
+                .andThen(
+                    superstructure
+                        .holdHigh()
+                        .until(drive.safeElevatorDown.and(auxController.y().negate()))));
+    auxController
+        .leftBumper()
+        .and(auxController.b().negate())
+        .whileTrue(
+            superstructure
+                .scoreL3(delayCondition, autoScore)
+                .andThen(
+                    superstructure
+                        .holdHigh()
+                        .until(drive.safeElevatorDown.and(auxController.y().negate()))));
+    auxController
+        .rightBumper()
+        .and(auxController.b().negate())
+        .whileTrue(
+            superstructure
+                .scoreL4(delayCondition, autoScore)
+                .andThen(
+                    superstructure
+                        .holdHigh()
+                        .until(drive.safeElevatorDown.and(auxController.y().negate()))));
+    auxController
+        .leftTrigger()
+        .and(auxController.b())
+        .whileTrue(superstructure.intakeAlgaeGround());
+    auxController.rightTrigger().and(auxController.b()).whileTrue(superstructure.intakeAlgaeL2());
+    auxController.leftBumper().and(auxController.b()).whileTrue(superstructure.intakeAlgaeL3());
+    auxController
+        .rightBumper()
+        .and(auxController.b())
+        .whileTrue(superstructure.scoreBarge(() -> true, controller.b()));
   }
 
   private void configureLEDbindings() {}

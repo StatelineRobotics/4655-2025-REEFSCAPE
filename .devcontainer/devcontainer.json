@@ -10,5 +10,5 @@
       ]
     }
   },
-  "postStartCommand": "chmod +rwx .devcontainer/start.sh && ./.devcontainer/start.sh"
+  "postCreateCommand": "chmod gradlew +x"
 }

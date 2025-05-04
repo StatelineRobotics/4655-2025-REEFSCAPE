@@ -119,11 +119,10 @@ public class Drive extends SubsystemBase {
   private Pose2d lastPose = new Pose2d();
   private Pose2d[] targets = new Pose2d[2];
 
-  public Trigger readyFinalAuto = new Trigger(() -> nearTarget(targets[1], .5));
+  public Trigger readyFinalAuto = new Trigger(() -> nearTarget(targets[0], .5));
   public boolean secondStagePathfinding = false;
   @AutoLogOutput public Trigger autoElevator = new Trigger(() -> secondStagePathfinding);
-  private boolean readyScore = false;
-  @AutoLogOutput public Trigger readyAutoScore = new Trigger(() -> readyScore);
+  @AutoLogOutput public Trigger readyAutoScore = new Trigger(() -> nearTarget(targets[1], .01));
 
   @AutoLogOutput
   public Trigger safeElevatorDown =

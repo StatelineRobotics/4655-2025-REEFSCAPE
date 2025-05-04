@@ -1,5 +1,7 @@
 package frc.robot.subsystems.superstructure;
 
+import static edu.wpi.first.wpilibj2.command.Commands.idle;
+
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -120,15 +122,11 @@ public class Wrist extends SubsystemBase {
     return this.runOnce(this::stop);
   }
 
-  // public Command intakeSequesnce() {
-  //   return moveIntakePosition()
-  //       .andThen(run(() -> reqestIntakeVoltage(3.0)).until(detectsForward))
-  //       .andThen(
-  //           runEnd(() -> reqestIntakeVoltage(2.0),
-  // this::stopIntake).until(detectsNote.negate()));
-  // }
+  protected Command idleCommand() {
+    return idle(this);
+  }
 
-  public Command moveToSetpoint(double position) {
+  protected Command moveToSetpoint(double position) {
     return run(() -> requestWristPosition(position)).until(atSetpoint);
   }
 }

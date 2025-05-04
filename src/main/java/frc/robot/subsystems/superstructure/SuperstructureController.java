@@ -156,6 +156,10 @@ public class SuperstructureController extends SubsystemGroup {
     return expose(prepareToScore(ScorePositions.hold));
   }
 
+  public Command idle() {
+    return parallel(elevator.idleCommand(), wrist.idleCommand(), outake.idleCommand());
+  }
+
   public Command scoreBarge(BooleanSupplier delayCondition, BooleanSupplier canScore) {
     return expose(
         waitUntil(delayCondition)

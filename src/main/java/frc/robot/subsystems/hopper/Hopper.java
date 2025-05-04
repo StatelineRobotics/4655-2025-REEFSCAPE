@@ -1,5 +1,7 @@
 package frc.robot.subsystems.hopper;
 
+import static edu.wpi.first.wpilibj2.command.Commands.idle;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -22,6 +24,8 @@ public class Hopper extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   public Hopper(HopperIO io) {
     this.io = io;
+
+    setDefaultCommand(defaultCommand());
   }
 
   @Override
@@ -59,8 +63,22 @@ public class Hopper extends SubsystemBase {
     return (run(() -> requestPivotAngle(intakeAngle))
             .until(pivotAtSetpoint)
             .withName("Pivot To Intake"))
-        .andThen(runEnd(() -> requestBeltVoltage(8.0), this::stopBelt).withName("Run Belt Intake"))
+        .andThen(
+            runEnd(() -> requestBeltVoltage(intakeBeltVoltage), this::stopBelt)
+                .withName("Run Belt Intake"))
         .withName("Inake Sequence");
+  }
+
+  public Command defaultCommand() {
+    return run(
+        () -> {
+          requestBeltVoltage(1);
+          requestPivotAngle(intakeAngle);
+        });
+  }
+
+  public Command idleCommand() {
+    return idle(this);
   }
 
   public Command climbComand() {
