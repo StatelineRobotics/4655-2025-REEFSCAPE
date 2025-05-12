@@ -54,12 +54,11 @@ import frc.robot.subsystems.superstructure.OutakeRollersIOTallonFX;
 import frc.robot.subsystems.superstructure.SuperstructureController;
 import frc.robot.subsystems.superstructure.WristIO;
 import frc.robot.subsystems.superstructure.WristIOSim;
-import frc.robot.subsystems.superstructure.WristTalonFXIO;
+import frc.robot.subsystems.superstructure.WristIOSparkMax;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -88,9 +87,7 @@ public class RobotContainer {
   private final Trigger autoScore;
 
   // Dashboard inputs
-  private final LoggedDashboardChooser<Command> autoChooser =
-      new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-  ;
+  private final LoggedDashboardChooser<Command> autoChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -119,7 +116,7 @@ public class RobotContainer {
                     VisionConstants.camera3Name, VisionConstants.robotToCamera3));
         superstructure =
             new SuperstructureController(
-                new ElevatorIOSparkMax(), new WristTalonFXIO(), new OutakeRollersIOTallonFX());
+                new ElevatorIOSparkMax(), new WristIOSparkMax(), new OutakeRollersIOTallonFX());
         climber = new Climber(new ClimberIOSparkMax());
         hopper = new Hopper(new HopperIOSparkMax());
         break;
@@ -133,18 +130,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                drive::getPose,
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera2Name, VisionConstants.robotToCamera2, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera3Name, VisionConstants.robotToCamera3, drive::getPose));
+        vision = new Vision(drive::addVisionMeasurement, drive::getPose, new VisionIO() {});
         superstructure =
             new SuperstructureController(
                 new ElevatorIOSim(), new WristIOSim(), new OutakeRollersIO() {});
@@ -176,6 +162,8 @@ public class RobotContainer {
 
     delayCondition = new Trigger(drive.autoElevator.or(auxController.y()));
     autoScore = new Trigger(drive.readyAutoScore.or(controller.rightBumper()));
+
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     configureNamedCommands();
     configureTunerPaths();

@@ -117,7 +117,7 @@ public class Drive extends SubsystemBase {
   private final Field2d field2d = new Field2d();
 
   private Pose2d lastPose = new Pose2d();
-  private Pose2d[] targets = new Pose2d[2];
+  private Pose2d[] targets = {Pose2d.kZero, Pose2d.kZero};
 
   public Trigger readyFinalAuto = new Trigger(() -> nearTarget(targets[0], .5));
   public boolean secondStagePathfinding = false;

@@ -79,8 +79,6 @@ public class WristIOSparkMax implements WristIO {
 
     wristController = m_wrist.getClosedLoopController();
 
-    intakeConfig.pid(0.0013, 0, 0);
-
     if (Constants.usePIDtuning) {
       setUpPIDTuning();
     }
