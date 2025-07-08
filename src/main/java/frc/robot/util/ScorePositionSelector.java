@@ -16,22 +16,31 @@ public class ScorePositionSelector {
   private ArrayList<Binding> currentBindings = new ArrayList<Binding>();
   private ArrayList<Binding> allBindings = new ArrayList<Binding>();
   private Command defaultCommand;
-  private Command currentCommand = Commands.runOnce(() -> {}).withName("waiting for initial input");
+  private Command currentCommand = Commands.run(() -> {}).withName("waiting for initial input");
 
   public ScorePositionSelector(Command defaultCommand) {
     this.defaultCommand = defaultCommand;
+    currentCommand.schedule();
   }
 
   public ScorePositionSelector addBinding(Binding binding) {
     allBindings.add(binding);
     binding
         .trigger
+        // .onTrue(
+        //     Commands.deferredProxy(this::getDesiredCommand)
+        //         .beforeStarting(Commands.runOnce(() -> addToPossibeList(binding)))
+        //         .withName(binding.name))
+        // .onFalse(
+        //     Commands.deferredProxy(this::getDesiredCommand)
+        //         .beforeStarting(Commands.runOnce(() -> removeFromPossibleList(binding))));
         .onTrue(
             Commands.deferredProxy(
-                () -> {
-                  addToPossibeList(binding);
-                  return getDesiredCommand();
-                }))
+                    () -> {
+                      addToPossibeList(binding);
+                      return getDesiredCommand();
+                    })
+                .withName(binding.name))
         .onFalse(
             Commands.deferredProxy(
                 () -> {
@@ -56,6 +65,7 @@ public class ScorePositionSelector {
   }
 
   private Command getDesiredCommand() {
+    currentCommand.cancel();
     if (currentBindings.size() == 0) {
       currentCommand = defaultCommand;
       return currentCommand;

@@ -12,7 +12,7 @@ import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 import frc.robot.subsystems.mechanisms.climber.Climber;
 import frc.robot.subsystems.mechanisms.elevator.Elevator;
 import frc.robot.subsystems.mechanisms.wrist.Wrist;
-import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -109,7 +109,7 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickup -> {
         wristSubsystem.requestWristPOS(WristConstants.intakeCoralAngle);
-        elevatorSubsystem.requestFunnelPOS(0.0);
+        elevatorSubsystem.requestFunnelPOS(15.0);
 
         if (!hasSetElevatorPosition && !wristSubsystem.detectsNote.getAsBoolean()) {
           hasSetElevatorPosition = true;
@@ -118,7 +118,7 @@ public class MechanismControl extends SubsystemBase {
 
         if (elevatorSubsystem.isAtSetpoint()
             && wristSubsystem.isAtSetpoint()
-            && elevatorSubsystem.getFunnelPos() < 5.0) {
+            && elevatorSubsystem.getFunnelPos() < 17.0) {
           setState(State.coralPickupS2).schedule();
         }
         break;
@@ -126,8 +126,8 @@ public class MechanismControl extends SubsystemBase {
 
       case coralPickupS2 -> {
         wristSubsystem.reqestIntakeVoltage(3);
-        elevatorSubsystem.reqestBeltVoltage(-8);
-        elevatorSubsystem.requestFunnelPOS(0.0);
+        elevatorSubsystem.reqestBeltVoltage(-9);
+        elevatorSubsystem.requestFunnelPOS(15.0);
 
         if (!hasSetElevatorPosition) {
           hasSetElevatorPosition = true;
@@ -233,7 +233,12 @@ public class MechanismControl extends SubsystemBase {
           elevatorSubsystem.getL4Command().schedule();
         }
 
-        wristSubsystem.requestWristPOS(WristConstants.L4coralScoreAngle);
+        if (wristSubsystem.detectsForward.getAsBoolean()) {
+          wristSubsystem.requestWristPOS(WristConstants.L4coralScoreAngle);
+        } else {
+          wristSubsystem.requestWristPOS(WristConstants.intakeCoralAngle);
+        }
+
         break;
       }
 
@@ -278,7 +283,7 @@ public class MechanismControl extends SubsystemBase {
           elevatorSubsystem.getIntakeCommand().schedule();
         }
         wristSubsystem.requestWristPOS(-80);
-        elevatorSubsystem.requestFunnelPOS(100);
+        elevatorSubsystem.requestFunnelPOS(-100);
         elevatorSubsystem.reqestBeltVoltage(0);
         if (elevatorSubsystem.getFunnelPos() > 90) {
           climber.setClimberPosition(0);
@@ -291,12 +296,12 @@ public class MechanismControl extends SubsystemBase {
           hasSetElevatorPosition = true;
           elevatorSubsystem.getIntakeCommand().schedule();
         }
-        wristSubsystem.requestWristPOS(-80);
+        wristSubsystem.requestWristPOS(-70);
         driveSubsystem.setWheelsStraightAndCoast();
         climber.requestPull();
-        if (climber.getClimberPos() >= 9.25) {
+        if (climber.getClimberPos() >= 10.0) {
           climber.stop();
-          setState(State.idle).schedule();
+          setIdle().schedule();
         }
         break;
       }
@@ -327,42 +332,44 @@ public class MechanismControl extends SubsystemBase {
     }
   }
 
-  public Command setIdleState() {
-    return Commands.runOnce(() -> setDesiredState(State.idle));
+  public Command setNewScoreState(Supplier<State> desiredState, BooleanSupplier overide) {
+    return (lightSubsystem
+            .solidAnimation(new Color("#ffc512"), "waitElevator")
+            .until(
+                (driveSubsystem.autoElevator.and(wristSubsystem.onlyDetectsForward)).or(overide)))
+        .andThen(
+            setState(desiredState.get())
+                .alongWith(lightSubsystem.solidAnimation(new Color("#ff0000"), "waitElevator")));
   }
 
-  public Command setNewState(Supplier<State> desiredState) {
-  return Commands.runOnce(() -> setDesiredState(desiredState.get()),
-                          elevatorSubsystem, wristSubsystem, climber)
-                          .withName("state: " + desiredState.get());
-}
-
-public Command setNewScoreState(Supplier<State> desiredState) {
-  return (Commands.waitUntil(() -> !driveSubsystem.firstStageAuto).withName("Wait For AutoAlign"))
-          .andThen(setNewState(desiredState));
-}
+  public boolean commandRunning(String commandName) {
+    return getCurrentCommand() != null && getCurrentCommand().getName().equals(commandName);
+  }
 
   // Just a shorthand for setting state with commands to avoid needing more repetition in
   // RobotContainer
+  // public Command setState(State desiredState) {
+  //   if (desiredState == State.idle) {
+  //     return Commands.deferredProxy(
+  //         () -> {
+  //           return Commands.runOnce(() -> setDesiredState(desiredState));
+  //         });
+  //   } else {
+  //     return Commands.defer(
+  //         () -> {
+  //           return Commands.runOnce(() -> setDesiredState(desiredState));
+  //         },
+  //         Set.of(elevatorSubsystem, wristSubsystem, climber));
+  //   }
+  // }
+
+  public Command setIdle() {
+    return Commands.runOnce(() -> setDesiredState(State.idle), this);
+  }
+
   public Command setState(State desiredState) {
-    if (desiredState == State.idle) {
-      return Commands.deferredProxy(
-          () -> {
-            return Commands.runOnce(() -> setDesiredState(desiredState));
-          });
-    } else {
-      return Commands.defer(
-          () -> {
-            return Commands.waitUntil(
-                    () ->
-                        desiredState == State.store
-                            || desiredState == State.algeaStore
-                            || desiredState == State.coralPickup
-                            || !driveSubsystem.firstStageAuto)
-                .andThen(Commands.runOnce(() -> setDesiredState(desiredState)));
-          },
-          Set.of(elevatorSubsystem, wristSubsystem, climber));
-    }
+    return Commands.runOnce(
+        () -> setDesiredState(desiredState), elevatorSubsystem, wristSubsystem, climber, this);
   }
 
   public void setDesiredState(State desiredState) {

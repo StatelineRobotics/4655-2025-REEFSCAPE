@@ -37,6 +37,7 @@ public class Wrist extends SubsystemBase {
   public Trigger detectsForward = new Trigger(() -> inputs.detectsForward);
 
   @AutoLogOutput public Trigger detectsBoth = detectsNote.and(detectsForward);
+  @AutoLogOutput public Trigger onlyDetectsForward = detectsForward.and(detectsNote.negate());
 
   public Trigger detectsNoteDebounced = detectsNote.debounce(.25, DebounceType.kRising);
   public Trigger detectsForwardDebounced = detectsForward.debounce(.25, DebounceType.kRising);

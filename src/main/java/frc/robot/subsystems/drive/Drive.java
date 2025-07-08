@@ -118,10 +118,9 @@ public class Drive extends SubsystemBase {
   private final Field2d field2d = new Field2d();
 
   private Pose2d lastPose = new Pose2d();
-
+  private boolean lastStageAuto = false;
   public Trigger readyFinalAuto = new Trigger(() -> nearFinalTarget(getPose(), .5));
-  public boolean firstStageAuto = false;
-  @AutoLogOutput public Trigger autoElevator = new Trigger(() -> !firstStageAuto);
+  @AutoLogOutput public Trigger autoElevator = new Trigger(() -> lastStageAuto);
 
   private static final PathConstraints teleopPathConstraints =
       new PathConstraints(4.0, 4.0, Units.degreesToRadians(540), Units.degreesToRadians(720));
@@ -262,13 +261,16 @@ public class Drive extends SubsystemBase {
     Supplier<Command> pathfindingCommand =
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
     Command command =
-        (defer(pathfindingCommand).beforeStarting(() -> firstStageAuto = true))
-            .andThen(Commands.waitUntil(condition).beforeStarting(() -> firstStageAuto = false))
+        defer(pathfindingCommand)
+            .andThen(() -> lastStageAuto = true)
+            .andThen(Commands.waitUntil(condition))
             .andThen(
                 defer(
-                    () ->
-                        DriveCommands.driveToPoseCommand(
-                            this, targetPose.get()[1], this::getPose)));
+                        () ->
+                            DriveCommands.driveToPoseCommand(
+                                this, targetPose.get()[1], this::getPose))
+                    .beforeStarting(() -> lastStageAuto = true)
+                    .finallyDo(() -> lastStageAuto = false));
     return command;
   }
 
@@ -278,15 +280,16 @@ public class Drive extends SubsystemBase {
         () -> AutoBuilder.pathfindToPose(targetPose.get()[0], teleopPathConstraints);
 
     Command command =
-        (defer(pathfindingCommand)
-                .beforeStarting(() -> firstStageAuto = true)
-                .finallyDo(() -> firstStageAuto = false))
+        defer(pathfindingCommand)
+            .andThen(() -> lastStageAuto = true)
             .andThen(Commands.waitUntil(() -> condition.getAsBoolean()))
             .andThen(
                 defer(
-                    () ->
-                        DriveCommands.driveToPoseCommand(
-                            this, targetPose.get()[1], this::getPose)));
+                        () ->
+                            DriveCommands.driveToPoseCommand(
+                                this, targetPose.get()[1], this::getPose))
+                    .beforeStarting(() -> lastStageAuto = true)
+                    .finallyDo(() -> lastStageAuto = false));
     return command;
   }
 

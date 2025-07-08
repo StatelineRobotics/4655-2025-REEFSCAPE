@@ -62,10 +62,10 @@ public class MechanismConstants {
     public static final double storeAlgeaHeight = 0.03;
     public static final double storeHeight = 0.0;
     public static final double maxHeight = .589;
-    public static final double levelOne = 0.05;
+    public static final double levelOne = 0.056;
     public static final double levelTwo = 0.23473908007144928;
     public static final double levelThree = 0.3704996407032013;
-    public static final double levelFour = 0.580;
+    public static final double levelFour = 0.585;
     public static final double algeaL2 = 0.185;
     public static final double algeaL3 = 0.31171162009239197;
     public static final double algeaGround = 0.0;
@@ -94,14 +94,14 @@ public class MechanismConstants {
     public static final double simKg = 0.0;
     public static final double simKs = 0.0;
 
-    public static final double intakeCoralAngle = -2.0;
+    public static final double intakeCoralAngle = 10.5;
     public static final double storeAlgeaAngle = -2.0;
     public static final double storeAngle = -2.0;
     public static final double coralScoreAngle = 30.0;
-    public static final double L4coralScoreAngle = 35.0;
+    public static final double L4coralScoreAngle = 33.0;
     public static final double algeaIntakeAngle = 2.0;
     public static final double algeaScoreAngle = 2.0;
-    public static final double l1angle = -45.0;
+    public static final double l1angle = -25.0;
     public static final double bargeangle = -35;
   }
 

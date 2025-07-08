@@ -32,8 +32,8 @@ import frc.robot.subsystems.mechanisms.MechanismConstants;
 import frc.robot.subsystems.mechanisms.MechanismConstants.WristConstants;
 
 public class WristTalonFXIO implements WristIO {
-  private CANrange canRange = new CANrange(MechanismConstants.canRangeID);
-  private CANrange forwardRange = new CANrange(MechanismConstants.forwardCANrangeId);
+  protected CANrange canRange = new CANrange(MechanismConstants.canRangeID);
+  protected CANrange forwardRange = new CANrange(MechanismConstants.forwardCANrangeId);
   private CANrangeConfiguration canRangeConfig = new CANrangeConfiguration();
 
   private TalonFX leftMotor = new TalonFX(MechanismConstants.leftIntakeId);
@@ -125,6 +125,7 @@ public class WristTalonFXIO implements WristIO {
   }
 
   public void updateInputs(WristIOInputs inputs) {
+
     inputs.detectsNote = canRange.getIsDetected().getValue();
     inputs.detectsForward = forwardRange.getIsDetected().getValue();
 

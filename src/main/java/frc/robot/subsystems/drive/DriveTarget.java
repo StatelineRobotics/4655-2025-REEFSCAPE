@@ -19,7 +19,7 @@ import java.util.HashMap;
  */
 public class DriveTarget {
   private static final double reefOffset = 1.281;
-  private static final double startOffset = 0.5;
+  private static final double startOffset = 1.0;
 
   public static AprilTagFieldLayout aprilTagLayout =
       AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);

@@ -44,7 +44,7 @@ public class ElevatorIOSparkMax implements ElevatorIO {
 
   public ElevatorIOSparkMax() {
 
-    mFunnelConfig.inverted(true).smartCurrentLimit(10).idleMode(IdleMode.kBrake);
+    mFunnelConfig.inverted(false).smartCurrentLimit(10).idleMode(IdleMode.kBrake);
 
     mFunnelConfig
         .absoluteEncoder
